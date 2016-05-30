@@ -17,14 +17,22 @@ SOURCES	+= \
 	main.cpp \
     nbody_data.cpp \
     nbody_solver.cpp \
+	nbody_solver_adams.cpp \
 	nbody_solver_euler.cpp \
-    wgt_nbody_view.cpp
+	nbody_solver_stormer.cpp \
+	wgt_nbody_view.cpp
+
+
 HEADERS	+= \
 	summation.h \
+	summation_proxy.h \
     nbody_data.h \
     nbody_solver.h \
+	nbody_solver_adams.h \
 	nbody_solver_euler.h \
+	nbody_solver_stormer.h \
     wgt_nbody_view.h \
-    summation_proxy.h \
-    vertex.h
+	vertex.h
+
+
 

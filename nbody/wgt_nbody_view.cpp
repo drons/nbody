@@ -1,5 +1,8 @@
 #include "wgt_nbody_view.h"
+
+#include "nbody_solver_adams.h"
 #include "nbody_solver_euler.h"
+#include "nbody_solver_stormer.h"
 
 #include <GL/glu.h>
 #include <omp.h>

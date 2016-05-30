@@ -77,10 +77,10 @@ void nbody_data::print_statistics()
 
 	qDebug()<< "#" << m_step
 			<< "t" << m_time
-			<< "dP" << total_impulce.length()
-			<< "dL" << total_impulce_moment.length()
+			<< "dP" << impulce_err()
+			<< "dL" << impulce_moment_err()
 			<< "Vcm" << (mass_center/m_time).length()
-			<< "dE" << total_energy;
+			<< "dE" << energy_err();
 }
 
 void nbody_data::dump_body(size_t n)
