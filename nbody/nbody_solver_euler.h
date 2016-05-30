@@ -1,0 +1,16 @@
+#ifndef NBODY_SOLVER_EULER_H
+#define NBODY_SOLVER_EULER_H
+
+#include "nbody_solver.h"
+
+class nbody_solver_euler : public nbody_solver
+{
+	std::vector< nbvertex_t >	m_dv;
+	std::vector< nbvertex_t >	m_correction_vert;
+	std::vector< nbvertex_t >	m_correction_vel;
+public:
+	nbody_solver_euler( nbody_data* data );
+	virtual void step( nbcoord_t dt );
+};
+
+#endif // NBODY_SOLVER_EULER_H
