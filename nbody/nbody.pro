@@ -19,6 +19,7 @@ SOURCES	+= \
     nbody_solver.cpp \
 	nbody_solver_adams.cpp \
 	nbody_solver_euler.cpp \
+	nbody_solver_runge_kutta.cpp \
 	nbody_solver_stormer.cpp \
 	wgt_nbody_view.cpp
 
@@ -30,6 +31,7 @@ HEADERS	+= \
     nbody_solver.h \
 	nbody_solver_adams.h \
 	nbody_solver_euler.h \
+	nbody_solver_runge_kutta.h \
 	nbody_solver_stormer.h \
     wgt_nbody_view.h \
 	vertex.h
