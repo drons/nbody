@@ -4,6 +4,7 @@
 #include "nbody_solver_euler.h"
 #include "nbody_solver_runge_kutta.h"
 #include "nbody_solver_stormer.h"
+#include "nbody_solver_trapeze.h"
 
 #include <GL/glu.h>
 #include <omp.h>
@@ -29,7 +30,7 @@ wgt_nbody_view::wgt_nbody_view()
 	m_3body.add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count );
 	//m_3body.add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
 
-	m_solver = new nbody_solver_runge_kutta( &m_3body );
+	m_solver = new nbody_solver_trapeze( &m_3body );
 	m_renderer = NULL;
 }
 
