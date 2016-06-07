@@ -1,7 +1,9 @@
 #include <QApplication>
+#include <QDebug>
 #include <omp.h>
 
 #include "wgt_nbody_view.h"
+#include "nbody_fcompute_opencl.h"
 
 int main(int argc, char *argv[] )
 {

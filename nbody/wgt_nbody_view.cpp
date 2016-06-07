@@ -7,6 +7,7 @@
 #include "nbody_solver_trapeze.h"
 
 #include "nbody_fcompute_block.h"
+#include "nbody_fcompute_opencl.h"
 #include "nbody_fcompute_simple.h"
 #include "nbody_fcompute_sparse.h"
 
@@ -24,7 +25,7 @@ wgt_nbody_view::wgt_nbody_view()
 	m_mesh_sz = 100;
 	nbcoord_t	radius = 50;
 	nbcoord_t	galaxy_mass = 1000;
-	size_t		star_count = 30;
+	size_t		star_count = 10*1024;
 	nbvertex_t	center( m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5 );
 	nbvertex_t	base( radius, 0, 0 );
 	nbvertex_t	velosity( 0, sqrt(m_3body.force( nbvertex_t(), base, galaxy_mass, galaxy_mass ).length()*(base).length()/(2*galaxy_mass)), 0 );
@@ -34,8 +35,8 @@ wgt_nbody_view::wgt_nbody_view()
 	m_3body.add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count );
 	//m_3body.add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
 
-	m_engine = new nbody_fcompute_block();
-	m_solver = new nbody_solver_trapeze( &m_3body );
+	m_engine = new nbody_fcompute_opencl();
+	m_solver = new nbody_solver_euler( &m_3body );
 	m_solver->set_engine( m_engine );
 	m_renderer = NULL;
 }
@@ -262,7 +263,7 @@ void wgt_nbody_view::step()
 		//render_file();
 	}
 
-	//nbcoord_t	step_time = omp_get_wtime();
+    nbcoord_t	step_time = omp_get_wtime();
 	m_solver->step( 0.1/w );
-	//qDebug() << "Step time" << step_time - omp_get_wtime();
+    qDebug() << "Step time" << step_time - omp_get_wtime();
 }
