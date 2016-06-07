@@ -9,6 +9,7 @@ class wgt_nbody_view : public QGLWidget
 {
 	nbody_data				m_3body;
 	nbody_solver*			m_solver;
+	nbody_fcompute*			m_engine;
 	nbcoord_t					m_mesh_sx;
 	nbcoord_t					m_mesh_sy;
 	nbcoord_t					m_mesh_sz;
