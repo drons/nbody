@@ -49,7 +49,8 @@ HEADERS	+= \
 	nbody_solver_stormer.h \
 	nbody_solver_trapeze.h \
 	wgt_nbody_view.h \
-	vertex.h
+	vertex.h \
+    nbtype.h
 
 OTHER_FILES += \
     nbody_fcompute_opencl.cl

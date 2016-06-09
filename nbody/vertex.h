@@ -10,7 +10,8 @@ struct vertex3
 	typedef T			value_type;
 	T x,y,z;
     vertex3(void){x = y = z = 0;}
-    vertex3(T value){x = y = z = value;}
+	vertex3(T value){x = y = z = value;}
+	vertex3(int value){x = y = z = (T)value;}
 	template<class V>
     vertex3(const V& copy) : x((T)copy.x),y((T)copy.y),z((T)copy.z){}
 	template<class V>

@@ -2,10 +2,7 @@
 #define NBODY_DATA_H
 
 #include <vector>
-#include "vertex.h"
-
-typedef double					nbcoord_t;
-typedef vertex3<nbcoord_t>		nbvertex_t;
+#include "nbtype.h"
 
 #define NBODY_DATA_BLOCK_SIZE	64
 #define NBODY_MIN_R				1e-8

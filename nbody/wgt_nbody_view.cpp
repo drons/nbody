@@ -54,32 +54,32 @@ void wgt_nbody_view::paint_color_box()
 	glShadeModel( GL_SMOOTH );
 	//! Draw Cube
 	glLineWidth( 1 );
-	const nbvertex_t	cube_vrt[8] =
+	const nb3d_t	cube_vrt[8] =
 	{
 		//Floor
-		nbvertex_t( 0, 0, 0 ),
-		nbvertex_t( m_mesh_sx, 0, 0 ),
-		nbvertex_t( m_mesh_sx, m_mesh_sy, 0 ),
-		nbvertex_t( 0, m_mesh_sy, 0 ),
+	nb3d_t( 0, 0, 0 ),
+	nb3d_t( m_mesh_sx, 0, 0 ),
+	nb3d_t( m_mesh_sx, m_mesh_sy, 0 ),
+	nb3d_t( 0, m_mesh_sy, 0 ),
 		//Roof
-		nbvertex_t( 0, 0, m_mesh_sz ),
-		nbvertex_t( m_mesh_sx, 0, m_mesh_sz ),
-		nbvertex_t( m_mesh_sx, m_mesh_sy, m_mesh_sz ),
-		nbvertex_t( 0, m_mesh_sy, m_mesh_sz )
+	nb3d_t( 0, 0, m_mesh_sz ),
+	nb3d_t( m_mesh_sx, 0, m_mesh_sz ),
+	nb3d_t( m_mesh_sx, m_mesh_sy, m_mesh_sz ),
+	nb3d_t( 0, m_mesh_sy, m_mesh_sz )
 	};
 
-	const nbvertex_t	cube_col[8] =
+	const nb3d_t	cube_col[8] =
 	{
 		//Floor
-		nbvertex_t( 0, 0, 0 ),
-		nbvertex_t( 1, 0, 0 ),
-		nbvertex_t( 1, 1, 0 ),
-		nbvertex_t( 0, 1, 0 ),
+	nb3d_t( 0, 0, 0 ),
+	nb3d_t( 1, 0, 0 ),
+	nb3d_t( 1, 1, 0 ),
+	nb3d_t( 0, 1, 0 ),
 		//Roof
-		nbvertex_t( 0, 0, 1 ),
-		nbvertex_t( 1, 0, 1 ),
-		nbvertex_t( 1, 1, 1 ),
-		nbvertex_t( 0, 1, 1 )
+	nb3d_t( 0, 0, 1 ),
+	nb3d_t( 1, 0, 1 ),
+	nb3d_t( 1, 1, 1 ),
+	nb3d_t( 0, 1, 1 )
 	};
 	const GLuint cube_idx[12*2] =
 	{
@@ -171,7 +171,7 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	glBlendFunc( GL_ONE, GL_ONE );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glVertexPointer( 3, GL_DOUBLE, 0, m_3body.get_vertites() );
+	glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_3body.get_vertites() );
 	glDrawArrays( GL_POINTS, 0, (GLsizei)m_3body.get_count() );
 	glDisableClientState( GL_VERTEX_ARRAY );
 }

@@ -35,7 +35,7 @@ WORK_TYPE summation_k( A container, size_t begin, size_t end, WORK_TYPE* correct
 template< class WORK_TYPE, class A >
 WORK_TYPE summation( A container, size_t size )
 {
-	WORK_TYPE correction( 0.0 );
+	WORK_TYPE correction( 0 );
 
 	return summation_k( container, 0, size, &correction );
 }

@@ -101,7 +101,7 @@ QString nbody_fcompute_opencl::data::devctx::build_options()
 
 	options += "-DNBODY_DATA_BLOCK_SIZE=" + QString::number( NBODY_DATA_BLOCK_SIZE ) + " ";
 	options += "-DNBODY_MIN_R=" + QString::number( NBODY_MIN_R ) + " ";
-	options += "-Dnbcoord_t=double ";
+	options += "-Dnbcoord_t=" + QString( nbtype_info<nbcoord_t>::type_name() ) + " ";
 	return options;
 }
 
@@ -114,13 +114,13 @@ nbody_fcompute_opencl::data::devctx::devctx( cl::Device& device, size_t count ) 
 	context( device ),
 	prog( load_programs( context, device, build_options(), sources() ) ),
 	queue( context, device, 0 ),
-	vertex_x( context, CL_MEM_READ_ONLY, count*sizeof(double) ),
-	vertex_y( context, CL_MEM_READ_ONLY, count*sizeof(double) ),
-	vertex_z( context, CL_MEM_READ_ONLY, count*sizeof(double) ),
-	mass( context, CL_MEM_READ_ONLY, count*sizeof(double) ),
-	dv_x( context, CL_MEM_WRITE_ONLY, count*sizeof(double) ),
-	dv_y( context, CL_MEM_WRITE_ONLY, count*sizeof(double) ),
-	dv_z( context, CL_MEM_WRITE_ONLY, count*sizeof(double) ),
+    vertex_x( context, CL_MEM_READ_ONLY, count*sizeof(nbcoord_t) ),
+    vertex_y( context, CL_MEM_READ_ONLY, count*sizeof(nbcoord_t) ),
+    vertex_z( context, CL_MEM_READ_ONLY, count*sizeof(nbcoord_t) ),
+    mass( context, CL_MEM_READ_ONLY, count*sizeof(nbcoord_t) ),
+    dv_x( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
+    dv_y( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
+    dv_z( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
 	ckernel( prog, "ComputeBlock" )
 {
 }
@@ -155,21 +155,21 @@ void nbody_fcompute_opencl::data::find_devices(size_t count)
 void nbody_fcompute_opencl::data::prepare( devctx& ctx, const nbody_data* data, const nbvertex_t* vertites )
 {
 	size_t					count = data->get_count();
-	const double*			mass = data->get_mass();
-	std::vector<double>		tmp;
+	const nbcoord_t*		mass = data->get_mass();
+	std::vector<nbcoord_t>	tmp;
 
 	tmp.resize( count );
 	for( size_t n = 0; n != count; ++n )
 		tmp[n] = vertites[n].x;
-	ctx.queue.enqueueWriteBuffer( ctx.vertex_x, CL_TRUE, 0, count*sizeof(double), tmp.data() );
+	ctx.queue.enqueueWriteBuffer( ctx.vertex_x, CL_TRUE, 0, count*sizeof(nbcoord_t), tmp.data() );
 	for( size_t n = 0; n != count; ++n )
 		tmp[n] = vertites[n].y;
-	ctx.queue.enqueueWriteBuffer( ctx.vertex_y, CL_TRUE, 0, count*sizeof(double), tmp.data() );
+	ctx.queue.enqueueWriteBuffer( ctx.vertex_y, CL_TRUE, 0, count*sizeof(nbcoord_t), tmp.data() );
 	for( size_t n = 0; n != count; ++n )
 		tmp[n] = vertites[n].z;
-	ctx.queue.enqueueWriteBuffer( ctx.vertex_z, CL_TRUE, 0, count*sizeof(double), tmp.data() );
+	ctx.queue.enqueueWriteBuffer( ctx.vertex_z, CL_TRUE, 0, count*sizeof(nbcoord_t), tmp.data() );
 
-	ctx.queue.enqueueWriteBuffer( ctx.mass, CL_TRUE, 0, count*sizeof(double), mass );
+	ctx.queue.enqueueWriteBuffer( ctx.mass, CL_TRUE, 0, count*sizeof(nbcoord_t), mass );
 
 #if defined(CL_VERSION_1_2)
 	ctx.queue.enqueueFillBuffer( ctx.dv_x, (nbcoord_t)0.0, 0, count );
@@ -194,9 +194,9 @@ void nbody_fcompute_opencl::data::compute_block( devctx& ctx, size_t offset_n1, 
 	exec_ev = ctx.ckernel( eargs, offset_n1, offset_n2, ctx.vertex_x, ctx.vertex_y, ctx.vertex_z, ctx.mass, ctx.dv_x, ctx.dv_y, ctx.dv_z );
 	exec_ev.wait();
 
-	ctx.queue.enqueueReadBuffer( ctx.dv_x, CL_TRUE, 0, count*sizeof(double), ctx.host_dv_x.data() );
-	ctx.queue.enqueueReadBuffer( ctx.dv_y, CL_TRUE, 0, count*sizeof(double), ctx.host_dv_y.data() );
-	ctx.queue.enqueueReadBuffer( ctx.dv_z, CL_TRUE, 0, count*sizeof(double), ctx.host_dv_z.data() );
+	ctx.queue.enqueueReadBuffer( ctx.dv_x, CL_TRUE, 0, count*sizeof(nbcoord_t), ctx.host_dv_x.data() );
+	ctx.queue.enqueueReadBuffer( ctx.dv_y, CL_TRUE, 0, count*sizeof(nbcoord_t), ctx.host_dv_y.data() );
+	ctx.queue.enqueueReadBuffer( ctx.dv_z, CL_TRUE, 0, count*sizeof(nbcoord_t), ctx.host_dv_z.data() );
 }
 
 nbody_fcompute_opencl::nbody_fcompute_opencl() :
