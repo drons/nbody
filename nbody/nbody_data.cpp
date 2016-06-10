@@ -5,6 +5,8 @@
 #include "summation.h"
 #include "summation_proxy.h"
 
+#include <omp.h>
+
 namespace {
 	nbcoord_t G = 1;
 }
@@ -18,6 +20,8 @@ nbody_data::nbody_data()
 	m_total_potential_energy = 0;
 	m_last_total_kinetic_energy = 0;
 	m_last_total_potential_energy = 0;
+	m_timer_start = omp_get_wtime();
+	m_timer_step = 0;
 }
 
 nbvertex_t nbody_data::force( const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2) const
@@ -42,6 +46,7 @@ nbcoord_t nbody_data::potential_energy( const nbvertex_t* vertites, size_t body1
 
 void nbody_data::print_statistics()
 {
+	double		timer_end = omp_get_wtime();
 	nbvertex_t	total_impulce( summation<nbvertex_t,impulce_proxy>( impulce_proxy( this ), m_count ) );
 	nbvertex_t	total_impulce_moment( summation<nbvertex_t,impulce_moment_proxy>( impulce_moment_proxy( this ), m_count ) );
 	nbvertex_t	mass_center( summation<nbvertex_t, mass_center_proxy>( mass_center_proxy( this ), m_count ) );
@@ -80,7 +85,12 @@ void nbody_data::print_statistics()
 			<< "dP" << impulce_err()
 			<< "dL" << impulce_moment_err()
 			<< "Vcm" << (mass_center/m_time).length()
-			<< "dE" << energy_err();
+			<< "dE" << energy_err()
+			<< "St" << ( timer_end - m_timer_start )/( m_step - m_timer_step )
+			<< "Wt" << ( omp_get_wtime() - m_timer_start )/( m_step - m_timer_step );
+
+	m_timer_start = omp_get_wtime();
+	m_timer_step = m_step;
 }
 
 void nbody_data::dump_body(size_t n)
@@ -189,6 +199,21 @@ void nbody_data::add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t r
 	}
 }
 
+void nbody_data::make_universe( nbcoord_t sx, nbcoord_t sy, nbcoord_t sz )
+{
+	nbcoord_t	radius = sx*0.5;
+	nbcoord_t	galaxy_mass = 1000;
+	size_t		star_count = 10*1024;
+	nbvertex_t	center( sx*0.5, sy*0.5, sz*0.5 );
+	nbvertex_t	base( radius, 0, 0 );
+	nbvertex_t	velosity( 0, sqrt(force( nbvertex_t(), base, galaxy_mass, galaxy_mass ).length()*(base).length()/(2*galaxy_mass)), 0 );
+	srand(1);
+
+	add_galaxy( center - base, velosity/3, radius, galaxy_mass, star_count );
+	add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count );
+	//add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
+}
+
 nbvertex_t nbody_data::total_impulce() const
 {
 	return m_total_impulce;
@@ -242,5 +267,10 @@ nbcoord_t nbody_data::impulce_moment_err() const
 nbcoord_t nbody_data::energy_err() const
 {
 	return fabs( 100.0*( last_total_energy() - total_energy() )/total_energy() );
+}
+
+void nbody_data::dump()
+{
+	qDebug() << "Dump function placeholder";
 }
 

@@ -27,6 +27,9 @@ class nbody_data
 	nbvertex_t					m_last_mass_center;
 	nbcoord_t					m_last_total_kinetic_energy;
 	nbcoord_t					m_last_total_potential_energy;
+	double						m_timer_start;
+	size_t						m_timer_step;
+
 public:
 	nbody_data();
 
@@ -47,6 +50,7 @@ public:
 	size_t get_count() const;
 
 	void add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count );
+	void make_universe( nbcoord_t sx, nbcoord_t sy, nbcoord_t sz );
 
 	nbvertex_t total_impulce() const;
 	nbvertex_t total_impulce_moment() const;
@@ -60,6 +64,8 @@ public:
 	nbcoord_t impulce_err() const;
 	nbcoord_t impulce_moment_err() const;
 	nbcoord_t energy_err() const;
+
+	void dump();
 };
 
 #endif // NBODY_DATA_H

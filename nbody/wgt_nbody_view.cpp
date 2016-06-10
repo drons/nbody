@@ -1,50 +1,26 @@
 #include "wgt_nbody_view.h"
-
-#include "nbody_solver_adams.h"
-#include "nbody_solver_euler.h"
-#include "nbody_solver_runge_kutta.h"
-#include "nbody_solver_stormer.h"
-#include "nbody_solver_trapeze.h"
-
-#include "nbody_fcompute_block.h"
-#include "nbody_fcompute_opencl.h"
-#include "nbody_fcompute_simple.h"
-#include "nbody_fcompute_sparse.h"
+#include "nbody_solver.h"
 
 #include <GL/glu.h>
 #include <omp.h>
 #include <QDebug>
 #include <QDir>
 
-wgt_nbody_view::wgt_nbody_view()
+wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbcoord_t box_size )
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
-	m_mesh_sx = 100;
-	m_mesh_sy = 100;
-	m_mesh_sz = 100;
-	nbcoord_t	radius = 50;
-	nbcoord_t	galaxy_mass = 1000;
-	size_t		star_count = 10*1024;
-	nbvertex_t	center( m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5 );
-	nbvertex_t	base( radius, 0, 0 );
-	nbvertex_t	velosity( 0, sqrt(m_3body.force( nbvertex_t(), base, galaxy_mass, galaxy_mass ).length()*(base).length()/(2*galaxy_mass)), 0 );
-	srand(1);
+	m_mesh_sx = box_size;
+	m_mesh_sy = box_size;
+	m_mesh_sz = box_size;
 
-	m_3body.add_galaxy( center - base, velosity/3, radius, galaxy_mass, star_count );
-	m_3body.add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count );
-	//m_3body.add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
-
-	m_engine = new nbody_fcompute_opencl();
-	m_solver = new nbody_solver_euler( &m_3body );
-	m_solver->set_engine( m_engine );
+	m_data = solver->data();
+	m_solver = solver;
 	m_renderer = NULL;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
 {
-	delete m_engine;
-	delete m_solver;
 	delete m_renderer;
 }
 
@@ -152,12 +128,12 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	renderText( 20 , 20, QString( "Step  = %1" ).arg( m_3body.get_step() ), QFont("Monospace") );
-	renderText( 20 , 40, QString( "T     = %1" ).arg( m_3body.get_time() ), QFont("Monospace") );
-	renderText( 20 , 60, QString( "Stars = %1" ).arg( m_3body.get_count() ), QFont("Monospace") );
-	renderText( 20 , 80, QString( "dP    = %1 %" ).arg( m_3body.impulce_err(), 3, 'e', 2 ), QFont("Monospace") );
-	renderText( 20 ,100, QString( "dL    = %1 %" ).arg( m_3body.impulce_moment_err(), 3, 'e', 2 ), QFont("Monospace") );
-	renderText( 20 ,120, QString( "dE    = %1 %" ).arg( m_3body.energy_err(), 3, 'e', 2 ), QFont("Monospace") );
+	renderText( 20 , 20, QString( "Step  = %1" ).arg( m_data->get_step() ), QFont("Monospace") );
+	renderText( 20 , 40, QString( "T     = %1" ).arg( m_data->get_time() ), QFont("Monospace") );
+	renderText( 20 , 60, QString( "Stars = %1" ).arg( m_data->get_count() ), QFont("Monospace") );
+	renderText( 20 , 80, QString( "dP    = %1 %" ).arg( m_data->impulce_err(), 3, 'e', 2 ), QFont("Monospace") );
+	renderText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->impulce_moment_err(), 3, 'e', 2 ), QFont("Monospace") );
+	renderText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->energy_err(), 3, 'e', 2 ), QFont("Monospace") );
 
 	paint_color_box();
 
@@ -171,8 +147,8 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	glBlendFunc( GL_ONE, GL_ONE );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_3body.get_vertites() );
-	glDrawArrays( GL_POINTS, 0, (GLsizei)m_3body.get_count() );
+	glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
+	glDrawArrays( GL_POINTS, 0, (GLsizei)m_data->get_count() );
 	glDisableClientState( GL_VERTEX_ARRAY );
 }
 
@@ -206,12 +182,12 @@ void wgt_nbody_view::render_file()
 		p.drawLine( QPointF( 0, image.height()/2.0 ), QPointF( image.width(), image.height()/2.0 ) );
 		p.drawLine( QPointF( image.width()/2.0, 0 ), QPointF( image.width()/2.0, image.height() ) );
 
-		p.drawText( 20 , 20, QString( "Step  = %1" ).arg( m_3body.get_step() ) );
-		p.drawText( 20 , 40, QString( "T     = %1" ).arg( m_3body.get_time() ) );
-		p.drawText( 20 , 60, QString( "Stars = %1" ).arg( m_3body.get_count() ) );
-		p.drawText( 20 , 80, QString( "dP    = %1 %" ).arg( m_3body.impulce_err(), 3, 'e', 2  ) );
-		p.drawText( 20 ,100, QString( "dL    = %1 %" ).arg( m_3body.impulce_moment_err(), 3, 'e', 2 )  );
-		p.drawText( 20 ,120, QString( "dE    = %1 %" ).arg( m_3body.energy_err(), 3, 'e', 2 )  );
+		p.drawText( 20 , 20, QString( "Step  = %1" ).arg( m_data->get_step() ) );
+		p.drawText( 20 , 40, QString( "T     = %1" ).arg( m_data->get_time() ) );
+		p.drawText( 20 , 60, QString( "Stars = %1" ).arg( m_data->get_count() ) );
+		p.drawText( 20 , 80, QString( "dP    = %1 %" ).arg( m_data->impulce_err(), 3, 'e', 2  ) );
+		p.drawText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->impulce_moment_err(), 3, 'e', 2 )  );
+		p.drawText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->energy_err(), 3, 'e', 2 )  );
 	}
 	QString name = out_dir + "/%1.png";
 
@@ -221,7 +197,7 @@ void wgt_nbody_view::render_file()
 		return;
 	}
 
-	name = name.arg( m_3body.get_step(), 8, 10,  QChar('0') );
+	name = name.arg( m_data->get_step(), 8, 10,  QChar('0') );
 
 	if( !image.save( name, "PNG" ) )
 	{
@@ -254,16 +230,16 @@ void wgt_nbody_view::paintGL()
 
 void wgt_nbody_view::step()
 {
-	size_t	i = m_3body.get_step();
+	size_t	i = m_data->get_step();
 
 	size_t	w = 100;
 	if( i % w == 0 )
 	{
-		m_3body.print_statistics();
+		m_data->print_statistics();
 		//render_file();
 	}
 
     nbcoord_t	step_time = omp_get_wtime();
-	m_solver->step( 0.1/w );
+	m_solver->step( m_solver->get_min_step() );
     qDebug() << "Step time" << step_time - omp_get_wtime();
 }
