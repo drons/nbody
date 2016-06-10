@@ -159,5 +159,20 @@ struct vertex3
 	}
 };
 
+template<class T>
+struct vertex4
+{
+	typedef size_t		size_type;
+	typedef T			value_type;
+	T x,y,z,w;
+    vertex4(void){x = y = z = w = 0;}
+	vertex4(T value){x = y = z = w = value;}
+	vertex4(int value){x = y = z = w = (T)value;}
+	template<class V>
+    vertex4(const V& copy) : x((T)copy.x),y((T)copy.y),z((T)copy.z),w((T)copy.w){}
+	template<class V>
+    vertex4& operator = (const V& copy){ x = (T)copy.x; y = (T)copy.y; z = (T)copy.z; w = (T)copy.w; return *this;}
+    vertex4(const T &x_,const  T &y_,const  T &z_,const  T &w_) :	x(x_),y(y_),z(z_),w(w_){}
+};
 
 #endif//_VERTEX_

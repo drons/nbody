@@ -137,8 +137,6 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 
 	paint_color_box();
 
-	nbcoord_t intensity = 0.8;
-	glColor3d( intensity*0.5, intensity*0.5, intensity );
 	glDisable( GL_DEPTH_TEST );
 	glLineWidth( 1 );
 	glPointSize( 3 );
@@ -147,9 +145,12 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	glBlendFunc( GL_ONE, GL_ONE );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
 	glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
+	glColorPointer( nbtype_info<nbcolor_t>::size(), nbtype_info<nbcolor_t>::gl_type(), 0, m_data->get_color() );
 	glDrawArrays( GL_POINTS, 0, (GLsizei)m_data->get_count() );
 	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 }
 
 void wgt_nbody_view::render_file()

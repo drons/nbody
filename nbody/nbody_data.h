@@ -13,6 +13,7 @@ class nbody_data
 	nbcoord_t					m_time;
 	size_t						m_step;
 	std::vector< nbvertex_t >	m_vertites;
+	std::vector< nbcolor_t >	m_color;
 	std::vector< nbvertex_t >	m_velosites;
 	std::vector< nbcoord_t >	m_mass;
 	std::vector< nbcoord_t >	m_a;
@@ -35,7 +36,7 @@ public:
 
 	nbvertex_t force( const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2 ) const;
 	nbcoord_t potential_energy( const nbvertex_t* vertites, size_t body1, size_t body2 ) const;
-	void add_body( const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a );
+	void add_body( const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a, const nbcolor_t& color );
 	void advise_time( nbcoord_t dt );
 	nbcoord_t get_time() const;
 	size_t get_step() const;
@@ -44,12 +45,13 @@ public:
 	nbvertex_t* get_velosites();
 	const nbvertex_t* get_velosites() const;
 	const nbcoord_t* get_mass() const;
+	const nbcolor_t* get_color() const;
 
 	void print_statistics();
 	void dump_body( size_t n );
 	size_t get_count() const;
 
-	void add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count );
+	void add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count, nbcolor_t& color );
 	void make_universe( nbcoord_t sx, nbcoord_t sy, nbcoord_t sz );
 
 	nbvertex_t total_impulce() const;
