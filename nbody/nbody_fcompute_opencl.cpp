@@ -121,7 +121,7 @@ nbody_fcompute_opencl::data::devctx::devctx( cl::Device& device, size_t count ) 
     dv_x( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
     dv_y( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
     dv_z( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
-	ckernel( prog, "ComputeBlock" )
+	ckernel( prog, "ComputeBlockLocal" )
 {
 }
 
