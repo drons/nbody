@@ -123,6 +123,16 @@ nbody_fcompute_opencl::data::devctx::devctx( cl::Device& device, size_t count ) 
     dv_z( context, CL_MEM_WRITE_ONLY, count*sizeof(nbcoord_t) ),
 	ckernel( prog, "ComputeBlockLocal" )
 {
+	size_t	global_memory_amount = 0;
+	size_t	local_memory_amount = 0;
+
+	global_memory_amount += count*4*sizeof(nbcoord_t); // vertex_x, vertex_y, vertex_z, mass
+	global_memory_amount += count*3*sizeof(nbcoord_t); // dv_x, dv_y, dv_z
+
+	local_memory_amount += NBODY_DATA_BLOCK_SIZE*4*sizeof(nbcoord_t); // x2, y2, z2, m2
+
+	qDebug() << "\t\t\tKernel global memory" << global_memory_amount / 1024.0 << "Kb";
+	qDebug() << "\t\t\tKernel local memory" << local_memory_amount / 1024.0 << "Kb";
 }
 
 void nbody_fcompute_opencl::data::find_devices(size_t count)
