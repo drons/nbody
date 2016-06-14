@@ -19,6 +19,7 @@ INCLUDEPATH += /home/sas/prg/opencl/nvidia
 
 SOURCES	+= \
 	main.cpp \
+    nbody_butcher_table.cpp \
 	nbody_data.cpp \
 	nbody_fcompute.cpp \
 	nbody_fcompute_block.cpp \
@@ -37,6 +38,7 @@ SOURCES	+= \
 HEADERS	+= \
 	summation.h \
 	summation_proxy.h \
+    nbody_butcher_table.h \
 	nbody_data.h \
 	nbody_fcompute.h \
 	nbody_fcompute_block.h \

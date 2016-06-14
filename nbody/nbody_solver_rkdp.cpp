@@ -4,9 +4,15 @@
 nbody_solver_rkdp::nbody_solver_rkdp( nbody_data* data ) :
 	nbody_solver( data )
 {
+	m_bt = new nbody_butcher_table_rkdp;
 	m_step_subdivisions = 8;
 	m_vrt_error_threshold = 1e-4;
 	m_vel_error_threshold = 1e-4;
+}
+
+nbody_solver_rkdp::~nbody_solver_rkdp()
+{
+	delete m_bt;
 }
 
 void nbody_solver_rkdp::step( double dt )
@@ -21,32 +27,12 @@ void nbody_solver_rkdp::step( double dt )
 
 void nbody_solver_rkdp::sub_step( size_t substeps_count, nbcoord_t dt, nbvertex_t* vertites, nbvertex_t* velosites, size_t recursion_level )
 {
-#if 1
-	static const size_t		STEPS = 7;//Dormand–Prince method
-	static const nbcoord_t	c[]  = { 0, 1.0/5.0, 3.0/10.0, 4.0/5.0, 8.0/9.0, 1.0, 1.0 };
-	static const nbcoord_t	b1[] = { 35.0/384.0, 0.0, 500.0/1113.0, 125.0/192.0, -2187.0/6784.0, 11.0/84.0, 0.0 };
-	static const nbcoord_t	b2[] = { 5179.0/57600.0, 0.0, 7571.0/16695.0, 393.0/640.0, -92097.0/339200.0, 187.0/2100.0, 1.0/40.0 };
-	static const nbcoord_t	a1[] = { 0 };
-	static const nbcoord_t	a2[] = { 1.0/5.0 };
-	static const nbcoord_t	a3[] = { 3.0/40.0, 9.0/40.0};
-	static const nbcoord_t	a4[] = { 44.0/45.0, -56.0/15.0, 32.0/9.0 };
-	static const nbcoord_t	a5[] = { 19372.0/6561.0, -25360.0/2187.0, 64448.0/6561.0, -212.0/729.0 };
-	static const nbcoord_t	a6[] = { 9017.0/3168.0, -355.0/33.0, 46732.0/5247.0, 49.0/176.0, -5103.0/18656.0 };
-	static const nbcoord_t	a7[] = { 35.0/384.0, 0.0, 500.0/1113.0, 125.0/192.0, -2187.0/6784.0, 11.0/84.0, 0.0 };
-	static const nbcoord_t*	a[] = { a1, a2, a3, a4, a5, a6, a7 };
-#else
-	static const size_t		STEPS = 4;//Classic RK4 Butcher table
-	static const nbcoord_t	c[]  = { 0, 0.5, 0.5, 1.0 };
-	static const nbcoord_t	b1[] = { 1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0 };
-	static const nbcoord_t	b2[] = { 1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0 };
-	static const nbcoord_t	a1[] = { 0.0, 0.0 };
-	static const nbcoord_t	a2[] = { 1.0/2.0, 0.0 };
-	static const nbcoord_t	a3[] = { 0.0, 1.0/2.0, 0.0 };
-	static const nbcoord_t	a4[] = { 0.0, 0.0, 1.0, 0.0 };
-	static const nbcoord_t*	a[] = { a1, a2, a3, a4 };
-#endif
+	const size_t		STEPS = m_bt->get_steps();
+	const nbcoord_t**	a = m_bt->get_a();
+	const nbcoord_t*	b1 = m_bt->get_b1();
+	const nbcoord_t*	b2 = m_bt->get_b2();
+	const nbcoord_t*	c = m_bt->get_c();
 	size_t		count = data()->get_count();
-
 
 	if( k1.size() != count )
 	{
@@ -138,27 +124,31 @@ void nbody_solver_rkdp::sub_step( size_t substeps_count, nbcoord_t dt, nbvertex_
 		nbcoord_t dvrt_max = 0.0;
 		nbcoord_t dvel_max = 0.0;
 
-		#pragma omp parallel for reduction( max : dvrt_max )
-		for( size_t n = 0; n < count; ++n )
+		if( m_bt->is_embedded() )
 		{
-			nbcoord_t	local_max = tmpvrt[n].length();
-			if( local_max > dvrt_max )
+			#pragma omp parallel for reduction( max : dvrt_max )
+			for( size_t n = 0; n < count; ++n )
 			{
-				dvrt_max = local_max;
+				nbcoord_t	local_max = tmpvrt[n].length();
+				if( local_max > dvrt_max )
+				{
+					dvrt_max = local_max;
+				}
 			}
-		}
-		#pragma omp parallel for reduction( max : dvel_max )
-		for( size_t n = 0; n < count; ++n )
-		{
-			nbcoord_t	local_max = tmpvel[n].length();
-			if( local_max > dvel_max )
+			#pragma omp parallel for reduction( max : dvel_max )
+			for( size_t n = 0; n < count; ++n )
 			{
-				dvel_max = local_max;
+				nbcoord_t	local_max = tmpvel[n].length();
+				if( local_max > dvel_max )
+				{
+					dvel_max = local_max;
+				}
 			}
 		}
 
-		bool can_subdivide = ( recursion_level < MAX_RECURSION ) && dt > get_min_step();
+		bool can_subdivide = ( m_bt->is_embedded() && recursion_level < MAX_RECURSION ) && dt > get_min_step();
 		bool need_subdivide = dvel_max > m_vel_error_threshold || dvrt_max > m_vrt_error_threshold;
+
 		if( can_subdivide && need_subdivide )
 		{
 			nbcoord_t	new_dt = dt/m_step_subdivisions;
