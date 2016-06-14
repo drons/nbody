@@ -44,7 +44,7 @@ nbcoord_t nbody_solver::get_max_step() const
 
 int nbody_solver::run( nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt )
 {
-	nbcoord_t	dt = get_min_step();
+	nbcoord_t	dt = get_max_step();
 	nbcoord_t   last_check = 0;
 	nbcoord_t   last_dump = 0;
 	while( m_data->get_time() < max_time )

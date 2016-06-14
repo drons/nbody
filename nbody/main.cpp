@@ -6,6 +6,7 @@
 
 #include "nbody_solver_adams.h"
 #include "nbody_solver_euler.h"
+#include "nbody_solver_rkdp.h"
 #include "nbody_solver_runge_kutta.h"
 #include "nbody_solver_stormer.h"
 #include "nbody_solver_trapeze.h"
@@ -55,9 +56,9 @@ int main( int argc, char *argv[] )
 	data.make_universe( box_size, box_size, box_size );
 
 	nbody_fcompute_opencl   engine;
-	nbody_solver_euler		solver( &data );
+	nbody_solver_rkdp		solver( &data );
 
-	solver.set_time_step( 0.1, 0.1 );
+	solver.set_time_step( 1e-9, 1e-2 );
 
 	solver.set_engine( &engine );
 

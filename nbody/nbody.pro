@@ -28,6 +28,7 @@ SOURCES	+= \
 	nbody_solver.cpp \
 	nbody_solver_adams.cpp \
 	nbody_solver_euler.cpp \
+    nbody_solver_rkdp.cpp \
 	nbody_solver_runge_kutta.cpp \
 	nbody_solver_stormer.cpp \
 	nbody_solver_trapeze.cpp \
@@ -45,6 +46,7 @@ HEADERS	+= \
 	nbody_solver.h \
 	nbody_solver_adams.h \
 	nbody_solver_euler.h \
+    nbody_solver_rkdp.h \
 	nbody_solver_runge_kutta.h \
 	nbody_solver_stormer.h \
 	nbody_solver_trapeze.h \
