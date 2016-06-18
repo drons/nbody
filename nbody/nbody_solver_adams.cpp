@@ -29,6 +29,7 @@ void nbody_solver_adams::step( double dt )
 
 	if( m_xdata.size() != rank )
 	{
+		m_starter->set_engine( get_engine() );
 		m_xdata.resize(rank);
 		m_vdata.resize(rank);
 		m_dx.resize(rank);
@@ -49,6 +50,21 @@ void nbody_solver_adams::step( double dt )
 	{
 		step_v( vertites, m_dv.front() );
 
+		nbvertex_t* dxfront = m_dx.front();
+
+		//#pragma omp parallel for
+		for( size_t n = 0; n < count; ++n )
+		{
+			nbvertex_t dx;
+			dxfront[n] = velosites[n];
+
+			for( size_t r = 0; r != rank; ++r )
+			{
+				dx += m_dx[r][n]*a[r];
+			}
+			vertites[n] = summation_k( vertites[n], dx*dt, &m_correction_vert[n] );
+			//qDebug() << (dx - m_dx[0][n]).length()/dx.length() << velosites[n].length();
+		}
 		//#pragma omp parallel for
 		for( size_t n = 0; n < count; ++n )
 		{
@@ -60,20 +76,6 @@ void nbody_solver_adams::step( double dt )
 			velosites[n] = summation_k( velosites[n], dv*dt, &m_correction_vel[n] );
 		}
 
-		nbvertex_t* dxfront = m_dx.front();
-
-		//#pragma omp parallel for
-		for( size_t n = 0; n < count; ++n )
-		{
-			nbvertex_t dx;
-			dxfront[n] = velosites[n];
-			for( size_t r = 0; r != rank; ++r )
-			{
-				dx += m_dx[r][n]*a[r];
-			}
-			vertites[n] = summation_k( vertites[n], dx*dt, &m_correction_vert[n] );
-			//qDebug() << (dx - m_dx[0][n]).length()/dx.length() << velosites[n].length();
-		}
 		//exit(0);
 
 		data()->advise_time( dt );
