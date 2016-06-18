@@ -52,4 +52,21 @@ public:
 	bool is_embedded() const;
 };
 
+/*!
+   \brief Butcher table for classic Runge-Kutta-Fehlberg order 7 method
+*/
+class nbody_butcher_table_rkf : public nbody_butcher_table
+{
+public:
+	nbody_butcher_table_rkf();
+
+	size_t get_steps() const;
+	const nbcoord_t**get_a() const;
+	const nbcoord_t*get_b1() const;
+	const nbcoord_t*get_b2() const;
+	const nbcoord_t*get_c() const;
+	bool is_implicit() const;
+	bool is_embedded() const;
+};
+
 #endif // NBODY_BUTCHER_TABLE_H
