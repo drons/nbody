@@ -53,7 +53,7 @@ public:
 };
 
 /*!
-   \brief Butcher table for classic Runge-Kutta-Fehlberg order 7 method
+   \brief Butcher table for Runge-Kutta-Fehlberg order 7 method
 */
 class nbody_butcher_table_rkf : public nbody_butcher_table
 {

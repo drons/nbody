@@ -7,6 +7,7 @@
 #include "nbody_solver_adams.h"
 #include "nbody_solver_euler.h"
 #include "nbody_solver_rkdp.h"
+#include "nbody_solver_rkf.h"
 #include "nbody_solver_runge_kutta.h"
 #include "nbody_solver_stormer.h"
 #include "nbody_solver_trapeze.h"
