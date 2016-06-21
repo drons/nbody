@@ -8,6 +8,7 @@
 #include "nbody_solver_euler.h"
 #include "nbody_solver_rkdp.h"
 #include "nbody_solver_rkf.h"
+#include "nbody_solver_rkgl.h"
 #include "nbody_solver_rklc.h"
 #include "nbody_solver_runge_kutta.h"
 #include "nbody_solver_stormer.h"
