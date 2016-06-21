@@ -9,6 +9,8 @@ nbody_fcompute_block::nbody_fcompute_block()
 
 void nbody_fcompute_block::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
+	advise_compute_count();
+
 	size_t				count = data->get_count();
 	const nbcoord_t*	mass = data->get_mass();
 	const size_t		block = NBODY_DATA_BLOCK_SIZE;

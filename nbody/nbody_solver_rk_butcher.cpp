@@ -152,7 +152,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t dt, nbv
 		{
 			nbcoord_t	new_dt = dt/m_step_subdivisions;
 
-			qDebug() << data()->get_step() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << dvrt_max << dvel_max << "Down to dt" << new_dt;
+//			qDebug() << data()->get_step() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << dvrt_max << dvel_max << "Down to dt" << new_dt;
 
 			nbvertex_t*	vrt_head = vertites_stack[recursion_level].data();
 			nbvertex_t*	vel_head = velosites_stack[recursion_level].data();

@@ -1,4 +1,5 @@
 #include "nbody_data.h"
+#include "nbody_fcompute.h"
 #include <qnumeric.h>
 #include <QDebug>
 
@@ -44,7 +45,7 @@ nbcoord_t nbody_data::potential_energy( const nbvertex_t* vertites, size_t body1
 	return -(G*m_mass[body1]*m_mass[body2])/sqrt( r2 );
 }
 
-void nbody_data::print_statistics()
+void nbody_data::print_statistics( nbody_fcompute* engine )
 {
 	double		timer_end = omp_get_wtime();
 	nbvertex_t	total_impulce( summation<nbvertex_t,impulce_proxy>( impulce_proxy( this ), m_count ) );
@@ -82,6 +83,7 @@ void nbody_data::print_statistics()
 
 	qDebug()<< "#" << m_step
 			<< "t" << m_time
+			<< "CC" << engine->get_compute_count()
 			<< "dP" << impulce_err()
 			<< "dL" << impulce_moment_err()
 			<< "Vcm" << (mass_center/m_time).length()
@@ -209,7 +211,7 @@ void nbody_data::make_universe( nbcoord_t sx, nbcoord_t sy, nbcoord_t sz )
 {
 	nbcoord_t	radius = sx*0.5;
 	nbcoord_t	galaxy_mass = 1000;
-	size_t		star_count = 10*1024;
+	size_t		star_count = 64;
 	nbvertex_t	center( sx*0.5, sy*0.5, sz*0.5 );
 	nbvertex_t	base( radius, 0, 0 );
 	nbvertex_t	velosity( 0, sqrt(force( nbvertex_t(), base, galaxy_mass, galaxy_mass ).length()*(base).length()/(2*galaxy_mass)), 0 );

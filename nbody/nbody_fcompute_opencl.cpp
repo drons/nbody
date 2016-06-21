@@ -222,6 +222,8 @@ nbody_fcompute_opencl::~nbody_fcompute_opencl()
 
 void nbody_fcompute_opencl::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
+	advise_compute_count();
+
 	size_t	count = data->get_count();
 
 	if( d->m_devices.empty() )

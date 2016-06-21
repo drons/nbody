@@ -236,11 +236,11 @@ void wgt_nbody_view::step()
 	size_t	w = 100;
 	if( i % w == 0 )
 	{
-		m_data->print_statistics();
+		m_data->print_statistics( m_solver->get_engine() );
 		//render_file();
 	}
 
-    nbcoord_t	step_time = omp_get_wtime();
-	m_solver->step( m_solver->get_min_step() );
-    qDebug() << "Step time" << step_time - omp_get_wtime();
+	nbcoord_t	step_time = omp_get_wtime();
+	m_solver->step( m_solver->get_max_step() );
+	qDebug() << "Step time" << step_time - omp_get_wtime();
 }

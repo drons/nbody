@@ -6,6 +6,8 @@ nbody_fcompute_sparse::nbody_fcompute_sparse()
 
 void nbody_fcompute_sparse::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
+	advise_compute_count();
+
 	size_t				count = data->get_count();
 	const nbcoord_t*	mass = data->get_mass();
 	nbcoord_t			max_dist_sqr = 100;

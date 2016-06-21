@@ -57,7 +57,7 @@ int nbody_solver::run( nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt
 		nbcoord_t   t = m_data->get_time();
 		if( check_dt > 0 && t >= last_check + check_dt - dt*0.1 )
 		{
-			m_data->print_statistics();
+			m_data->print_statistics( m_engine );
 			last_check = t;
 		}
 		if( dump_dt > 0 && t >= last_dump + dump_dt - dt*0.1 )

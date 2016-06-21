@@ -6,6 +6,8 @@ nbody_fcompute_simple::nbody_fcompute_simple()
 
 void nbody_fcompute_simple::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
+	advise_compute_count();
+
 	size_t				count = data->get_count();
 	const nbcoord_t*	mass = data->get_mass();
 
