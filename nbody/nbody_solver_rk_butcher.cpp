@@ -64,39 +64,88 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t dt, nbv
 
 	for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n )
 	{
-		for( size_t i = 0; i < STEPS; ++i )
+		if( m_bt->is_implicit() )
 		{
-			if( i == 0 )
+			size_t	max_iter = 3;
+			for( size_t i = 0; i != STEPS; ++i )
 			{
-				step_v( vertites, k[i] );
+				#pragma omp parallel for
+				for( size_t n = 0; n < count; ++n )
+				{
+					tmpvrt[n] = vertites[n] + velosites[n]*dt*c[i];
+				}
+				step_v( tmpvrt.data(), k[i] );
 
 				#pragma omp parallel for
 				for( size_t n = 0; n < count; ++n )
 				{
-					q[i][n] = velosites[n];
+					q[i][n] = velosites[n] + k[i][n]*dt*c[i];
 				}
 			}
-			else
-			{
-				#pragma omp parallel for
-				for( size_t n = 0; n < count; ++n )
-				{
-					nbvertex_t	qsum;
-					nbvertex_t	ksum;
-					for( size_t j = 0; j != i; ++j )
-					{
-						qsum += q[j][n]*a[i][j];
-						ksum += k[j][n]*a[i][j];
-					}
-					tmpvrt[n] = vertites[n] + qsum*dt;
-					tmpvel[n] = velosites[n] + ksum*dt;
-				}
 
-				step_v( tmpvrt.data(), k[i] );
-				#pragma omp parallel for
-				for( size_t n = 0; n < count; ++n )
+			for( size_t iter = 0; iter != max_iter; ++iter )
+			{
+				for( size_t i = 0; i < STEPS; ++i )
 				{
-					q[i][n] = tmpvel[n];
+					#pragma omp parallel for
+					for( size_t n = 0; n < count; ++n )
+					{
+						nbvertex_t	qsum;
+						nbvertex_t	ksum;
+						for( size_t j = 0; j != STEPS; ++j )
+						{
+							qsum += q[j][n]*a[i][j];
+							ksum += k[j][n]*a[i][j];
+						}
+						tmpvrt[n] = vertites[n] + qsum*dt;
+						tmpvel[n] = velosites[n] + ksum*dt;
+					}
+
+					step_v( tmpvrt.data(), k[i] );
+					#pragma omp parallel for
+					for( size_t n = 0; n < count; ++n )
+					{
+						q[i][n] = tmpvel[n];
+					}
+				}
+			}
+		}
+		else
+		{
+			for( size_t i = 0; i < STEPS; ++i )
+			{
+				if( i == 0 )
+				{
+					step_v( vertites, k[i] );
+
+					#pragma omp parallel for
+					for( size_t n = 0; n < count; ++n )
+					{
+						q[i][n] = velosites[n];
+					}
+				}
+				else
+				{
+					#pragma omp parallel for
+					for( size_t n = 0; n < count; ++n )
+					{
+						nbvertex_t	qsum;
+						nbvertex_t	ksum;
+						for( size_t j = 0; j != i; ++j )
+						{
+							qsum += q[j][n]*a[i][j];
+							ksum += k[j][n]*a[i][j];
+						}
+						tmpvrt[n] = vertites[n] + qsum*dt;
+						tmpvel[n] = velosites[n] + ksum*dt;
+					}
+
+					step_v( tmpvrt.data(), k[i] );
+					#pragma omp parallel for
+					for( size_t n = 0; n < count; ++n )
+					{
+						q[i][n] = tmpvel[n];
+					}
 				}
 			}
 		}
