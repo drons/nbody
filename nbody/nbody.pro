@@ -30,6 +30,7 @@ SOURCES	+= \
 	nbody_solver_adams.cpp \
 	nbody_solver_euler.cpp \
 	nbody_solver_rk_butcher.cpp \
+	nbody_solver_rkck.cpp \
     nbody_solver_rkdp.cpp \
 	nbody_solver_rkf.cpp \
 	nbody_solver_rkgl.cpp \
@@ -53,7 +54,8 @@ HEADERS	+= \
 	nbody_solver_adams.h \
 	nbody_solver_euler.h \
 	nbody_solver_rk_butcher.h \
-    nbody_solver_rkdp.h \
+	nbody_solver_rkck.h \
+	nbody_solver_rkdp.h \
 	nbody_solver_rkf.h \
 	nbody_solver_rkgl.h \
 	nbody_solver_rklc.h \
