@@ -1,5 +1,5 @@
 #include "nbody_data.h"
-#include "nbody_fcompute.h"
+#include "nbody_engine.h"
 #include <qnumeric.h>
 #include <QDebug>
 
@@ -45,7 +45,7 @@ nbcoord_t nbody_data::potential_energy( const nbvertex_t* vertites, size_t body1
 	return -(G*m_mass[body1]*m_mass[body2])/sqrt( r2 );
 }
 
-void nbody_data::print_statistics( nbody_fcompute* engine )
+void nbody_data::print_statistics( nbody_engine* engine )
 {
 	double		timer_end = omp_get_wtime();
 	nbvertex_t	total_impulce( summation<nbvertex_t,impulce_proxy>( impulce_proxy( this ), m_count ) );

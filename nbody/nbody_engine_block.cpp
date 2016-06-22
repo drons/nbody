@@ -1,13 +1,13 @@
-#include "nbody_fcompute_block.h"
+#include "nbody_engine_block.h"
 #include <omp.h>
 #include <QDebug>
 
-nbody_fcompute_block::nbody_fcompute_block()
+nbody_engine_block::nbody_engine_block()
 {
 	qDebug() << "OpenMP max threads" << omp_get_max_threads();
 }
 
-void nbody_fcompute_block::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
+void nbody_engine_block::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
 	advise_compute_count();
 

@@ -1,10 +1,10 @@
-#include "nbody_fcompute_simple.h"
+#include "nbody_engine_simple.h"
 
-nbody_fcompute_simple::nbody_fcompute_simple()
+nbody_engine_simple::nbody_engine_simple()
 {
 }
 
-void nbody_fcompute_simple::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
+void nbody_engine_simple::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
 	advise_compute_count();
 

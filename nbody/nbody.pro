@@ -21,11 +21,11 @@ SOURCES	+= \
 	main.cpp \
     nbody_butcher_table.cpp \
 	nbody_data.cpp \
-	nbody_fcompute.cpp \
-	nbody_fcompute_block.cpp \
-	nbody_fcompute_opencl.cpp \
-	nbody_fcompute_simple.cpp \
-	nbody_fcompute_sparse.cpp \
+	nbody_engine.cpp \
+	nbody_engine_block.cpp \
+	nbody_engine_opencl.cpp \
+	nbody_engine_simple.cpp \
+	nbody_engine_sparse.cpp \
 	nbody_solver.cpp \
 	nbody_solver_adams.cpp \
 	nbody_solver_euler.cpp \
@@ -45,11 +45,11 @@ HEADERS	+= \
 	summation_proxy.h \
     nbody_butcher_table.h \
 	nbody_data.h \
-	nbody_fcompute.h \
-	nbody_fcompute_block.h \
-	nbody_fcompute_opencl.h \
-	nbody_fcompute_simple.h \
-	nbody_fcompute_sparse.h \
+	nbody_engine.h \
+	nbody_engine_block.h \
+	nbody_engine_opencl.h \
+	nbody_engine_simple.h \
+	nbody_engine_sparse.h \
 	nbody_solver.h \
 	nbody_solver_adams.h \
 	nbody_solver_euler.h \
@@ -67,7 +67,7 @@ HEADERS	+= \
     nbtype.h
 
 OTHER_FILES += \
-    nbody_fcompute_opencl.cl
+    nbody_engine_opencl.cl
 
 RESOURCES += \
     opencl.qrc

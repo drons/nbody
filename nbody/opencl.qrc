@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>nbody_fcompute_opencl.cl</file>
+        <file>nbody_engine_opencl.cl</file>
     </qresource>
 </RCC>

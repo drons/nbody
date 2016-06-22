@@ -16,12 +16,12 @@ nbody_data* nbody_solver::data() const
 	return m_data;
 }
 
-void nbody_solver::set_engine( nbody_fcompute* engine )
+void nbody_solver::set_engine( nbody_engine* engine )
 {
 	m_engine = engine;
 }
 
-nbody_fcompute* nbody_solver::get_engine()
+nbody_engine* nbody_solver::get_engine()
 {
 	return m_engine;
 }

@@ -1,4 +1,4 @@
-#include "nbody_fcompute_opencl.h"
+#include "nbody_engine_opencl.h"
 #include <QDebug>
 #include <QFile>
 #include <QStringList>
@@ -63,7 +63,7 @@ typedef cl::make_kernel< cl_int,cl_int,							//Block offset
 						 cl::Buffer&, cl::Buffer&, cl::Buffer&	//dv_x, dv_y, dv_z
 						> ComputeBlock;
 
-struct nbody_fcompute_opencl::data
+struct nbody_engine_opencl::data
 {
 	struct devctx
 	{
@@ -95,7 +95,7 @@ struct nbody_fcompute_opencl::data
 	void compute_block( devctx& ctx, size_t offset_n1, size_t offset_n2, const nbody_data* data );
 };
 
-QString nbody_fcompute_opencl::data::devctx::build_options()
+QString nbody_engine_opencl::data::devctx::build_options()
 {
 	QString			options;
 
@@ -105,12 +105,12 @@ QString nbody_fcompute_opencl::data::devctx::build_options()
 	return options;
 }
 
-QStringList nbody_fcompute_opencl::data::devctx::sources()
+QStringList nbody_engine_opencl::data::devctx::sources()
 {
-	return QStringList() << ":/nbody_fcompute_opencl.cl";
+	return QStringList() << ":/nbody_engine_opencl.cl";
 }
 
-nbody_fcompute_opencl::data::devctx::devctx( cl::Device& device, size_t count ) :
+nbody_engine_opencl::data::devctx::devctx( cl::Device& device, size_t count ) :
 	context( device ),
 	prog( load_programs( context, device, build_options(), sources() ) ),
 	queue( context, device, 0 ),
@@ -135,7 +135,7 @@ nbody_fcompute_opencl::data::devctx::devctx( cl::Device& device, size_t count ) 
 	qDebug() << "\t\t\tKernel local memory" << local_memory_amount / 1024.0 << "Kb";
 }
 
-void nbody_fcompute_opencl::data::find_devices(size_t count)
+void nbody_engine_opencl::data::find_devices(size_t count)
 {
 	std::vector<cl::Platform>		platforms;
 	cl::Platform::get( &platforms );
@@ -162,7 +162,7 @@ void nbody_fcompute_opencl::data::find_devices(size_t count)
 
 }
 
-void nbody_fcompute_opencl::data::prepare( devctx& ctx, const nbody_data* data, const nbvertex_t* vertites )
+void nbody_engine_opencl::data::prepare( devctx& ctx, const nbody_data* data, const nbvertex_t* vertites )
 {
 	size_t					count = data->get_count();
 	const nbcoord_t*		mass = data->get_mass();
@@ -192,7 +192,7 @@ void nbody_fcompute_opencl::data::prepare( devctx& ctx, const nbody_data* data, 
 	ctx.host_dv_z.resize( count );
 }
 
-void nbody_fcompute_opencl::data::compute_block( devctx& ctx, size_t offset_n1, size_t offset_n2, const nbody_data* data )
+void nbody_engine_opencl::data::compute_block( devctx& ctx, size_t offset_n1, size_t offset_n2, const nbody_data* data )
 {
 	size_t			count = data->get_count();
 	cl::Event		exec_ev;
@@ -209,18 +209,18 @@ void nbody_fcompute_opencl::data::compute_block( devctx& ctx, size_t offset_n1, 
 	ctx.queue.enqueueReadBuffer( ctx.dv_z, CL_TRUE, 0, count*sizeof(nbcoord_t), ctx.host_dv_z.data() );
 }
 
-nbody_fcompute_opencl::nbody_fcompute_opencl() :
+nbody_engine_opencl::nbody_engine_opencl() :
 	d( new data() )
 {
 	info();
 }
 
-nbody_fcompute_opencl::~nbody_fcompute_opencl()
+nbody_engine_opencl::~nbody_engine_opencl()
 {
 	delete d;
 }
 
-void nbody_fcompute_opencl::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
+void nbody_engine_opencl::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
 	advise_compute_count();
 
@@ -247,7 +247,7 @@ void nbody_fcompute_opencl::fcompute( const nbody_data* data, const nbvertex_t* 
 }
 
 
-int nbody_fcompute_opencl::info()
+int nbody_engine_opencl::info()
 {
 	std::vector<cl::Platform>		platforms;
 	cl::Platform::get( &platforms );
@@ -288,7 +288,7 @@ int nbody_fcompute_opencl::info()
 
 			try
 			{
-				nbody_fcompute_opencl::data::devctx	c( device, NBODY_DATA_BLOCK_SIZE*1024 );
+				nbody_engine_opencl::data::devctx	c( device, NBODY_DATA_BLOCK_SIZE*1024 );
 			}
 			catch( cl::Error& e )
 			{

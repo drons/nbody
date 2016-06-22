@@ -7,7 +7,7 @@
 #define NBODY_DATA_BLOCK_SIZE	64
 #define NBODY_MIN_R				1e-8
 
-class nbody_fcompute;
+class nbody_engine;
 
 class nbody_data
 {
@@ -49,7 +49,7 @@ public:
 	const nbcoord_t* get_mass() const;
 	const nbcolor_t* get_color() const;
 
-	void print_statistics( nbody_fcompute* );
+	void print_statistics( nbody_engine* );
 	void dump_body( size_t n );
 	size_t get_count() const;
 

@@ -1,10 +1,10 @@
-#include "nbody_fcompute_sparse.h"
+#include "nbody_engine_sparse.h"
 
-nbody_fcompute_sparse::nbody_fcompute_sparse()
+nbody_engine_sparse::nbody_engine_sparse()
 {
 }
 
-void nbody_fcompute_sparse::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
+void nbody_engine_sparse::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
 	advise_compute_count();
 
