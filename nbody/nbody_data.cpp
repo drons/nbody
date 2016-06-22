@@ -47,6 +47,8 @@ nbcoord_t nbody_data::potential_energy( const nbvertex_t* vertites, size_t body1
 
 void nbody_data::print_statistics( nbody_engine* engine )
 {
+	engine->get_data( this );
+
 	double		timer_end = omp_get_wtime();
 	nbvertex_t	total_impulce( summation<nbvertex_t,impulce_proxy>( impulce_proxy( this ), m_count ) );
 	nbvertex_t	total_impulce_moment( summation<nbvertex_t,impulce_moment_proxy>( impulce_moment_proxy( this ), m_count ) );

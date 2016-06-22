@@ -236,7 +236,7 @@ void wgt_nbody_view::step()
 	size_t	w = 100;
 	if( i % w == 0 )
 	{
-		m_data->print_statistics( m_solver->get_engine() );
+		m_data->print_statistics( m_solver->engine() );
 		//render_file();
 	}
 

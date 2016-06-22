@@ -1,30 +1,27 @@
 #include "nbody_solver_euler.h"
-#include "summation.h"
+#include <QDebug>
 
-nbody_solver_euler::nbody_solver_euler( nbody_data* data ) : nbody_solver( data )
+nbody_solver_euler::nbody_solver_euler() : nbody_solver( NULL )
 {
+	m_dy = NULL;
+}
+
+nbody_solver_euler::~nbody_solver_euler()
+{
+	engine()->free( m_dy );
 }
 
 void nbody_solver_euler::step( nbcoord_t dt )
 {
-	nbvertex_t*	vertites = data()->get_vertites();
-	nbvertex_t*	velosites = data()->get_velosites();
-	size_t		count = data()->get_count();
+	nbody_engine::memory* y = engine()->y();
 
-	if( m_dv.empty() )
+	if( m_dy == NULL )
 	{
-		m_dv.resize( count );
-		m_correction_vert.resize( count );
-		m_correction_vel.resize( count );
+		m_dy = engine()->malloc( sizeof(nbcoord_t)*engine()->problem_size() );
 	}
 
-	step_v( vertites, m_dv.data() );
+	engine()->fcompute( 0, y, m_dy );
+	engine()->fmadd( y, m_dy, dt ); //y += dy*dt
 
-	#pragma omp parallel for
-	for( size_t n = 0; n < count; ++n )
-	{
-		velosites[n] = summation_k( velosites[n], m_dv[n]*dt, &m_correction_vel[n] );
-		vertites[n] = summation_k( vertites[n], velosites[n]*dt, &m_correction_vert[n] );
-	}
-	data()->advise_time( dt );
+	engine()->advise_time( dt );
 }

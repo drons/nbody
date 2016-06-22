@@ -1,5 +1,15 @@
 #include "nbody_engine.h"
 
+nbody_engine::memory::memory()
+{
+
+}
+
+nbody_engine::memory::~memory()
+{
+
+}
+
 nbody_engine::nbody_engine()
 {
 	m_compute_count = 0;

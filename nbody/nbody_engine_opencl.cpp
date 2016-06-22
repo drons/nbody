@@ -220,6 +220,11 @@ nbody_engine_opencl::~nbody_engine_opencl()
 	delete d;
 }
 
+void nbody_engine_opencl::init( const nbody_data* data )
+{
+
+}
+
 void nbody_engine_opencl::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
 	advise_compute_count();

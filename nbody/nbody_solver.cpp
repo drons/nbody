@@ -21,14 +21,14 @@ void nbody_solver::set_engine( nbody_engine* engine )
 	m_engine = engine;
 }
 
-nbody_engine* nbody_solver::get_engine()
+nbody_engine* nbody_solver::engine()
 {
 	return m_engine;
 }
 
 void nbody_solver::step_v( const nbvertex_t* vertites, nbvertex_t* dv )
 {
-	m_engine->fcompute( m_data, vertites, dv );
+//	m_engine->fcompute( m_data, vertites, dv );
 }
 
 void nbody_solver::set_time_step( nbcoord_t min_step, nbcoord_t max_step )
@@ -47,22 +47,22 @@ nbcoord_t nbody_solver::get_max_step() const
 	return m_max_step;
 }
 
-int nbody_solver::run( nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt )
+int nbody_solver::run( nbody_data* data, nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt )
 {
 	nbcoord_t	dt = get_max_step();
 	nbcoord_t   last_check = 0;
 	nbcoord_t   last_dump = 0;
-	while( m_data->get_time() < max_time )
+	while( data->get_time() < max_time )
 	{
-		nbcoord_t   t = m_data->get_time();
+		nbcoord_t   t = data->get_time();
 		if( check_dt > 0 && t >= last_check + check_dt - dt*0.1 )
 		{
-			m_data->print_statistics( m_engine );
+			data->print_statistics( m_engine );
 			last_check = t;
 		}
 		if( dump_dt > 0 && t >= last_dump + dump_dt - dt*0.1 )
 		{
-			m_data->dump();
+			data->dump();
 			last_dump = t;
 		}
 

@@ -5,7 +5,7 @@
 
 nbody_solver_adams::nbody_solver_adams( nbody_data* data ) : nbody_solver( data )
 {
-	m_starter = new nbody_solver_euler( data );
+	m_starter = new nbody_solver_euler();
 }
 
 nbody_solver_adams::~nbody_solver_adams()
@@ -29,7 +29,7 @@ void nbody_solver_adams::step( double dt )
 
 	if( m_xdata.size() != rank )
 	{
-		m_starter->set_engine( get_engine() );
+		m_starter->set_engine( engine() );
 		m_xdata.resize(rank);
 		m_vdata.resize(rank);
 		m_dx.resize(rank);
