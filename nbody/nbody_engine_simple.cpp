@@ -82,7 +82,7 @@ void nbody_engine_simple::advise_time( const nbcoord_t& dt )
 	m_data->advise_time( dt );
 }
 
-void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory* _f )
+void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t foff )
 {
 	Q_UNUSED(t);
 	const smemory*	y = dynamic_cast<const  smemory*>( _y );
@@ -131,13 +131,13 @@ void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory
 			const nbvertex_t	f( m_data->force( v1, v2, mass[body1], mass[body2] ) );
 			total_force += f;
 		}
-
-		frx[body1] = vx[body1];
-		fry[body1] = vy[body1];
-		frz[body1] = vz[body1];
-		fvx[body1] = total_force.x/mass[body1];
-		fvy[body1] = total_force.y/mass[body1];
-		fvz[body1] = total_force.z/mass[body1];
+		size_t index = body1 + foff;
+		frx[index] = vx[body1];
+		fry[index] = vy[body1];
+		frz[index] = vz[body1];
+		fvx[index] = total_force.x/mass[body1];
+		fvy[index] = total_force.y/mass[body1];
+		fvz[index] = total_force.z/mass[body1];
 	}
 }
 
@@ -176,6 +176,46 @@ void nbody_engine_simple::fmadd( nbody_engine::memory* __a, const nbody_engine::
 	{
 		a[i] += b[i]*c;
 	}
+}
+
+void nbody_engine_simple::fmadd( nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff )
+{
+	smemory*			_a = dynamic_cast<smemory*>( __a );
+	const smemory*		_b = dynamic_cast<const smemory*>( __b );
+	const smemory*		_c = dynamic_cast<const smemory*>( __c );
+	nbcoord_t*			a = (nbcoord_t*)_a->data();
+	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
+	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
+	size_t				count = problem_size();
+
+	#pragma omp parallel for
+	for( size_t i = 0; i < count; ++i )
+	{
+		a[i + aoff] = b[i + boff] + c[i + coff]*d;
+	}
+}
+
+void nbody_engine_simple::fmaddn(nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
+{
+	smemory*			_a = dynamic_cast<smemory*>( __a );
+	const smemory*		_b = dynamic_cast<const smemory*>( __b );
+	const smemory*		_c = dynamic_cast<const smemory*>( __c );
+	nbcoord_t*			a = (nbcoord_t*)_a->data();
+	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
+	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
+	size_t				count = problem_size();
+
+	#pragma omp parallel for
+	for( size_t i = 0; i < count; ++i )
+	{
+		nbcoord_t	sum = b[i+boff]*c[0];
+		for( size_t k = 1; k < csize; ++k )
+		{
+			sum += b[ i + boff + k*bstride ]*c[k];
+		}
+		a[i+aoff] += sum;
+	}
+
 }
 
 nbody_engine_simple::smemory::smemory( size_t s )

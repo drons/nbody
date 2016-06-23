@@ -30,16 +30,19 @@ public:
 	//! Advise time state
 	virtual void advise_time( const nbcoord_t& dt ) = 0;
 	//! Compute f( t, y )
-	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f ) = 0;
+	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t foff ) = 0;
 
 	virtual memory* malloc( size_t ) = 0;
 	virtual void free( memory* ) = 0;
-	virtual void memcpy( void*, memory* ) = 0;
-	virtual void memcpy( memory*, void* ) = 0;
+	virtual void memcpy( void* dst, memory* src ) = 0;
+	virtual void memcpy( memory* dst, void* src ) = 0;
 
 	//! a[i] += b[i]*c
 	virtual void fmadd( memory* a, const memory* b, const nbcoord_t& c ) = 0;
-
+	//! a[i+aoff] = b[i+boff] + c[i+coff]*d
+	virtual void fmadd( memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff ) = 0;
+	//! a[i+aoff] += sum( b[i+boff+k*bstride]*c[k], k=[0...csize) )
+	virtual void fmaddn( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize ) = 0;
 	void advise_compute_count();
 	size_t get_compute_count() const;
 };
