@@ -9,7 +9,7 @@
 class nbody_solver_rkgl : public nbody_solver_rk_butcher
 {
 public:
-	nbody_solver_rkgl( nbody_data* data );
+	nbody_solver_rkgl();
 };
 
 #endif // NBODY_SOLVER_RKGL_H

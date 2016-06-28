@@ -1,242 +1,151 @@
 #include "nbody_solver_rk_butcher.h"
 #include <QDebug>
 
-nbody_solver_rk_butcher::nbody_solver_rk_butcher( nbody_data* data, nbody_butcher_table* t ) :
-	nbody_solver( data )
+nbody_solver_rk_butcher::nbody_solver_rk_butcher( nbody_butcher_table* t ) :
+	nbody_solver( NULL )
 {
+	m_k = NULL;
+	m_tmpy = NULL;
+	m_tmpk = NULL;
+	m_y_stack = NULL;
+	m_coeff = NULL;
 	m_bt = t;
-	m_step_subdivisions = 8;
-	m_vrt_error_threshold = 1e-4;
-	m_vel_error_threshold = 1e-4;
+	m_step_subdivisions = 2;
+	m_error_threshold = 1e-4;
 }
 
 nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 {
 	delete m_bt;
+	engine()->free( m_k );;
+	engine()->free( m_tmpy );
+	engine()->free( m_tmpk );
+	engine()->free( m_y_stack );
+	engine()->free( m_coeff );
 }
 
 void nbody_solver_rk_butcher::step( double dt )
 {
-	nbvertex_t*	vertites = data()->get_vertites();
-	nbvertex_t*	velosites = data()->get_velosites();
+	nbody_engine::memory*	y = engine()->y();
+	nbcoord_t				t = engine()->get_time();
 
-	sub_step( 1, dt, vertites, velosites, 0 );
+	sub_step( 1, t, dt, y, 0, 0 );
 
-	data()->advise_time( dt );
+	engine()->advise_time( dt );
 }
 
-void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t dt, nbvertex_t* vertites, nbvertex_t* velosites, size_t recursion_level )
+void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbcoord_t dt, nbody_engine::memory* y, size_t yoff, size_t recursion_level )
 {
 	const size_t		STEPS = m_bt->get_steps();
 	const nbcoord_t**	a = m_bt->get_a();
 	const nbcoord_t*	b1 = m_bt->get_b1();
 	const nbcoord_t*	b2 = m_bt->get_b2();
 	const nbcoord_t*	c = m_bt->get_c();
-	size_t		count = data()->get_count();
+	size_t				ps = engine()->problem_size();
+	size_t				coeff_count = STEPS+1;
+	bool				need_first_approach_k = false;
 
-	if( tmpvel.size() != count )
+	std::vector<nbcoord_t>	coeff;
+	coeff.resize(coeff_count);
+
+	if( m_k == NULL )
 	{
-		m_k.resize( m_bt->get_steps() );
-		m_q.resize( m_bt->get_steps() );
-		m_kptr.resize( m_bt->get_steps() );
-		m_qptr.resize( m_bt->get_steps() );
-
-		for( size_t s = 0; s != m_bt->get_steps(); ++s )
-		{
-			m_k[s].resize( count );
-			m_q[s].resize( count );
-			m_kptr[s] = m_k[s].data();
-			m_qptr[s] = m_q[s].data();
-		}
-
-		tmpvrt.resize( count );
-		tmpvel.resize( count );
-		for( size_t r = 0; r != MAX_RECURSION; ++r )
-		{
-			vertites_stack[r].resize( count );
-			velosites_stack[r].resize( count );
-		}
+		need_first_approach_k  = true;
+		m_k = engine()->malloc( sizeof(nbcoord_t)*STEPS*ps );
+		m_tmpy = engine()->malloc( sizeof(nbcoord_t)*ps );
+		m_tmpk = engine()->malloc( sizeof(nbcoord_t)*ps );
+		m_y_stack = engine()->malloc( sizeof(nbcoord_t)*ps*MAX_RECURSION );
+		m_coeff = engine()->malloc( sizeof(nbcoord_t)*coeff_count );
 	}
 
-
-	nbvertex_t**	k = m_kptr.data();
-	nbvertex_t**	q = m_qptr.data();
-
-	for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n )
+	for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n, t += dt )
 	{
 		if( m_bt->is_implicit() )
 		{
 			size_t	max_iter = 3;
-			for( size_t i = 0; i != STEPS; ++i )
-			{
-				#pragma omp parallel for
-				for( size_t n = 0; n < count; ++n )
-				{
-					tmpvrt[n] = vertites[n] + velosites[n]*dt*c[i];
-				}
-				step_v( tmpvrt.data(), k[i] );
 
-				#pragma omp parallel for
-				for( size_t n = 0; n < count; ++n )
+			if( need_first_approach_k )
+			{
+				//Compute first approach for <k>
+				engine()->fcompute( t, y, m_tmpk, yoff, 0 );
+				for( size_t i = 0; i != STEPS; ++i )
 				{
-					q[i][n] = velosites[n] + k[i][n]*dt*c[i];
+					engine()->fmadd( m_tmpy, y, m_tmpk, dt*c[i], 0, yoff, 0 );
+					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
 			}
 
+			//<k> iterative refinement
 			for( size_t iter = 0; iter != max_iter; ++iter )
 			{
-				for( size_t i = 0; i < STEPS; ++i )
+				for( size_t i = 0; i != STEPS; ++i )
 				{
-					#pragma omp parallel for
-					for( size_t n = 0; n < count; ++n )
+					for( size_t n = 0; n != STEPS; ++n )
 					{
-						nbvertex_t	qsum;
-						nbvertex_t	ksum;
-						for( size_t j = 0; j != STEPS; ++j )
-						{
-							qsum += q[j][n]*a[i][j];
-							ksum += k[j][n]*a[i][j];
-						}
-						tmpvrt[n] = vertites[n] + qsum*dt;
-						tmpvel[n] = velosites[n] + ksum*dt;
+						coeff.at(n) = dt*a[i][n];
 					}
-
-					step_v( tmpvrt.data(), k[i] );
-					#pragma omp parallel for
-					for( size_t n = 0; n < count; ++n )
-					{
-						q[i][n] = tmpvel[n];
-					}
+					engine()->memcpy( m_coeff, coeff.data() );
+					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, 0, 0, STEPS );
+					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
 			}
 		}
-		else
+		else//Explicit method
 		{
 			for( size_t i = 0; i < STEPS; ++i )
 			{
 				if( i == 0 )
 				{
-					step_v( vertites, k[i] );
-
-					#pragma omp parallel for
-					for( size_t n = 0; n < count; ++n )
-					{
-						q[i][n] = velosites[n];
-					}
+					engine()->fcompute( t + c[i]*dt, y, m_k, yoff, i*ps );
 				}
 				else
 				{
-					#pragma omp parallel for
-					for( size_t n = 0; n < count; ++n )
+					for( size_t n = 0; n != i; ++n )
 					{
-						nbvertex_t	qsum;
-						nbvertex_t	ksum;
-						for( size_t j = 0; j != i; ++j )
-						{
-							qsum += q[j][n]*a[i][j];
-							ksum += k[j][n]*a[i][j];
-						}
-						tmpvrt[n] = vertites[n] + qsum*dt;
-						tmpvel[n] = velosites[n] + ksum*dt;
+						coeff.at(n) = dt*a[i][n];
 					}
-
-					step_v( tmpvrt.data(), k[i] );
-					#pragma omp parallel for
-					for( size_t n = 0; n < count; ++n )
-					{
-						q[i][n] = tmpvel[n];
-					}
+					engine()->memcpy( m_coeff, coeff.data() );
+					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, 0, 0, i );
+					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
 			}
 		}
 
-		#pragma omp parallel for
-		for( size_t n = 0; n < count; ++n )
-		{
-			nbvertex_t	dvel1;
-			nbvertex_t	dvrt1;
-			nbvertex_t	dvel2;
-			nbvertex_t	dvrt2;
-			for( size_t i = 0; i < STEPS; ++i )
-			{
-				dvel1 += k[i][n]*b1[i];
-				dvrt1 += q[i][n]*b1[i];
-				dvel2 += k[i][n]*b2[i];
-				dvrt2 += q[i][n]*b2[i];
-			}
-
-			tmpvel[n] = dvel2 - dvel1;
-			tmpvrt[n] = dvrt2 - dvrt1;
-		}
-
-		nbcoord_t dvrt_max = 0.0;
-		nbcoord_t dvel_max = 0.0;
+		nbcoord_t	max_error = 0;
 
 		if( m_bt->is_embedded() )
 		{
-			#pragma omp parallel for reduction( max : dvrt_max )
-			for( size_t n = 0; n < count; ++n )
+			for( size_t n = 0; n != STEPS; ++n )
 			{
-				nbcoord_t	local_max = tmpvrt[n].length();
-				if( local_max > dvrt_max )
-				{
-					dvrt_max = local_max;
-				}
+				coeff.at(n) = (b2[n] - b1[n]);
 			}
-			#pragma omp parallel for reduction( max : dvel_max )
-			for( size_t n = 0; n < count; ++n )
-			{
-				nbcoord_t	local_max = tmpvel[n].length();
-				if( local_max > dvel_max )
-				{
-					dvel_max = local_max;
-				}
-			}
+			engine()->memcpy( m_coeff, coeff.data() );
+			engine()->fmaddn( m_tmpy, NULL, m_k, m_coeff, ps, 0, 0, 0, STEPS );
+			engine()->fmaxabs( m_tmpy, max_error );
 		}
 
+//		qDebug() << max_error;
 		bool can_subdivide = ( m_bt->is_embedded() && recursion_level < MAX_RECURSION ) && dt > get_min_step();
-		bool need_subdivide = dvel_max > m_vel_error_threshold || dvrt_max > m_vrt_error_threshold;
+		bool need_subdivide = max_error > m_error_threshold;
 
 		if( can_subdivide && need_subdivide )
 		{
 			nbcoord_t	new_dt = dt/m_step_subdivisions;
 
-//			qDebug() << data()->get_step() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << dvrt_max << dvel_max << "Down to dt" << new_dt;
+//			qDebug() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << max_error << "Down to dt" << new_dt;
 
-			nbvertex_t*	vrt_head = vertites_stack[recursion_level].data();
-			nbvertex_t*	vel_head = velosites_stack[recursion_level].data();
-
-			#pragma omp parallel for
-			for( size_t n = 0; n < count; ++n )
-			{
-				vel_head[n] = velosites[n];
-				vrt_head[n] = vertites[n];
-			}
-
-			sub_step( m_step_subdivisions, new_dt, vrt_head, vel_head, recursion_level + 1 );
-			#pragma omp parallel for
-			for( size_t n = 0; n < count; ++n )
-			{
-				velosites[n] = vel_head[n];
-				vertites[n] = vrt_head[n];
-			}
+			engine()->memcpy( m_y_stack, y, recursion_level*ps, yoff );
+			sub_step( m_step_subdivisions, t, new_dt, m_y_stack, recursion_level*ps, recursion_level + 1 );
+			engine()->memcpy( y, m_y_stack, yoff, recursion_level*ps );
 		}
 		else
 		{
-			#pragma omp parallel for
-			for( size_t n = 0; n < count; ++n )
+			for( size_t n = 0; n != STEPS; ++n )
 			{
-				nbvertex_t	dvel2;
-				nbvertex_t	dvrt2;
-				for( size_t i = 0; i < STEPS; ++i )
-				{
-					dvel2 += k[i][n]*b2[i];
-					dvrt2 += q[i][n]*b2[i];
-				}
-
-				velosites[n] += dvel2*dt;
-				vertites[n] += dvrt2*dt;
+				coeff.at(n) = b2[n]*dt;
 			}
+			engine()->memcpy( m_coeff, coeff.data() );
+			engine()->fmaddn( y, m_k, m_coeff, ps, yoff, 0, STEPS );
 		}
 	}//for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n )
 }

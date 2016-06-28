@@ -27,16 +27,16 @@ void nbody_solver_rk4::step( double dt )
 		m_coeff = engine()->malloc( sizeof(nbcoord_t)*4 );
 	}
 
-	engine()->fcompute( t, y, m_k, 0 ); // k1 = f( t, y )
+	engine()->fcompute( t, y, m_k, 0, 0 ); // k1 = f( t, y )
 
 	engine()->fmadd( m_tmp, y, m_k, 0.5*dt, 0, 0, 0 ); //tmp = y + 0.5*k1*dt
-	engine()->fcompute( t + 0.5*dt, m_tmp, m_k, ps ); // k2 = f( t + 0.5*dt, y + 0.5*k1*dt )
+	engine()->fcompute( t + 0.5*dt, m_tmp, m_k, 0, ps ); // k2 = f( t + 0.5*dt, y + 0.5*k1*dt )
 
 	engine()->fmadd( m_tmp, y, m_k, 0.5*dt, 0, 0, ps ); //tmp = y + 0.5*k2*dt
-	engine()->fcompute( t + 0.5*dt, m_tmp, m_k, 2*ps ); // k3 = f( t + 0.5*dt, y + 0.5*k2*dt )
+	engine()->fcompute( t + 0.5*dt, m_tmp, m_k, 0, 2*ps ); // k3 = f( t + 0.5*dt, y + 0.5*k2*dt )
 
 	engine()->fmadd( m_tmp, y, m_k, dt, 0, 0, 2*ps ); //tmp = y + k3*dt
-	engine()->fcompute( t + dt, m_tmp, m_k, 3*ps ); // k4 = f( t + dt, y + k3*dt )
+	engine()->fcompute( t + dt, m_tmp, m_k, 0, 3*ps ); // k4 = f( t + dt, y + k3*dt )
 
 	//y += 	dt( k1/6 + k2/3 + k3/3 + k4/8 )
 	nbcoord_t	coeff[] = { dt/6.0, dt/3.0, dt/3.0, dt/6.0 };

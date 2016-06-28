@@ -20,7 +20,7 @@ void nbody_solver_euler::step( nbcoord_t dt )
 		m_dy = engine()->malloc( sizeof(nbcoord_t)*engine()->problem_size() );
 	}
 
-	engine()->fcompute( 0, y, m_dy, 0 );
+	engine()->fcompute( engine()->get_time(), y, m_dy, 0, 0 );
 	engine()->fmadd( y, m_dy, dt ); //y += dy*dt
 
 	engine()->advise_time( dt );

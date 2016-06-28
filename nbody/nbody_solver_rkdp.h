@@ -6,7 +6,7 @@
 class nbody_solver_rkdp : public nbody_solver_rk_butcher
 {
 public:
-	nbody_solver_rkdp( nbody_data* data );
+	nbody_solver_rkdp();
 	~nbody_solver_rkdp();
 };
 

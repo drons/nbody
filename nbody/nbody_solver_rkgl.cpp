@@ -69,8 +69,8 @@ bool nbody_butcher_table_rkgl::is_embedded() const
 	return false;
 }
 
-nbody_solver_rkgl::nbody_solver_rkgl( nbody_data* data ) :
-	nbody_solver_rk_butcher( data , new nbody_butcher_table_rkgl() )
+nbody_solver_rkgl::nbody_solver_rkgl() :
+	nbody_solver_rk_butcher( new nbody_butcher_table_rkgl() )
 {
 
 }
