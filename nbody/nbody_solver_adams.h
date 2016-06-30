@@ -3,17 +3,16 @@
 
 #include "nbody_solver.h"
 
+/*!
+   \brief Adams–Bashforth method
+ */
 class nbody_solver_adams : public nbody_solver
 {
-	nbody_solver*								m_starter;
-	std::vector< nbvertex_t >					m_correction_vert;
-	std::vector< nbvertex_t >					m_correction_vel;
-	std::vector< std::vector< nbvertex_t > >	m_xdata;
-	std::vector< std::vector< nbvertex_t > >	m_vdata;
-	std::vector< nbvertex_t* >					m_dx;
-	std::vector< nbvertex_t* >					m_dv;
+	nbody_solver*			m_starter;
+	nbody_engine::memory*	m_f;
+	nbody_engine::memory*	m_coeff;
 public:
-	nbody_solver_adams( nbody_data* data );
+	nbody_solver_adams();
 	~nbody_solver_adams();
 	void step(double dt);
 };

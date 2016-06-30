@@ -87,6 +87,11 @@ nbcoord_t nbody_engine_simple::get_time() const
 	return m_data->get_time();
 }
 
+size_t nbody_engine_simple::get_step() const
+{
+	return m_data->get_step();
+}
+
 void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff )
 {
 	Q_UNUSED(t);
