@@ -33,8 +33,8 @@ public:
 
 	virtual smemory* malloc( size_t );
 	virtual void free( memory* );
-	virtual void memcpy( void* src, memory* dst );
-	virtual void memcpy( memory*, void* );
+	virtual void memcpy( void* dst, memory* src );
+	virtual void memcpy( memory* dst, void* src );
 	virtual void memcpy( memory* a, const memory* b, size_t aoff, size_t boff );
 
 	virtual void fmadd( memory* a, const memory* b, const nbcoord_t& c );
