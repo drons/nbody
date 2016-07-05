@@ -85,7 +85,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 						coeff.at(n) = dt*a[i][n];
 					}
 					engine()->memcpy( m_coeff, coeff.data() );
-					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, 0, 0, STEPS );
+					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, yoff, 0, STEPS );
 					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
 			}
@@ -100,12 +100,12 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 				}
 				else
 				{
-					for( size_t n = 0; n != i; ++n )
+					for( size_t n = 0; n != i - 1; ++n )
 					{
 						coeff.at(n) = dt*a[i][n];
 					}
 					engine()->memcpy( m_coeff, coeff.data() );
-					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, 0, 0, i );
+					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, yoff, 0, i );
 					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
 			}
@@ -120,7 +120,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 				coeff.at(n) = (b2[n] - b1[n]);
 			}
 			engine()->memcpy( m_coeff, coeff.data() );
-			engine()->fmaddn( m_tmpy, NULL, m_k, m_coeff, ps, 0, 0, 0, STEPS );
+			//engine()->fmaddn( m_tmpy, NULL, m_k, m_coeff, ps, 0, 0, 0, STEPS );
 			engine()->fmaxabs( m_tmpy, max_error );
 		}
 
