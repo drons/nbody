@@ -1,4 +1,4 @@
-TEMPLATE	= app
+TEMPLATE	= lib
 TARGET		= nbody
 MOC_DIR = ./.tmp/moc
 
@@ -18,7 +18,6 @@ INCLUDEPATH += /opt/intel/opencl/include
 INCLUDEPATH += /home/sas/prg/opencl/nvidia
 
 SOURCES	+= \
-	main.cpp \
     nbody_butcher_table.cpp \
 	nbody_data.cpp \
 	nbody_engine.cpp \
@@ -37,8 +36,7 @@ SOURCES	+= \
 	nbody_solver_rkgl.cpp \
     nbody_solver_rklc.cpp \
 	nbody_solver_stormer.cpp \
-	nbody_solver_trapeze.cpp \
-    wgt_nbody_view.cpp
+	nbody_solver_trapeze.cpp
 
 HEADERS	+= \
 	summation.h \
@@ -62,7 +60,6 @@ HEADERS	+= \
 	nbody_solver_rklc.h \
 	nbody_solver_stormer.h \
 	nbody_solver_trapeze.h \
-	wgt_nbody_view.h \
 	vertex.h \
     nbtype.h
 
