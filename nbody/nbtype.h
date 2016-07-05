@@ -2,7 +2,7 @@
 #define NBTYPE_H
 
 #include "vertex.h"
-#include <QGL>
+#include <qgl.h>
 
 typedef double					nbcoord_t;
 typedef vertex3<nbcoord_t>		nbvertex_t;

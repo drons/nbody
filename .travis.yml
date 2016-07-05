@@ -1,0 +1,36 @@
+#
+# Available repositories are listed here:
+# https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+#
+
+sudo: false
+
+language:
+  - cpp
+
+addons:
+  apt:
+    packages:
+    - g++
+    - libqt4-dev
+    - libqt4-opengl-dev
+
+#env:
+#- COMPILER_VERSION=4.6
+
+before_script:
+  - wget https://cloclo39.cldmail.ru/U6xnE8QWYuJgjPzVnh2/G/4oc3/Vs9gqmyui?key=3acd30a82b69086882dc0c46db414ff767c7516a --referer=https://cloud.mail.ru/public/4oc3/Vs9gqmyui
+  - tar xzfv ./intel_opencl.tar.gz
+  - sudo mkpath /opt/intel
+  - sudo mv opencl /opt/intel
+  - gcc --version
+  - mkdir build-debug
+  - ls -l /usr/include/qt4
+  - ls -l /usr/include/qt4/QtOpenGL
+  - cd build-debug
+  - qmake-qt4 ../nbody/nbody.pro CONFIG+=debug
+  - cd ..
+
+script:
+  - cd build-debug
+  - make -j2
