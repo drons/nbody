@@ -1,8 +1,11 @@
 #include "nbody_engine_simple.h"
 #include <QDebug>
+#include <omp.h>
 
 nbody_engine_simple::nbody_engine_simple()
 {
+	qDebug() << "OpenMP max threads" << omp_get_max_threads();
+
 	m_mass = NULL;
 	m_y = NULL;
 	m_data = NULL;

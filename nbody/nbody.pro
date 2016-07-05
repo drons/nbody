@@ -22,7 +22,7 @@ SOURCES	+= \
     nbody_butcher_table.cpp \
 	nbody_data.cpp \
 	nbody_engine.cpp \
-#	nbody_engine_block.cpp \
+	nbody_engine_block.cpp \
 	nbody_engine_opencl.cpp \
 	nbody_engine_simple.cpp \
 #	nbody_engine_sparse.cpp \
@@ -46,7 +46,7 @@ HEADERS	+= \
     nbody_butcher_table.h \
 	nbody_data.h \
 	nbody_engine.h \
-#	nbody_engine_block.h \
+	nbody_engine_block.h \
 	nbody_engine_opencl.h \
 	nbody_engine_simple.h \
 #	nbody_engine_sparse.h \

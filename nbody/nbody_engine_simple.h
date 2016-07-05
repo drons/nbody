@@ -5,6 +5,7 @@
 
 class nbody_engine_simple : public nbody_engine
 {
+protected:
 	class smemory : public memory
 	{
 		void*	m_data;
