@@ -49,7 +49,7 @@ public:
 	virtual void fmadd( memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff ) = 0;
 	//! a[i+aoff] += sum( b[i+boff+k*bstride]*c[k], k=[0...csize) )
 	virtual void fmaddn( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize ) = 0;
-	//! a[i+aoff] = b[i+boff] + sum( c[i+boff+k*cstride]*d[k], k=[0...dsize) )
+	//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
 	virtual void fmaddn( memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff, size_t boff, size_t coff, size_t dsize ) = 0;
 	//! @result = max( fabs(a[k]), k=[0...asize) )
 	virtual void fmaxabs( const memory* a, nbcoord_t& result ) = 0;

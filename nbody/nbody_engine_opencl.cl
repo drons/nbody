@@ -164,12 +164,12 @@ __kernel void fmaddn1( __global nbcoord_t* a, __global const nbcoord_t* b, const
 	a[i+aoff] += s;
 }
 
-//! a[i+aoff] = b[i+boff] + sum( c[i+boff+k*cstride]*d[k], k=[0...dsize) )
+//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
 __kernel void fmaddn2( __global nbcoord_t* a, __global const nbcoord_t* b,__global const nbcoord_t* c, constant nbcoord_t* d,
 					  int cstride, int aoff, int boff, int coff, int dsize )
 {
 	int			i = get_global_id(0);
-	nbcoord_t	s = c[i+coff]*c[0];
+	nbcoord_t	s = c[i+coff]*d[0];
 	for( int k = 1; k < dsize; ++k )
 	{
 		s += c[i+coff+k*cstride]*d[k];
@@ -177,12 +177,12 @@ __kernel void fmaddn2( __global nbcoord_t* a, __global const nbcoord_t* b,__glob
 	a[i+aoff] = b[i+boff] + s;
 }
 
-//! a[i+aoff] = sum( c[i+boff+k*cstride]*d[k], k=[0...dsize) )
+//! a[i+aoff] = sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
 __kernel void fmaddn3( __global nbcoord_t* a, __global const nbcoord_t* c, constant nbcoord_t* d,
 					  int cstride, int aoff, int coff, int dsize )
 {
 	int			i = get_global_id(0);
-	nbcoord_t	s = c[i+coff]*c[0];
+	nbcoord_t	s = c[i+coff]*d[0];
 	for( int k = 1; k < dsize; ++k )
 	{
 		s += c[i+coff+k*cstride]*d[k];
