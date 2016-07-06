@@ -1,58 +1,52 @@
 #include "nbody_solver_trapeze.h"
 #include "summation.h"
 
-nbody_solver_trapeze::nbody_solver_trapeze( nbody_data* data ) : nbody_solver( data )
+nbody_solver_trapeze::nbody_solver_trapeze() : nbody_solver( NULL )
 {
+	m_f01 = NULL;
+	m_predictor = NULL;
+	m_coeff = NULL;
+}
+
+nbody_solver_trapeze::~nbody_solver_trapeze()
+{
+	engine()->free( m_f01 );
+	engine()->free( m_predictor );
+	engine()->free( m_coeff );
 }
 
 void nbody_solver_trapeze::step( nbcoord_t dt )
 {
-	nbvertex_t*	vertites = data()->get_vertites();
-	nbvertex_t*	velosites = data()->get_velosites();
-	size_t		count = data()->get_count();
-	size_t		refine_step_count = 1;
-	nbcoord_t	dt05 = dt*0.5;
+	const size_t			refine_step_count = 1;
+	nbody_engine::memory*	y = engine()->y();
+	nbcoord_t				t = engine()->get_time();
+	size_t					ps = engine()->problem_size();
 
-	if( m_dv0.empty() )
+	if( m_f01 == NULL )
 	{
-		m_dv0.resize( count );
-		m_dv1.resize( count );
-		m_predictor_vert.resize( count );
-		m_predictor_vel.resize( count );
-		m_velosites0.resize( count );
+		m_f01 = engine()->malloc( 2*sizeof(nbcoord_t)*ps );
+		m_predictor = engine()->malloc( sizeof(nbcoord_t)*ps );
+		m_coeff = engine()->malloc( sizeof(nbcoord_t)*2 );
 	}
 
-	step_v( vertites, m_dv0.data() );
-	#pragma omp parallel for
-	for( size_t n = 0; n < count; ++n )
-	{
-		m_velosites0[n] = velosites[n];
-		nbvertex_t predictor_vel( velosites[n] + m_dv0[n]*dt );
-		m_predictor_vert[n] = vertites[n] + predictor_vel*dt;
-	}
+	engine()->fcompute( t, y, m_f01, 0, 0 );
+	engine()->fmadd( m_predictor, y, m_f01, dt, 0, 0, 0 );
 
 	for( size_t s = 0; s <= refine_step_count; ++s )
 	{
-		step_v( m_predictor_vert.data(), m_dv1.data() );
+		engine()->fcompute( t, m_predictor, m_f01, 0, ps );
+
+		nbcoord_t	coeff[] = { dt*0.5, dt*0.5 };
+		engine()->memcpy( m_coeff, coeff );
 
 		if( s == refine_step_count )
 		{
-			#pragma omp parallel for
-			for( size_t n = 0; n < count; ++n )
-			{
-				velosites[n] += ( m_dv0[n] + m_dv1[n] )*dt05;
-				vertites[n] += ( m_velosites0[n] + velosites[n] )*dt05;
-			}
+			engine()->fmaddn( y, m_f01, m_coeff, ps, 0, 0, 2 );
 		}
 		else
 		{
-			#pragma omp parallel for
-			for( size_t n = 0; n < count; ++n )
-			{
-				nbvertex_t predictor_vel( velosites[n] + ( m_dv0[n] + m_dv1[n] )*dt05 );
-				m_predictor_vert[n] = vertites[n] + ( m_velosites0[n] + predictor_vel )*dt05;
-			}
+			engine()->fmaddn( m_predictor, y, m_f01, m_coeff, ps, 0, 0, 0, 2 );
 		}
 	}
-	data()->advise_time( dt );
+	engine()->advise_time( dt );
 }
