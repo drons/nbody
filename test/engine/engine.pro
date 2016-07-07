@@ -1,3 +1,5 @@
+include( ../../pri/opencl.pri )
+
 TEMPLATE	= app
 TARGET		= engine
 MOC_DIR = ./.tmp/moc
@@ -12,10 +14,6 @@ NBODY_FLAGS += -mavx -ffast-math -finline-functions -funswitch-loops -fpredictiv
 
 QMAKE_CFLAGS += $$NBODY_FLAGS
 QMAKE_CXXFLAGS += $$NBODY_FLAGS
-LIBS += -lOpenCL
-LIBS += -L/opt/intel/opencl
-INCLUDEPATH += /opt/intel/opencl/include
-INCLUDEPATH += /home/sas/prg/opencl/nvidia
 
 INCLUDEPATH += ../../nbody
 LIBS += -L../../nbody
