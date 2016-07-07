@@ -20,10 +20,10 @@
 #include "nbody_engine_simple.h"
 #include "nbody_engine_sparse.h"
 
-int gui_run( int argc, char *argv[], nbody_solver* solver, nbcoord_t box_size )
+int gui_run( int argc, char *argv[], nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
 {
 	QApplication	app( argc, argv );
-	wgt_nbody_view*	nbv = new wgt_nbody_view( solver, box_size );
+	wgt_nbody_view*	nbv = new wgt_nbody_view( solver, data, box_size );
 
 	nbv->show();
 
@@ -66,6 +66,6 @@ int main( int argc, char *argv[] )
 	solver.set_time_step( 1e-9, 1e-2 );
 	solver.set_engine( &engine );
 
-	return con_run( argc, argv, &solver, &data );
-	//return gui_run( argc, argv, &solver, box_size );
+	//return con_run( argc, argv, &solver, &data );
+	return gui_run( argc, argv, &solver, &data, box_size );
 }

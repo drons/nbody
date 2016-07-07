@@ -1,7 +1,7 @@
 #include "nbody_solver_euler.h"
 #include <QDebug>
 
-nbody_solver_euler::nbody_solver_euler() : nbody_solver( NULL )
+nbody_solver_euler::nbody_solver_euler() : nbody_solver()
 {
 	m_dy = NULL;
 }

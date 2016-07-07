@@ -1,6 +1,6 @@
 #include "nbody_solver_rk4.h"
 
-nbody_solver_rk4::nbody_solver_rk4() : nbody_solver( NULL )
+nbody_solver_rk4::nbody_solver_rk4() : nbody_solver()
 {
 	m_k = NULL;
 	m_tmp = NULL;

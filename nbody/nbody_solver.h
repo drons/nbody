@@ -6,14 +6,12 @@
 
 class nbody_solver
 {
-	nbody_data*							m_data;
 	nbody_engine*						m_engine;
 	nbcoord_t							m_min_step;
 	nbcoord_t							m_max_step;
 public:
-	nbody_solver( nbody_data* data );
+	nbody_solver();
 	virtual ~nbody_solver();
-	nbody_data* data() const;
 	void set_engine( nbody_engine* );
 	nbody_engine* engine();
 	void step_v( const nbvertex_t* vertites, nbvertex_t* dv );

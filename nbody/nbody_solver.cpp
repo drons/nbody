@@ -1,19 +1,14 @@
 #include "nbody_solver.h"
 #include <QDebug>
 
-nbody_solver::nbody_solver( nbody_data* data )
-	: m_data( data ), m_engine( NULL ), m_min_step(0), m_max_step(0)
+nbody_solver::nbody_solver()
+	: m_engine( NULL ), m_min_step(0), m_max_step(0)
 {
 }
 
 nbody_solver::~nbody_solver()
 {
 
-}
-
-nbody_data* nbody_solver::data() const
-{
-	return m_data;
 }
 
 void nbody_solver::set_engine( nbody_engine* engine )

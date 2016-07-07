@@ -1,7 +1,7 @@
 #include "nbody_solver_trapeze.h"
 #include "summation.h"
 
-nbody_solver_trapeze::nbody_solver_trapeze() : nbody_solver( NULL )
+nbody_solver_trapeze::nbody_solver_trapeze() : nbody_solver()
 {
 	m_f01 = NULL;
 	m_predictor = NULL;

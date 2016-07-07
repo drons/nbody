@@ -3,7 +3,7 @@
 #include "summation.h"
 #include <QDebug>
 
-nbody_solver_adams::nbody_solver_adams() : nbody_solver( NULL )
+nbody_solver_adams::nbody_solver_adams() : nbody_solver()
 {
 	m_starter = new nbody_solver_euler();
 	m_f = NULL;

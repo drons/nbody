@@ -2,7 +2,7 @@
 #include <QDebug>
 
 nbody_solver_rk_butcher::nbody_solver_rk_butcher( nbody_butcher_table* t ) :
-	nbody_solver( NULL )
+	nbody_solver()
 {
 	m_k = NULL;
 	m_tmpy = NULL;

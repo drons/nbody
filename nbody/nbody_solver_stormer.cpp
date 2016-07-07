@@ -1,12 +1,12 @@
 #include "nbody_solver_stormer.h"
 #include "summation.h"
 
-nbody_solver_stormer::nbody_solver_stormer( nbody_data* data ) : nbody_solver( data )
+nbody_solver_stormer::nbody_solver_stormer() : nbody_solver()
 {
 }
 
 void nbody_solver_stormer::step( nbcoord_t dt )
-{
+{/*
 	nbvertex_t*	vertites = data()->get_vertites();
 	nbvertex_t*	velosites = data()->get_velosites();
 	size_t		count = data()->get_count();
@@ -46,6 +46,6 @@ void nbody_solver_stormer::step( nbcoord_t dt )
 			cvert = summation_k( cvert, m_dv[n]*dt*dt, &m_correction_vert[n] );
 		}
 	}
-	data()->advise_time( dt );
+	data()->advise_time( dt );*/
 }
 
