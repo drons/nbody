@@ -307,7 +307,6 @@ int test_fmaxabs( nbody_engine* e )
 	std::transform( a.begin(), a.end(), a.begin(), fabs );
 	nbcoord_t testmax = *std::max_element( a.begin(), a.end() );
 
-	qDebug() << "result =" << result << "testmax =" << testmax;
 	Q_ASSERT( fabs( result - testmax ) < eps );
 
 	e->free( mem_a );

@@ -60,7 +60,7 @@ typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int, cl_int > FMaddn1;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int, cl_int, cl_int > FMaddn2;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int, cl_int > FMaddn3;
-typedef cl::make_kernel< cl::Buffer, cl::Buffer > FMabsmax;
+typedef cl::make_kernel< cl::Buffer, cl::Buffer > FMaxabs;
 
 struct nbody_engine_opencl::data
 {
@@ -76,7 +76,7 @@ struct nbody_engine_opencl::data
 		FMaddn1				fmaddn1;
 		FMaddn2				fmaddn2;
 		FMaddn3				fmaddn3;
-		FMabsmax			fmabsmax;
+		FMaxabs				fmaxabs;
 
 		static QString build_options();
 		static QStringList sources();
@@ -151,7 +151,7 @@ nbody_engine_opencl::data::devctx::devctx( cl::Device& device ) :
 	fmaddn1( prog, "fmaddn1" ),
 	fmaddn2( prog, "fmaddn2" ),
 	fmaddn3( prog, "fmaddn3" ),
-	fmabsmax( prog, "fmabsmax" )
+	fmaxabs( prog, "fmaxabs" )
 {
 	size_t	local_memory_amount = 0;
 
@@ -411,10 +411,24 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 	}
 }
 
-void nbody_engine_opencl::fmaxabs( const memory* a, nbcoord_t& result )
+void nbody_engine_opencl::fmaxabs( const memory* _a, nbcoord_t& result )
 {
-	Q_UNUSED( a );
-	result = 0;
+	size_t			rsize = problem_size()/NBODY_DATA_BLOCK_SIZE;
+	const smemory*	a = dynamic_cast<const smemory*>( _a );
+	data::devctx&	ctx( d->m_devices.front() );
+	cl::NDRange		global_range( problem_size() );
+	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
+	cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+	smemory			out( sizeof(nbcoord_t)*rsize, ctx );
+
+	cl::Event		ev( ctx.fmaxabs( eargs, a->buffer(), out.buffer() ) );
+	ev.wait();
+
+	std::vector<nbcoord_t> host_buff( rsize );
+
+	memcpy( host_buff.data(), &out );
+
+	result = *std::max_element( host_buff.begin(), host_buff.end() );
 }
 
 
