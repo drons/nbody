@@ -12,6 +12,7 @@ addons:
   apt:
     packages:
     - g++
+    - gdb
     - libqt4-dev
     - libqt4-opengl-dev
 
