@@ -54,11 +54,10 @@ HEADERS	+= \
 	vertex.h \
     nbtype.h
 
-contains( DEFINES, HAVE_OPNECL )
-{
+contains( DEFINES, HAVE_OPENCL ){
 	OTHER_FILES += nbody_engine_opencl.cl
 	RESOURCES += opencl.qrc
-	HEADERS += nbody_engine_opencl.cpp
+	HEADERS += nbody_engine_opencl.h
 	SOURCES += nbody_engine_opencl.cpp
 }
 

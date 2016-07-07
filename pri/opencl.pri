@@ -5,8 +5,7 @@ exists( /opt/intel/opencl/include ){
 	DEFINES += HAVE_OPENCL
 }
 
-!contains( DEFINES, HAVE_OPNECL )
-{
+!contains( DEFINES, HAVE_OPENCL ){
 	exists( /home/sas/prg/opencl/nvidia ){
 		LIBS += -L/home/sas/prg/opencl/nvidia/lib
 		INCLUDEPATH += /home/sas/prg/opencl/nvidia
@@ -14,7 +13,6 @@ exists( /opt/intel/opencl/include ){
 	}
 }
 
-contains( DEFINES, HAVE_OPNECL )
-{
+contains( DEFINES, HAVE_OPENCL ){
 	LIBS += -lOpenCL
 }
