@@ -10,7 +10,7 @@ class nbody_solver_stormer : public nbody_solver
 	std::vector< nbvertex_t >	m_correction_vert;
 	std::vector< nbvertex_t >	m_correction_vel;
 public:
-	nbody_solver_stormer( nbody_data* data );
+	nbody_solver_stormer();
 	virtual void step( nbcoord_t dt );
 };
 

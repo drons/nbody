@@ -5,11 +5,10 @@
 
 class nbody_solver_euler : public nbody_solver
 {
-	std::vector< nbvertex_t >	m_dv;
-	std::vector< nbvertex_t >	m_correction_vert;
-	std::vector< nbvertex_t >	m_correction_vel;
+	nbody_engine::memory*	m_dy;
 public:
-	nbody_solver_euler( nbody_data* data );
+	nbody_solver_euler();
+	~nbody_solver_euler();
 	virtual void step( nbcoord_t dt );
 };
 

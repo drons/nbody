@@ -4,21 +4,48 @@
 
 nbody_engine_block::nbody_engine_block()
 {
-	qDebug() << "OpenMP max threads" << omp_get_max_threads();
 }
 
-void nbody_engine_block::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
+void nbody_engine_block::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff )
 {
+	Q_UNUSED(t);
+	const smemory*	y = dynamic_cast<const  smemory*>( _y );
+	smemory*		f = dynamic_cast<smemory*>( _f );
+
+	if( y == NULL )
+	{
+		qDebug() << "y not is smemory";
+		return;
+	}
+	if( f == NULL )
+	{
+		qDebug() << "f not is smemory";
+		return;
+	}
+
 	advise_compute_count();
 
-	size_t				count = data->get_count();
-	const nbcoord_t*	mass = data->get_mass();
+	size_t				count = m_data->get_count();
 	const size_t		block = NBODY_DATA_BLOCK_SIZE;
 
-	#pragma omp parallel for
+	const nbcoord_t*	rx = ((const nbcoord_t*)y->data()) + yoff;
+	const nbcoord_t*	ry = rx + count;
+	const nbcoord_t*	rz = rx + 2*count;
+	const nbcoord_t*	vx = rx + 3*count;
+	const nbcoord_t*	vy = rx + 4*count;
+	const nbcoord_t*	vz = rx + 5*count;
+
+	nbcoord_t*			frx = ((nbcoord_t*)f->data()) + foff;
+	nbcoord_t*			fry = frx + count;
+	nbcoord_t*			frz = frx + 2*count;
+	nbcoord_t*			fvx = frx + 3*count;
+	nbcoord_t*			fvy = frx + 4*count;
+	nbcoord_t*			fvz = frx + 5*count;
+	const nbcoord_t*	mass = (const nbcoord_t*)m_mass->data();
+
+#pragma omp parallel for
 	for( size_t n1 = 0; n1 < count; n1 += block )
 	{
-		const nbvertex_t*	v1( vertites + n1 );
 		nbcoord_t			x1[block];
 		nbcoord_t			y1[block];
 		nbcoord_t			z1[block];
@@ -28,16 +55,17 @@ void nbody_engine_block::fcompute( const nbody_data* data, const nbvertex_t* ver
 
 		for( size_t b1 = 0; b1 != block; ++b1 )
 		{
-			x1[b1] = v1[b1].x;
-			y1[b1] = v1[b1].y;
-			z1[b1] = v1[b1].z;
+			size_t local_n1 = b1 + n1;
+
+			x1[b1] = rx[local_n1];
+			y1[b1] = ry[local_n1];
+			z1[b1] = rz[local_n1];
 			total_force_x[b1] = 0;
 			total_force_y[b1] = 0;
 			total_force_z[b1] = 0;
 		}
 		for( size_t n2 = 0; n2 < count; n2 += block )
 		{
-			const nbvertex_t*	v2( vertites + n2 );
 			nbcoord_t			x2[block];
 			nbcoord_t			y2[block];
 			nbcoord_t			z2[block];
@@ -45,9 +73,11 @@ void nbody_engine_block::fcompute( const nbody_data* data, const nbvertex_t* ver
 
 			for( size_t b2 = 0; b2 != block; ++b2 )
 			{
-				x2[b2] = v2[b2].x;
-				y2[b2] = v2[b2].y;
-				z2[b2] = v2[b2].z;
+				size_t local_n2 = b2 + n2;
+
+				x2[b2] = rx[local_n2];
+				y2[b2] = ry[local_n2];
+				z2[b2] = rz[local_n2];
 				m2[b2] = mass[n2 + b2];
 			}
 
@@ -77,7 +107,13 @@ void nbody_engine_block::fcompute( const nbody_data* data, const nbvertex_t* ver
 
 		for( size_t b1 = 0; b1 != block; ++b1 )
 		{
-			dv[n1 + b1] = nbvertex_t( total_force_x[b1], total_force_y[b1], total_force_z[b1] );
+			size_t local_n1 = b1 + n1;
+			frx[local_n1] = vx[local_n1];
+			fry[local_n1] = vy[local_n1];
+			frz[local_n1] = vz[local_n1];
+			fvx[local_n1] = total_force_x[b1];
+			fvy[local_n1] = total_force_y[b1];
+			fvz[local_n1] = total_force_z[b1];
 		}
 	}
 }

@@ -14,7 +14,7 @@ class wgt_nbody_view : public QGLWidget
 	nbcoord_t				m_mesh_sz;
 	QGLFramebufferObject*	m_renderer;
 public:
-	wgt_nbody_view( nbody_solver*, nbcoord_t box_size );
+	wgt_nbody_view( nbody_solver*, nbody_data*, nbcoord_t box_size );
 	~wgt_nbody_view();
 
 	void paint_color_box();

@@ -3,14 +3,18 @@
 #include "summation.h"
 #include <QDebug>
 
-nbody_solver_adams::nbody_solver_adams( nbody_data* data ) : nbody_solver( data )
+nbody_solver_adams::nbody_solver_adams() : nbody_solver()
 {
-	m_starter = new nbody_solver_euler( data );
+	m_starter = new nbody_solver_euler();
+	m_f = NULL;
+	m_coeff = NULL;
 }
 
 nbody_solver_adams::~nbody_solver_adams()
 {
 	delete m_starter;
+	engine()->free( m_f );
+	engine()->free( m_coeff );
 }
 
 void nbody_solver_adams::step( double dt )
@@ -23,83 +27,40 @@ void nbody_solver_adams::step( double dt )
 	const nbcoord_t		a5[5] = { 1901.0/720.0, -1387.0/360.0, 109.0/30.0, -637.0/360.0, 251.0/720.0 };
 	const nbcoord_t*	ar[] = { NULL, a1, a2, a3, a4, a5 };
 	const nbcoord_t*	a = ar[rank];
-	nbvertex_t*			vertites = data()->get_vertites();
-	nbvertex_t*			velosites = data()->get_velosites();
-	size_t				count = data()->get_count();
 
-	if( m_xdata.size() != rank )
+	nbody_engine::memory*	y = engine()->y();
+	nbcoord_t				t = engine()->get_time();
+	size_t					step = engine()->get_step();
+	size_t					fnum = step % rank;
+	size_t					ps = engine()->problem_size();
+
+	if( m_f== NULL )
 	{
-		m_starter->set_engine( get_engine() );
-		m_xdata.resize(rank);
-		m_vdata.resize(rank);
-		m_dx.resize(rank);
-		m_dv.resize(rank);
-		m_correction_vert.resize( count );
-		m_correction_vel.resize( count );
-
-		for( size_t r = 0; r != rank; ++r )
-		{
-			m_xdata[r].resize(count);
-			m_vdata[r].resize(count);
-			m_dx[r] = m_xdata[r].data();
-			m_dv[r] = m_vdata[r].data();
-		}
+		m_starter->set_engine( engine() );
+		m_f = engine()->malloc( sizeof( nbcoord_t )*ps*rank );
+		m_coeff = engine()->malloc( sizeof( nbcoord_t )*rank );
 	}
 
-	if( data()->get_step() > rank )
+	if( step > rank )
 	{
-		step_v( vertites, m_dv.front() );
+		std::vector<nbcoord_t>	coeff( rank );
 
-		nbvertex_t* dxfront = m_dx.front();
+		engine()->fcompute( t, y, m_f, 0, fnum*ps );
 
-		//#pragma omp parallel for
-		for( size_t n = 0; n < count; ++n )
+		for( size_t n = 0; n < rank; ++n )
 		{
-			nbvertex_t dx;
-			dxfront[n] = velosites[n];
-
-			for( size_t r = 0; r != rank; ++r )
-			{
-				dx += m_dx[r][n]*a[r];
-			}
-			vertites[n] = summation_k( vertites[n], dx*dt, &m_correction_vert[n] );
-			//qDebug() << (dx - m_dx[0][n]).length()/dx.length() << velosites[n].length();
-		}
-		//#pragma omp parallel for
-		for( size_t n = 0; n < count; ++n )
-		{
-			nbvertex_t dv;
-			for( size_t r = 0; r != rank; ++r )
-			{
-				dv += m_dv[r][n]*a[r];
-			}
-			velosites[n] = summation_k( velosites[n], dv*dt, &m_correction_vel[n] );
+			coeff[ (rank+fnum-n)%rank ] = a[n]*dt;
 		}
 
-		//exit(0);
+		engine()->memcpy( m_coeff, coeff.data() );
+		engine()->fmaddn( y, m_f, m_coeff, ps, 0, 0, rank );
 
-		data()->advise_time( dt );
+		engine()->advise_time( dt );
 	}
 	else
 	{
-		step_v( vertites, m_dv.front() );
-		m_starter->step( dt );
-
-		nbvertex_t* dxfront = m_dx.front();
-
-		//#pragma omp parallel for
-		for( size_t n = 0; n < count; ++n )
-		{
-			dxfront[n] = velosites[n];
-		}
+		engine()->fcompute( t, y, m_f, 0, fnum*ps );
+		engine()->fmadd( y, y, m_f, dt, 0, 0, fnum*ps );
+		engine()->advise_time( dt );
 	}
-
-	nbvertex_t* tx = m_dx.back();
-	nbvertex_t* tv = m_dv.back();
-	m_dx.erase( m_dx.begin() + rank - 1 );
-	m_dv.erase( m_dv.begin() + rank - 1 );
-	m_dx.insert( m_dx.begin(), tx );
-	m_dv.insert( m_dv.begin(), tv );
-
-//	qDebug() << m_dx[0] << m_dx[1] << m_dx[2] << m_dx[3] << m_dx[4];
 }

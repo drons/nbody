@@ -68,8 +68,8 @@ bool nbody_butcher_table_rklc::is_embedded() const
 	return true;
 }
 
-nbody_solver_rklc::nbody_solver_rklc( nbody_data* data ) :
-	nbody_solver_rk_butcher( data , new nbody_butcher_table_rklc() )
+nbody_solver_rklc::nbody_solver_rklc() :
+	nbody_solver_rk_butcher( new nbody_butcher_table_rklc() )
 {
 
 }

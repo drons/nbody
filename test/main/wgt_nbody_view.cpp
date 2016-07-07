@@ -6,7 +6,7 @@
 #include <QDebug>
 #include <QDir>
 
-wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbcoord_t box_size )
+wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
@@ -14,7 +14,7 @@ wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbcoord_t box_size )
 	m_mesh_sy = box_size;
 	m_mesh_sz = box_size;
 
-	m_data = solver->data();
+	m_data = data;
 	m_solver = solver;
 	m_renderer = NULL;
 }
@@ -226,6 +226,7 @@ void wgt_nbody_view::paintGL( GLsizei width, GLsizei height )
 
 void wgt_nbody_view::paintGL()
 {
+	m_solver->engine()->get_data( m_data );
 	paintGL( width(), height() );
 }
 
@@ -236,7 +237,7 @@ void wgt_nbody_view::step()
 	size_t	w = 100;
 	if( i % w == 0 )
 	{
-		m_data->print_statistics( m_solver->get_engine() );
+		m_data->print_statistics( m_solver->engine() );
 		//render_file();
 	}
 

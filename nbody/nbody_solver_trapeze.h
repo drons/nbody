@@ -5,13 +5,12 @@
 
 class nbody_solver_trapeze : public nbody_solver
 {
-	std::vector< nbvertex_t >	m_dv0;
-	std::vector< nbvertex_t >	m_dv1;
-	std::vector< nbvertex_t >	m_predictor_vert;
-	std::vector< nbvertex_t >	m_predictor_vel;
-	std::vector< nbvertex_t >	m_velosites0;
+	nbody_engine::memory*	m_f01;
+	nbody_engine::memory*	m_predictor;
+	nbody_engine::memory*	m_coeff;
 public:
-	nbody_solver_trapeze( nbody_data* data );
+	nbody_solver_trapeze();
+	~nbody_solver_trapeze();
 	virtual void step( nbcoord_t dt );
 };
 
