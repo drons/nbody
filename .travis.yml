@@ -23,7 +23,7 @@ before_script:
   - gcc --version
   - mkdir build-debug
   - cd build-debug
-  - qmake-qt4 ../nbody/nbody.pro CONFIG+=debug
+  - qmake-qt4 ../nbody.pro CONFIG+=debug
   - cd ..
 
 script:
