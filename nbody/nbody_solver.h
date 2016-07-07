@@ -14,7 +14,6 @@ public:
 	virtual ~nbody_solver();
 	void set_engine( nbody_engine* );
 	nbody_engine* engine();
-	void step_v( const nbvertex_t* vertites, nbvertex_t* dv );
 	virtual void step( nbcoord_t dt ) = 0;
 	void set_time_step( nbcoord_t min_step, nbcoord_t max_step );
 	nbcoord_t get_min_step() const;

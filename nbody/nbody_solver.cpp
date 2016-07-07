@@ -21,11 +21,6 @@ nbody_engine* nbody_solver::engine()
 	return m_engine;
 }
 
-void nbody_solver::step_v( const nbvertex_t* vertites, nbvertex_t* dv )
-{
-//	m_engine->fcompute( m_data, vertites, dv );
-}
-
 void nbody_solver::set_time_step( nbcoord_t min_step, nbcoord_t max_step )
 {
 	m_min_step = min_step;
