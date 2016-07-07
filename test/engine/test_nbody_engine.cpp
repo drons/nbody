@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QtTest>
 #include <QDebug>
 #include <limits>
 
@@ -7,17 +8,20 @@
 #include "nbody_engine_simple.h"
 #include "nbody_engine_sparse.h"
 
-int test_mem( nbody_engine* e )
+bool test_mem( nbody_engine* e )
 {
 	nbody_engine::memory*	mem = e->malloc( 1024 );
 
-	Q_ASSERT( mem != NULL );
-
+	if( mem == NULL )
+	{
+		return false;
+	}
 	e->free( mem );
-	return 0;
+
+	return true;
 }
 
-int test_memcpy( nbody_engine* e )
+bool test_memcpy( nbody_engine* e )
 {
 	const size_t			cnt = 8;
 	const size_t			size = sizeof( nbcoord_t )*cnt;
@@ -29,15 +33,15 @@ int test_memcpy( nbody_engine* e )
 	e->memcpy( mem, data );
 	e->memcpy( x, mem );
 
-	Q_ASSERT( 0 == memcmp( data, x, size ) );
+	bool	ret = ( 0 == memcmp( data, x, size ) );
 
 	e->free( mem );
 	e->free( submem );
 
-	return 0;
+	return ret;
 }
 
-int test_fmadd1( nbody_engine* e )
+bool test_fmadd1( nbody_engine* e )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = sizeof( nbcoord_t )*e->problem_size();
@@ -62,18 +66,22 @@ int test_fmadd1( nbody_engine* e )
 
 	e->memcpy( a_res.data(), mem_a );
 
+	bool	ret = true;
 	for( size_t i = 0; i != a.size(); ++i )
 	{
-		Q_ASSERT( fabs( (a[i] + c*b[i]) - a_res[i] ) < eps );
+		if( fabs( (a[i] + c*b[i]) - a_res[i] ) > eps )
+		{
+			ret = false;
+		}
 	}
 
 	e->free( mem_a );
 	e->free( mem_b );
 
-	return 0;
+	return ret;
 }
 
-int test_fmadd2( nbody_engine* e )
+bool test_fmadd2( nbody_engine* e )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -110,19 +118,23 @@ int test_fmadd2( nbody_engine* e )
 
 	e->memcpy( a.data(), mem_a );
 
+	bool	ret = true;
 	for( size_t i = 0; i != size; ++i )
 	{
-		Q_ASSERT( fabs( (b[i+boff] + c[i+coff]*d) - a[i+aoff] ) < eps );
+		if( fabs( (b[i+boff] + c[i+coff]*d) - a[i+aoff] ) > eps )
+		{
+			ret = false;
+		}
 	}
 
 	e->free( mem_a );
 	e->free( mem_b );
 	e->free( mem_c );
 
-	return 0;
+	return ret;
 }
 
-int test_fmaddn1( nbody_engine* e, size_t csize )
+bool test_fmaddn1( nbody_engine* e, size_t csize )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -159,22 +171,26 @@ int test_fmaddn1( nbody_engine* e, size_t csize )
 
 	e->memcpy( a_res.data(), mem_a );
 
+	bool	ret = true;
 	for( size_t i = 0; i != size; ++i )
 	{
 		nbcoord_t	s = 0;
 		for( size_t k = 0; k != csize; ++k )
 			s += b[i+boff+k*bstride]*c[k];
-		Q_ASSERT( fabs( (a[i+aoff] + s) - a_res[i+aoff] ) < eps );
+		if( fabs( (a[i+aoff] + s) - a_res[i+aoff] ) > eps )
+		{
+			ret = false;
+		}
 	}
 
 	e->free( mem_a );
 	e->free( mem_b );
 	e->free( mem_c );
 
-	return 0;
+	return ret;
 }
 
-int test_fmaddn2( nbody_engine* e, size_t dsize )
+bool test_fmaddn2( nbody_engine* e, size_t dsize )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -218,12 +234,16 @@ int test_fmaddn2( nbody_engine* e, size_t dsize )
 
 	e->memcpy( a.data(), mem_a );
 
+	bool	ret = true;
 	for( size_t i = 0; i != size; ++i )
 	{
 		nbcoord_t	s = 0;
 		for( size_t k = 0; k != dsize; ++k )
 			s += c[i+coff+k*cstride]*d[k];
-		Q_ASSERT( fabs( (b[i+boff] + s) - a[i+aoff] ) < eps );
+		if( fabs( (b[i+boff] + s) - a[i+aoff] ) > eps )
+		{
+			ret = false;
+		}
 	}
 
 	e->free( mem_a );
@@ -231,10 +251,10 @@ int test_fmaddn2( nbody_engine* e, size_t dsize )
 	e->free( mem_c );
 	e->free( mem_d );
 
-	return 0;
+	return ret;
 }
 
-int test_fmaddn3( nbody_engine* e, size_t dsize )
+bool test_fmaddn3( nbody_engine* e, size_t dsize )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -270,6 +290,7 @@ int test_fmaddn3( nbody_engine* e, size_t dsize )
 
 	e->memcpy( a.data(), mem_a );
 
+	bool	ret = true;
 	for( size_t i = 0; i != size; ++i )
 	{
 		nbcoord_t	s = 0;
@@ -277,17 +298,20 @@ int test_fmaddn3( nbody_engine* e, size_t dsize )
 		{
 			s += c[i+coff+k*cstride]*d[k];
 		}
-		Q_ASSERT( fabs( s - a[i+aoff] ) < eps );
+		if( fabs( s - a[i+aoff] ) > eps )
+		{
+			ret = false;
+		}
 	}
 
 	e->free( mem_a );
 	e->free( mem_c );
 	e->free( mem_d );
 
-	return 0;
+	return ret;
 }
 
-int test_fmaxabs( nbody_engine* e )
+bool test_fmaxabs( nbody_engine* e )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	std::vector<nbcoord_t>	a( e->problem_size() );
@@ -307,71 +331,122 @@ int test_fmaxabs( nbody_engine* e )
 	std::transform( a.begin(), a.end(), a.begin(), fabs );
 	nbcoord_t testmax = *std::max_element( a.begin(), a.end() );
 
-	Q_ASSERT( fabs( result - testmax ) < eps );
+	bool	ret = ( fabs( result - testmax ) < eps );
 
 	e->free( mem_a );
 
-	return 0;
+	return ret;
 }
 
-int test_engine( nbody_engine* e )
+
+class test_nbody_engine : public QObject
 {
-	nbody_data              data;
+	Q_OBJECT
+
+	nbody_data		data;
+	nbody_engine*	e;
+public:
+	test_nbody_engine( nbody_engine* e );
+	~test_nbody_engine();
+
+private slots:
+	void initTestCase();
+	void cleanupTestCase();
+	void test_mem();
+	void test_memcpy();
+	void test_fmadd1();
+	void test_fmadd2();
+	void test_fmaddn1();
+	void test_fmaddn2();
+	void test_fmaddn3();
+	void test_fmaxabs();
+};
+
+test_nbody_engine::test_nbody_engine( nbody_engine* _e ) :
+	e( _e )
+{
+}
+
+test_nbody_engine::~test_nbody_engine()
+{
+	delete e;
+}
+
+void test_nbody_engine::initTestCase()
+{
 	nbcoord_t				box_size = 100;
 
 	data.make_universe( box_size, box_size, box_size );
-
 	e->init( &data );
-
-	test_mem( e );
-	test_memcpy( e );
-
-	test_fmadd1( e );
-	test_fmadd2( e );
-
-	test_fmaddn1( e, 1 );
-	test_fmaddn1( e, 3 );
-	test_fmaddn1( e, 7 );
-
-	test_fmaddn2( e, 1 );
-	test_fmaddn2( e, 3 );
-	test_fmaddn2( e, 7 );
-
-	test_fmaddn3( e, 1 );
-	test_fmaddn3( e, 3 );
-	test_fmaddn3( e, 7 );
-
-	test_fmaxabs( e );
-
-	return 0;
 }
 
-int main( int argc, char *argv[] )
+void test_nbody_engine::cleanupTestCase()
 {
-//	if( argc != 2 )
-//	{
-//		qDebug() << "invalid arg count";
-//		qDebug() << "Usage: " << argv[0] << "engine_name";
-//	}
 
-	{
-		nbody_engine_block	e;
-		test_engine( &e );
-	}
-#ifdef HAVE_OPENCL
-	{
-		nbody_engine_opencl	e;
-		test_engine( &e );
-	}
-#endif
-	{
-		nbody_engine_simple	e;
-		test_engine( &e );
-	}
-//	{
-//		nbody_engine_sparse	e;
-//		test_engine( &e );
-//	}
-
-	return 0;
 }
+
+void test_nbody_engine::test_mem()
+{
+	QVERIFY( ::test_mem( e ) );
+}
+
+void test_nbody_engine::test_memcpy()
+{
+	QVERIFY( ::test_memcpy( e ) );
+}
+
+void test_nbody_engine::test_fmadd1()
+{
+	QVERIFY( ::test_fmadd1( e ) );
+}
+
+void test_nbody_engine::test_fmadd2()
+{
+	QVERIFY( ::test_fmadd2( e ) );
+}
+
+void test_nbody_engine::test_fmaddn1()
+{
+	QVERIFY( ::test_fmaddn1( e, 1 ) );
+	QVERIFY( ::test_fmaddn1( e, 3 ) );
+	QVERIFY( ::test_fmaddn1( e, 7 ) );
+}
+
+void test_nbody_engine::test_fmaddn2()
+{
+	QVERIFY( ::test_fmaddn2( e, 1 ) );
+	QVERIFY( ::test_fmaddn2( e, 3 ) );
+	QVERIFY( ::test_fmaddn2( e, 7 ) );
+}
+
+void test_nbody_engine::test_fmaddn3()
+{
+	QVERIFY( ::test_fmaddn3( e, 1 ) );
+	QVERIFY( ::test_fmaddn3( e, 3 ) );
+	QVERIFY( ::test_fmaddn3( e, 7 ) );
+}
+
+void test_nbody_engine::test_fmaxabs()
+{
+	QVERIFY( ::test_fmaxabs( e ) );
+}
+
+int main(int argc, char *argv[])
+{
+	int res = 0;
+
+    test_nbody_engine tc1( new nbody_engine_block() );
+	res += QTest::qExec( &tc1, argc, argv );
+
+#ifdef HAVE_OPENCL
+	test_nbody_engine tc2( new nbody_engine_opencl() );
+	res += QTest::qExec( &tc2, argc, argv );
+#endif
+
+	test_nbody_engine tc3( new nbody_engine_simple() );
+	res += QTest::qExec( &tc3, argc, argv );
+
+    return res;
+}
+
+#include "test_nbody_engine.moc"

@@ -6,15 +6,15 @@ TEMPLATE	= app
 TARGET		= engine
 MOC_DIR = ./.tmp/moc
 
-CONFIG		+= qt
-QT += opengl
+CONFIG		+= qt testcase
+QT += opengl testlib
 LIBS += -lGLU -lgomp
 
 INCLUDEPATH += ../../nbody
 LIBS += -L../../nbody
 LIBS += -lnbody
 
-SOURCES	+= main.cpp
+SOURCES	+= test_nbody_engine.cpp
 
 #HEADERS	+=
 
