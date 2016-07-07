@@ -29,3 +29,5 @@ before_script:
 script:
   - cd build-debug
   - make -j2
+  - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+  - ./test/engine/engine
