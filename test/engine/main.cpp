@@ -358,10 +358,12 @@ int main( int argc, char *argv[] )
 		nbody_engine_block	e;
 		test_engine( &e );
 	}
+#ifdef HAVE_OPENCL
 	{
 		nbody_engine_opencl	e;
 		test_engine( &e );
 	}
+#endif
 	{
 		nbody_engine_simple	e;
 		test_engine( &e );
