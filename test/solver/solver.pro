@@ -14,9 +14,4 @@ INCLUDEPATH += ../../nbody
 LIBS += -L../../nbody
 LIBS += -lnbody
 
-SOURCES	+= test_nbody_engine.cpp
-
-#HEADERS	+=
-
-
-
+SOURCES += test_nbody_solver.cpp
