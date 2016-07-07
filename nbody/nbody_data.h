@@ -30,6 +30,7 @@ class nbody_data
 	nbvertex_t					m_last_mass_center;
 	nbcoord_t					m_last_total_kinetic_energy;
 	nbcoord_t					m_last_total_potential_energy;
+	bool						m_last_values_computed;
 	double						m_timer_start;
 	size_t						m_timer_step;
 

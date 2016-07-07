@@ -21,6 +21,7 @@ nbody_data::nbody_data()
 	m_total_potential_energy = 0;
 	m_last_total_kinetic_energy = 0;
 	m_last_total_potential_energy = 0;
+	m_last_values_computed = false;
 	m_timer_start = omp_get_wtime();
 	m_timer_step = 0;
 }
@@ -61,15 +62,14 @@ void nbody_data::print_statistics( nbody_engine* engine )
 	total_potential_energy /= 2;
 	mass_center /= total_mass;
 
-	static bool first_run = true;
-	if( first_run )
+	if( !m_last_values_computed )
 	{
 		m_total_impulce = total_impulce;
 		m_total_impulce_moment = total_impulce_moment;
 		m_mass_center = mass_center;
 		m_total_kinetic_energy = total_kinetic_energy;
 		m_total_potential_energy = total_potential_energy;
-		first_run = false;
+		m_last_values_computed = true;
 	}
 	m_last_total_impulce = total_impulce;
 	m_last_total_impulce_moment = total_impulce_moment;
