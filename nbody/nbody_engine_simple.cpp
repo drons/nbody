@@ -300,7 +300,9 @@ void nbody_engine_simple::fmaxabs( const nbody_engine::memory* __a, nbcoord_t& r
 
 	result = fabs(a[0]);
 
+#if __GNUC__*100 + __GNUC_MINOR__ >= 409
 	#pragma omp parallel for reduction( max : result )
+#endif // since gcc-4.9
 	for( size_t n = 0; n < count; ++n )
 	{
 		nbcoord_t	v( fabs( a[n] ) );
