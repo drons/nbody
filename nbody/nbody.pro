@@ -1,3 +1,7 @@
+include( ../pri/nbody.pri )
+include( ../pri/opencl.pri )
+include( ../pri/vectorize.pri )
+
 TEMPLATE	= lib
 TARGET		= nbody
 MOC_DIR = ./.tmp/moc
@@ -6,23 +10,11 @@ CONFIG		+= qt
 QT += opengl
 LIBS += -lGLU -lgomp
 
-NBODY_FLAGS += -fopenmp
-NBODY_FLAGS += -ftree-vectorizer-verbose=1
-NBODY_FLAGS += -mavx -ffast-math -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-vectorize -fipa-cp-clone
-
-QMAKE_CFLAGS += $$NBODY_FLAGS
-QMAKE_CXXFLAGS += $$NBODY_FLAGS
-LIBS += -lOpenCL
-LIBS += -L/opt/intel/opencl
-INCLUDEPATH += /opt/intel/opencl/include
-INCLUDEPATH += /home/sas/prg/opencl/nvidia
-
 SOURCES	+= \
     nbody_butcher_table.cpp \
 	nbody_data.cpp \
 	nbody_engine.cpp \
 	nbody_engine_block.cpp \
-	nbody_engine_opencl.cpp \
 	nbody_engine_simple.cpp \
 #	nbody_engine_sparse.cpp \
 	nbody_solver.cpp \
@@ -45,7 +37,6 @@ HEADERS	+= \
 	nbody_data.h \
 	nbody_engine.h \
 	nbody_engine_block.h \
-	nbody_engine_opencl.h \
 	nbody_engine_simple.h \
 #	nbody_engine_sparse.h \
 	nbody_solver.h \
@@ -63,12 +54,13 @@ HEADERS	+= \
 	vertex.h \
     nbtype.h
 
-OTHER_FILES += \
-    nbody_engine_opencl.cl
-
-RESOURCES += \
-    opencl.qrc
-
+contains( DEFINES, HAVE_OPNECL )
+{
+	OTHER_FILES += nbody_engine_opencl.cl
+	RESOURCES += opencl.qrc
+	HEADERS += nbody_engine_opencl.cpp
+	SOURCES += nbody_engine_opencl.cpp
+}
 
 nbodyinst.path = /tmp/nbody
 INSTALLS += nbodyinst
