@@ -1,3 +1,4 @@
+include( ../../pri/nbody.pri )
 include( ../../pri/opencl.pri )
 include( ../../pri/vectorize.pri )
 

@@ -1,0 +1,1 @@
+CONFIG += depend_includepath
