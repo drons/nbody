@@ -3,7 +3,7 @@ include( ../../pri/opencl.pri )
 include( ../../pri/vectorize.pri )
 
 TEMPLATE	= app
-TARGET		= engine
+TARGET		= solver
 MOC_DIR = ./.tmp/moc
 
 CONFIG		+= qt testcase
