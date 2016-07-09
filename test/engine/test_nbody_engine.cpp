@@ -432,16 +432,26 @@ int main(int argc, char *argv[])
 {
 	int res = 0;
 
-    test_nbody_engine tc1( new nbody_engine_block() );
-	res += QTest::qExec( &tc1, argc, argv );
-
+	{
+		test_nbody_engine tc1( new nbody_engine_block() );
+		res += QTest::qExec( &tc1, argc, argv );
+	}
 #ifdef HAVE_OPENCL
-	test_nbody_engine tc2( new nbody_engine_opencl() );
-	res += QTest::qExec( &tc2, argc, argv );
+	{
+		test_nbody_engine tc1( new nbody_engine_opencl() );
+		res += QTest::qExec( &tc1, argc, argv );
+	}
 #endif
 
-	test_nbody_engine tc3( new nbody_engine_simple() );
-	res += QTest::qExec( &tc3, argc, argv );
+	{
+		test_nbody_engine tc1( new nbody_engine_openmp() );
+		res += QTest::qExec( &tc1, argc, argv );
+	}
+
+	{
+		test_nbody_engine tc3( new nbody_engine_simple() );
+		res += QTest::qExec( &tc3, argc, argv );
+	}
 
     return res;
 }
