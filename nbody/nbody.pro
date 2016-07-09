@@ -41,6 +41,7 @@ HEADERS	+= \
 	nbody_engine_openmp.h \
 	nbody_engine_simple.h \
 #	nbody_engine_sparse.h \
+	nbody_engines.h \
 	nbody_solver.h \
 	nbody_solver_adams.h \
 	nbody_solver_euler.h \
@@ -53,6 +54,7 @@ HEADERS	+= \
 	nbody_solver_rklc.h \
 	nbody_solver_stormer.h \
 	nbody_solver_trapeze.h \
+	nbody_solvers.h \
 	vertex.h \
     nbtype.h
 

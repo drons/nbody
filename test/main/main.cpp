@@ -4,21 +4,8 @@
 
 #include "wgt_nbody_view.h"
 
-#include "nbody_solver_adams.h"
-#include "nbody_solver_euler.h"
-#include "nbody_solver_rk4.h"
-#include "nbody_solver_rkck.h"
-#include "nbody_solver_rkdp.h"
-#include "nbody_solver_rkf.h"
-#include "nbody_solver_rkgl.h"
-#include "nbody_solver_rklc.h"
-#include "nbody_solver_stormer.h"
-#include "nbody_solver_trapeze.h"
-
-#include "nbody_engine_block.h"
-#include "nbody_engine_opencl.h"
-#include "nbody_engine_simple.h"
-#include "nbody_engine_sparse.h"
+#include "nbody_solvers.h"
+#include "nbody_engines.h"
 
 int gui_run( int argc, char *argv[], nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
 {

@@ -3,10 +3,7 @@
 #include <QDebug>
 #include <limits>
 
-#include "nbody_engine_block.h"
-#include "nbody_engine_opencl.h"
-#include "nbody_engine_simple.h"
-#include "nbody_engine_sparse.h"
+#include "nbody_engines.h"
 
 bool test_mem( nbody_engine* e )
 {
