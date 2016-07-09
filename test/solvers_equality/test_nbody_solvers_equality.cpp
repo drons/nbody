@@ -47,6 +47,50 @@ class nbody_butcher_table_euler : public nbody_butcher_table
 	}
 };
 
+class nbody_butcher_table_backward_euler : public nbody_butcher_table
+{
+	virtual size_t get_steps() const
+	{
+		return 1;
+	}
+
+	virtual const nbcoord_t** get_a() const
+	{
+		static const nbcoord_t	a1[] = { 1.0 };
+		static const nbcoord_t*	a[] = { a1 };
+		return a;
+	}
+
+	virtual const nbcoord_t* get_b1() const
+	{
+		static const nbcoord_t	b1[] = { 1.0 };
+		return b1;
+	}
+
+	virtual const nbcoord_t* get_b2() const
+	{
+		return get_b1();
+	}
+
+	virtual const nbcoord_t* get_c() const
+	{
+		static const nbcoord_t	c[] = { 1.0 };
+		return c;
+	}
+
+	virtual bool is_implicit() const
+	{
+		return true;
+	}
+
+	virtual bool is_embedded() const
+	{
+		return false;
+	}
+};
+
+
+
 class test_nbody_solvers_equality : public QObject
 {
 	Q_OBJECT
@@ -173,6 +217,19 @@ int main(int argc, char *argv[])
 
 		test_nbody_solvers_equality tc1( new nbody_engine_active(), s1,
 		                                 new nbody_engine_active(), s2 );
+		res += QTest::qExec( &tc1, argc, argv );
+	}
+
+	{
+		nbody_solver_adams*			s1 = new nbody_solver_adams(1, true);
+		nbody_solver_rk_butcher*	s2 = new nbody_solver_rk_butcher( new nbody_butcher_table_backward_euler() );
+
+		s1->set_refine_steps_count(3);
+		s2->set_refine_steps_count(3);
+
+		test_nbody_solvers_equality tc1( new nbody_engine_active(), s1,
+		                                 new nbody_engine_active(), s2 );
+
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 

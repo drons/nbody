@@ -70,7 +70,11 @@ int main(int argc, char *argv[])
 	int res = 0;
 
 	{
-		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_adams() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_adams( 5, false ) );
+		res += QTest::qExec( &tc1, argc, argv );
+	}
+	{
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_adams( 5, true ) );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
