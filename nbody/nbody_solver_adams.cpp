@@ -17,6 +17,11 @@ nbody_solver_adams::~nbody_solver_adams()
 	engine()->free( m_coeff );
 }
 
+const char* nbody_solver_adams::type_name() const
+{
+	return "nbody_solver_adams";
+}
+
 void nbody_solver_adams::step( double dt )
 {
 	const size_t		rank = 5;

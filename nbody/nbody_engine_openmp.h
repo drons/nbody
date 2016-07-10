@@ -9,6 +9,8 @@ public:
 	nbody_engine_openmp();
 	~nbody_engine_openmp();
 
+	virtual const char* type_name() const;
+
 	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff );
 
 	virtual void memcpy( memory* a, const memory* b, size_t aoff, size_t boff );

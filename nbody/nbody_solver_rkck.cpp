@@ -80,3 +80,8 @@ nbody_solver_rkck::nbody_solver_rkck() :
 nbody_solver_rkck::~nbody_solver_rkck()
 {
 }
+
+const char* nbody_solver_rkck::type_name() const
+{
+	return "nbody_solver_rkck";
+}

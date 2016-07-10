@@ -8,6 +8,7 @@ class nbody_solver_rkck : public nbody_solver_rk_butcher
 public:
 	nbody_solver_rkck();
 	~nbody_solver_rkck();
+	const char* type_name() const;
 };
 
 #endif // NBODY_SOLVER_RKCK_H

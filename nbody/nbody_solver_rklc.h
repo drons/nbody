@@ -10,6 +10,7 @@ class nbody_solver_rklc : public nbody_solver_rk_butcher
 {
 public:
 	nbody_solver_rklc();
+	const char* type_name() const;
 };
 
 #endif // NBODY_SOLVER_RKLC_H

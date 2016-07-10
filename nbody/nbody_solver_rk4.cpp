@@ -14,6 +14,11 @@ nbody_solver_rk4::~nbody_solver_rk4()
 	engine()->free( m_coeff );
 }
 
+const char* nbody_solver_rk4::type_name() const
+{
+	return "nbody_solver_rk4";
+}
+
 void nbody_solver_rk4::step( double dt )
 {
 	nbody_engine::memory*	y = engine()->y();

@@ -11,6 +11,7 @@ class nbody_engine_opencl : public nbody_engine
 public:
 	nbody_engine_opencl();
 	~nbody_engine_opencl();
+	virtual const char* type_name() const;
 	virtual void init( nbody_data* data );
 	virtual void get_data( nbody_data* data );
 	virtual size_t problem_size() const;

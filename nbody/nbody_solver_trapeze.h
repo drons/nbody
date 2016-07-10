@@ -11,6 +11,7 @@ class nbody_solver_trapeze : public nbody_solver
 public:
 	nbody_solver_trapeze();
 	~nbody_solver_trapeze();
+	const char* type_name() const;
 	virtual void step( nbcoord_t dt );
 };
 

@@ -23,6 +23,7 @@ protected:
 public:
 	nbody_engine_simple();
 	~nbody_engine_simple();
+	virtual const char* type_name() const;
 	virtual void init( nbody_data* data );
 	virtual void get_data( nbody_data* data );
 	virtual size_t problem_size() const;

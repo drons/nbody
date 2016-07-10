@@ -5,6 +5,11 @@ nbody_solver_stormer::nbody_solver_stormer() : nbody_solver()
 {
 }
 
+const char* nbody_solver_stormer::type_name() const
+{
+	return "nbody_solver_stormer";
+}
+
 void nbody_solver_stormer::step( nbcoord_t dt )
 {/*
 	nbvertex_t*	vertites = data()->get_vertites();

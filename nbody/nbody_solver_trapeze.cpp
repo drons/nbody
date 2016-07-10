@@ -15,6 +15,11 @@ nbody_solver_trapeze::~nbody_solver_trapeze()
 	engine()->free( m_coeff );
 }
 
+const char* nbody_solver_trapeze::type_name() const
+{
+	return "nbody_solver_trapeze";
+}
+
 void nbody_solver_trapeze::step( nbcoord_t dt )
 {
 	const size_t			refine_step_count = 1;

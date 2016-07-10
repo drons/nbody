@@ -81,3 +81,9 @@ nbody_solver_rkdp::nbody_solver_rkdp() :
 nbody_solver_rkdp::~nbody_solver_rkdp()
 {
 }
+
+const char* nbody_solver_rkdp::type_name() const
+{
+	return "nbody_solver_rkdp";
+}
+

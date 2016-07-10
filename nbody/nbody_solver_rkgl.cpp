@@ -74,3 +74,9 @@ nbody_solver_rkgl::nbody_solver_rkgl() :
 {
 
 }
+
+const char* nbody_solver_rkgl::type_name() const
+{
+	return "nbody_solver_rkgl";
+}
+

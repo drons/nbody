@@ -11,6 +11,7 @@ class nbody_solver_rk4 : public nbody_solver
 public:
 	nbody_solver_rk4();
 	~nbody_solver_rk4();
+	const char* type_name() const;
 	virtual void step( double dt );
 };
 

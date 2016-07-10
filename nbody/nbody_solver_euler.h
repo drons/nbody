@@ -9,6 +9,7 @@ class nbody_solver_euler : public nbody_solver
 public:
 	nbody_solver_euler();
 	~nbody_solver_euler();
+	const char* type_name() const;
 	virtual void step( nbcoord_t dt );
 };
 

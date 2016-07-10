@@ -11,6 +11,11 @@ nbody_solver_euler::~nbody_solver_euler()
 	engine()->free( m_dy );
 }
 
+const char* nbody_solver_euler::type_name() const
+{
+	return "nbody_solver_euler";
+}
+
 void nbody_solver_euler::step( nbcoord_t dt )
 {
 	nbody_engine::memory* y = engine()->y();

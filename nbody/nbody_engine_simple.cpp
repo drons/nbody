@@ -14,6 +14,11 @@ nbody_engine_simple::~nbody_engine_simple()
 	free( m_y );
 }
 
+const char* nbody_engine_simple::type_name() const
+{
+	return "nbody_engine_simple";
+}
+
 void nbody_engine_simple::init( nbody_data* data )
 {
 	m_data = data;

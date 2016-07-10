@@ -19,6 +19,8 @@ public:
 public:
 	nbody_engine();
 	virtual ~nbody_engine();
+	//! Engine's type name
+	virtual const char* type_name() const = 0;
 	//! Initialize engine
 	virtual void init( nbody_data* data ) = 0;
 	//! Load data from engine to nbody_data

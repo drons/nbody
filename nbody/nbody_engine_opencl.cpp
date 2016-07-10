@@ -199,6 +199,11 @@ nbody_engine_opencl::~nbody_engine_opencl()
 	delete d;
 }
 
+const char*nbody_engine_opencl::type_name() const
+{
+	return "nbody_engine_opencl";
+}
+
 void nbody_engine_opencl::init( nbody_data* data )
 {
 	d->m_data = data;

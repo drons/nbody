@@ -89,3 +89,9 @@ nbody_solver_rkf::nbody_solver_rkf() :
 nbody_solver_rkf::~nbody_solver_rkf()
 {
 }
+
+const char* nbody_solver_rkf::type_name() const
+{
+	return "nbody_solver_rkf";
+}
+

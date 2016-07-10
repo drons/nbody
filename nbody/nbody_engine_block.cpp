@@ -6,6 +6,11 @@ nbody_engine_block::nbody_engine_block()
 {
 }
 
+const char* nbody_engine_block::type_name() const
+{
+	return "nbody_engine_block";
+}
+
 void nbody_engine_block::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff )
 {
 	Q_UNUSED(t);

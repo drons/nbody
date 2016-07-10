@@ -73,3 +73,9 @@ nbody_solver_rklc::nbody_solver_rklc() :
 {
 
 }
+
+const char* nbody_solver_rklc::type_name() const
+{
+	return "nbody_solver_rklc";
+}
+

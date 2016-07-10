@@ -14,6 +14,7 @@ class nbody_solver_adams : public nbody_solver
 public:
 	nbody_solver_adams();
 	~nbody_solver_adams();
+	const char* type_name() const;
 	void step(double dt);
 };
 
