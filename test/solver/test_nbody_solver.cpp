@@ -34,7 +34,14 @@ test_nbody_solver::~test_nbody_solver()
 
 void test_nbody_solver::initTestCase()
 {
-	nbcoord_t				box_size = 100;
+	nbcoord_t					box_size = 100;
+	nbody_solver_rk_butcher*	butcher = dynamic_cast<nbody_solver_rk_butcher*>( s );
+
+	if( butcher != NULL )
+	{
+		butcher->set_max_recursion( 1 );
+		butcher->set_substep_subdivisions( 2 );
+	}
 
 	qDebug() << "Solver =" << s->type_name() << "engine" << e->type_name();
 	data.make_universe( box_size, box_size, box_size );

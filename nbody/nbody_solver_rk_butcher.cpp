@@ -10,7 +10,8 @@ nbody_solver_rk_butcher::nbody_solver_rk_butcher( nbody_butcher_table* t ) :
 	m_y_stack = NULL;
 	m_coeff = NULL;
 	m_bt = t;
-	m_step_subdivisions = 2;
+	m_max_recursion = 8;
+	m_substep_subdivisions = 8;
 	m_error_threshold = 1e-4;
 }
 
@@ -22,6 +23,21 @@ nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 	engine()->free( m_tmpk );
 	engine()->free( m_y_stack );
 	engine()->free( m_coeff );
+}
+
+void nbody_solver_rk_butcher::set_max_recursion( size_t v )
+{
+	m_max_recursion = v;
+}
+
+void nbody_solver_rk_butcher::set_substep_subdivisions( size_t v )
+{
+	m_substep_subdivisions = v;
+}
+
+void nbody_solver_rk_butcher::set_error_threshold( nbcoord_t v )
+{
+	m_error_threshold = v;
 }
 
 void nbody_solver_rk_butcher::step( double dt )
@@ -54,7 +70,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 		m_k = engine()->malloc( sizeof(nbcoord_t)*STEPS*ps );
 		m_tmpy = engine()->malloc( sizeof(nbcoord_t)*ps );
 		m_tmpk = engine()->malloc( sizeof(nbcoord_t)*ps );
-		m_y_stack = engine()->malloc( sizeof(nbcoord_t)*ps*MAX_RECURSION );
+		m_y_stack = engine()->malloc( sizeof(nbcoord_t)*ps*m_max_recursion );
 		m_coeff = engine()->malloc( sizeof(nbcoord_t)*coeff_count );
 	}
 
@@ -125,17 +141,17 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 		}
 
 //		qDebug() << max_error;
-		bool can_subdivide = ( m_bt->is_embedded() && recursion_level < MAX_RECURSION ) && dt > get_min_step();
+		bool can_subdivide = ( m_bt->is_embedded() && recursion_level < m_max_recursion ) && dt > get_min_step();
 		bool need_subdivide = max_error > m_error_threshold;
 
 		if( can_subdivide && need_subdivide )
 		{
-			nbcoord_t	new_dt = dt/m_step_subdivisions;
+			nbcoord_t	new_dt = dt/m_substep_subdivisions;
 
 //			qDebug() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << max_error << "Down to dt" << new_dt;
 
 			engine()->memcpy( m_y_stack, y, recursion_level*ps, yoff );
-			sub_step( m_step_subdivisions, t, new_dt, m_y_stack, recursion_level*ps, recursion_level + 1 );
+			sub_step( m_substep_subdivisions, t, new_dt, m_y_stack, recursion_level*ps, recursion_level + 1 );
 			engine()->memcpy( y, m_y_stack, yoff, recursion_level*ps );
 		}
 		else
