@@ -23,7 +23,7 @@ before_script:
   - gcc --version
   - mkdir build-debug
   - cd build-debug
-  - qmake-qt4 ../nbody.pro CONFIG+=debug
+  - qmake-qt4 ../nbody.pro CONFIG+=debug CONFIG+=build-gcov
   - cd ..
 
 script:
@@ -32,3 +32,8 @@ script:
   - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
   - ./test/engine/engine
   - ./test/solver/solver
+  - cd nbody
+  - gcov ./*
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

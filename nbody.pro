@@ -9,3 +9,5 @@ src.subdir = src
 
 test.subdir = test
 test.depends = nbody
+
+OTHER_FILES += .travis.yml README.md
