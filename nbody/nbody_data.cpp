@@ -83,15 +83,16 @@ void nbody_data::print_statistics( nbody_engine* engine )
 	mass_center -= m_mass_center;
 	total_energy -=	(m_total_potential_energy + m_total_kinetic_energy);
 
-	qDebug()<< "#" << m_step
-			<< "t" << m_time
-			<< "CC" << engine->get_compute_count()
-			<< "dP" << impulce_err()
-			<< "dL" << impulce_moment_err()
-			<< "Vcm" << (mass_center/m_time).length()
-			<< "dE" << energy_err()
-			<< "St" << ( timer_end - m_timer_start )/( m_step - m_timer_step )
-			<< "Wt" << ( omp_get_wtime() - m_timer_start )/( m_step - m_timer_step );
+	qDebug()<< "#" << QString("%1").arg( m_step, 8, 10,  QChar('0') )
+			<< "t" << QString("%1").arg( m_time, 6, 'f', 6, QChar(' ') )
+			<< "CC" << QString("%1").arg( engine->get_compute_count(), 8, 10,  QChar('0') )
+			<< "dP" << QString("%1").arg( impulce_err(), 4, 'e', 3 )
+			<< "dL" << QString("%1").arg( impulce_moment_err(), 4, 'e', 3 )
+//			<< "Vcm" << (mass_center/m_time).length()
+			<< "dE" << QString("%1").arg( energy_err(), 4, 'e', 3 )
+//			<< "St" << ( timer_end - m_timer_start )/( m_step - m_timer_step )
+//			<< "Wt" << ( omp_get_wtime() - m_timer_start )/( m_step - m_timer_step )
+			<< "";
 
 	m_timer_start = omp_get_wtime();
 	m_timer_step = m_step;
