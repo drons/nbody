@@ -49,47 +49,49 @@ void test_nbody_solver::cleanupTestCase()
 
 void test_nbody_solver::run()
 {
-	s->run( &data, 3, 0, 1 );
+	s->run( &data, 0.3, 0, 0.1 );
 }
+
+typedef nbody_engine_simple	nbody_engine_active;
 
 int main(int argc, char *argv[])
 {
 	int res = 0;
 
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_adams() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_adams() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_euler() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_euler() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_rk4() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_rk4() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_rkck() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_rkck() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_rkdp() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_rkdp() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_rkf() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_rkf() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_rkgl() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_rkgl() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_rklc() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_rklc() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_block(), new nbody_solver_trapeze() );
+		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_trapeze() );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	return res;
