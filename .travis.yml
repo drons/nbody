@@ -3,7 +3,8 @@
 # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
 #
 
-sudo: false
+sudo: required
+dist: trusty
 
 language:
   - cpp
@@ -13,6 +14,7 @@ addons:
     packages:
     - g++
     - gdb
+    - valgrind
     - libqt4-dev
     - libqt4-opengl-dev
 
@@ -21,15 +23,26 @@ addons:
 
 before_script:
   - gcc --version
-  - mkdir build-debug
-  - cd build-debug
+  - mkdir build-debug-gcov
+  - mkdir build-debug-valg
+  - cd build-debug-gcov
   - qmake-qt4 ../nbody.pro CONFIG+=debug CONFIG+=build-gcov
+  - cd ..
+  - cd build-debug-valg
+  - qmake-qt4 ../nbody.pro CONFIG+=debug
   - cd ..
 
 script:
-  - cd build-debug
-  - make -j2
   - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+  - cd build-debug-valg
+  - make -j2
+  - valgrind --tool=memcheck --trace-children=yes --log-file=./memsupp.log --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/memsupp/memsupp
+  - grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
+#  - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
+  - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
+  - cd ..
+  - cd build-debug-gcov
+  - make -j2
   - ./test/engine/engine
   - ./test/solver/solver
   - cd nbody
