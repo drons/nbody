@@ -25,6 +25,11 @@ nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 	engine()->free( m_coeff );
 }
 
+const char* nbody_solver_rk_butcher::type_name() const
+{
+	return "nbody_solver_rk_butcher";
+}
+
 void nbody_solver_rk_butcher::set_max_recursion( size_t v )
 {
 	m_max_recursion = v;

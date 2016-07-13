@@ -22,6 +22,7 @@ public:
 	void set_max_recursion( size_t );
 	void set_substep_subdivisions( size_t );
 	void set_error_threshold( nbcoord_t );
+	virtual const char* type_name() const;
 	virtual void step( double dt );
 private:
 	void sub_step( size_t substeps_count, nbcoord_t t, nbcoord_t dt, nbody_engine::memory* y, size_t yoff, size_t recursion_level );
