@@ -11,9 +11,9 @@ nbody_solver_trapeze::nbody_solver_trapeze() : nbody_solver()
 
 nbody_solver_trapeze::~nbody_solver_trapeze()
 {
-	engine()->free( m_f01 );
-	engine()->free( m_predictor );
-	engine()->free( m_coeff );
+	engine()->free_buffer( m_f01 );
+	engine()->free_buffer( m_predictor );
+	engine()->free_buffer( m_coeff );
 }
 
 const char* nbody_solver_trapeze::type_name() const
@@ -34,9 +34,9 @@ void nbody_solver_trapeze::step( nbcoord_t dt )
 
 	if( m_f01 == NULL )
 	{
-		m_f01 = engine()->malloc( 2*sizeof(nbcoord_t)*ps );
-		m_predictor = engine()->malloc( sizeof(nbcoord_t)*ps );
-		m_coeff = engine()->malloc( sizeof(nbcoord_t)*2 );
+		m_f01 = engine()->create_buffer( 2*sizeof(nbcoord_t)*ps );
+		m_predictor = engine()->create_buffer( sizeof(nbcoord_t)*ps );
+		m_coeff = engine()->create_buffer( sizeof(nbcoord_t)*2 );
 	}
 
 	engine()->fcompute( t, y, m_f01, 0, 0 );
@@ -47,11 +47,11 @@ void nbody_solver_trapeze::step( nbcoord_t dt )
 		engine()->fcompute( t, m_predictor, m_f01, 0, ps );
 
 		nbcoord_t	coeff[] = { dt*0.5, dt*0.5 };
-		engine()->memcpy( m_coeff, coeff );
+		engine()->write_buffer( m_coeff, coeff );
 
 		if( s == m_refine_steps_count )
 		{
-			engine()->fmaddn( y, m_f01, m_coeff, ps, 0, 0, 2 );
+			engine()->fmaddn_inplace( y, m_f01, m_coeff, ps, 0, 0, 2 );
 		}
 		else
 		{

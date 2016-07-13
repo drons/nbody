@@ -10,8 +10,8 @@ nbody_engine_simple::nbody_engine_simple()
 
 nbody_engine_simple::~nbody_engine_simple()
 {
-	free( m_mass );
-	free( m_y );
+	free_buffer( m_mass );
+	free_buffer( m_y );
 }
 
 const char* nbody_engine_simple::type_name() const
@@ -22,8 +22,8 @@ const char* nbody_engine_simple::type_name() const
 void nbody_engine_simple::init( nbody_data* data )
 {
 	m_data = data;
-	m_mass = malloc( sizeof(nbcoord_t)*m_data->get_count() );
-	m_y = malloc( sizeof( nbcoord_t )*problem_size() );
+	m_mass = create_buffer( sizeof(nbcoord_t)*m_data->get_count() );
+	m_y = create_buffer( sizeof( nbcoord_t )*problem_size() );
 
 	size_t		count = m_data->get_count();
 	nbcoord_t*	m = (nbcoord_t*)m_mass->data();
@@ -154,29 +154,29 @@ void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory
 	}
 }
 
-nbody_engine_simple::smemory* nbody_engine_simple::malloc( size_t s )
+nbody_engine_simple::smemory* nbody_engine_simple::create_buffer( size_t s )
 {
 	return new smemory( s );
 }
 
-void nbody_engine_simple::free( memory* m )
+void nbody_engine_simple::free_buffer( memory* m )
 {
 	delete m;
 }
 
-void nbody_engine_simple::memcpy( void* dst, memory* _src )
+void nbody_engine_simple::read_buffer( void* dst, memory* _src )
 {
 	smemory*		src = dynamic_cast<smemory*>( _src );
 	::memcpy( dst, src->data(), src->size() );
 }
 
-void nbody_engine_simple::memcpy( memory* _dst, void* src )
+void nbody_engine_simple::write_buffer( memory* _dst, void* src )
 {
 	smemory*		dst = dynamic_cast<smemory*>( _dst );
 	::memcpy( dst->data(), src, dst->size() );
 }
 
-void nbody_engine_simple::memcpy( nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff, size_t boff )
+void nbody_engine_simple::copy_buffer( nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff, size_t boff )
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
@@ -190,7 +190,7 @@ void nbody_engine_simple::memcpy( nbody_engine::memory* __a, const nbody_engine:
 	}
 }
 
-void nbody_engine_simple::fmadd( nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbcoord_t& c )
+void nbody_engine_simple::fmadd_inplace( memory* __a, const memory* __b, const nbcoord_t& c )
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
@@ -204,7 +204,7 @@ void nbody_engine_simple::fmadd( nbody_engine::memory* __a, const nbody_engine::
 	}
 }
 
-void nbody_engine_simple::fmadd( nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff )
+void nbody_engine_simple::fmadd( memory* __a, const memory* __b, const memory* __c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff )
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
@@ -220,7 +220,7 @@ void nbody_engine_simple::fmadd( nbody_engine::memory* __a, const nbody_engine::
 	}
 }
 
-void nbody_engine_simple::fmaddn(nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
+void nbody_engine_simple::fmaddn_inplace(nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );

@@ -4,7 +4,7 @@ nbody_engine_sparse::nbody_engine_sparse()
 {
 }
 
-void nbody_engine_sparse::fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
+void nbody_engine_sparse::fcompute_sparce( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv )
 {
 	advise_compute_count();
 

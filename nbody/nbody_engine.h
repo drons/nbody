@@ -38,19 +38,19 @@ public:
 	//! Compute f( t, y )
 	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff ) = 0;
 
-	virtual memory* malloc( size_t ) = 0;
-	virtual void free( memory* ) = 0;
-	virtual void memcpy( void* dst, memory* src ) = 0;
-	virtual void memcpy( memory* dst, void* src ) = 0;
+	virtual memory* create_buffer( size_t ) = 0;
+	virtual void free_buffer( memory* ) = 0;
+	virtual void read_buffer( void* dst, memory* src ) = 0;
+	virtual void write_buffer( memory* dst, void* src ) = 0;
 	//! a[i+aoff] = b[i+boff]
-	virtual void memcpy( memory* a, const memory* b, size_t aoff, size_t boff ) = 0;
+	virtual void copy_buffer( memory* a, const memory* b, size_t aoff, size_t boff ) = 0;
 
 	//! a[i] += b[i]*c
-	virtual void fmadd( memory* a, const memory* b, const nbcoord_t& c ) = 0;
+	virtual void fmadd_inplace( memory* a, const memory* b, const nbcoord_t& c ) = 0;
 	//! a[i+aoff] = b[i+boff] + c[i+coff]*d
 	virtual void fmadd( memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff ) = 0;
 	//! a[i+aoff] += sum( b[i+boff+k*bstride]*c[k], k=[0...csize) )
-	virtual void fmaddn( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize ) = 0;
+	virtual void fmaddn_inplace( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize ) = 0;
 	//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
 	virtual void fmaddn( memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff, size_t boff, size_t coff, size_t dsize ) = 0;
 	//! @result = max( fabs(a[k]), k=[0...asize) )

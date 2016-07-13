@@ -33,15 +33,15 @@ public:
 	virtual size_t get_step() const;
 	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff );
 
-	virtual smemory* malloc( size_t );
-	virtual void free( memory* );
-	virtual void memcpy( void* dst, memory* src );
-	virtual void memcpy( memory* dst, void* src );
-	virtual void memcpy( memory* a, const memory* b, size_t aoff, size_t boff );
+	virtual smemory* create_buffer( size_t );
+	virtual void free_buffer( memory* );
+	virtual void read_buffer( void* dst, memory* src );
+	virtual void write_buffer( memory* dst, void* src );
+	virtual void copy_buffer( memory* a, const memory* b, size_t aoff, size_t boff );
 
-	virtual void fmadd( memory* a, const memory* b, const nbcoord_t& c );
+	virtual void fmadd_inplace( memory* a, const memory* b, const nbcoord_t& c );
 	virtual void fmadd( memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff );
-	virtual void fmaddn( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize );
+	virtual void fmaddn_inplace( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize );
 	virtual void fmaddn( memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff, size_t boff, size_t coff, size_t dsize );
 	virtual void fmaxabs( const memory* a, nbcoord_t& result );
 };
