@@ -41,6 +41,7 @@ void test_nbody_solver::initTestCase()
 	{
 		butcher->set_max_recursion( 1 );
 		butcher->set_substep_subdivisions( 2 );
+		butcher->set_refine_steps_count(1);
 	}
 
 	qDebug() << "Solver =" << s->type_name() << "engine" << e->type_name();
@@ -101,7 +102,9 @@ int main(int argc, char *argv[])
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	{
-		test_nbody_solver tc1( new nbody_engine_active(), new nbody_solver_trapeze() );
+		nbody_solver_trapeze*	e = new nbody_solver_trapeze();
+		e->set_refine_steps_count(1);
+		test_nbody_solver tc1( new nbody_engine_active(), e );
 		res += QTest::qExec( &tc1, argc, argv );
 	}
 	return res;

@@ -13,6 +13,7 @@ nbody_solver_rk_butcher::nbody_solver_rk_butcher( nbody_butcher_table* t ) :
 	m_max_recursion = 8;
 	m_substep_subdivisions = 8;
 	m_error_threshold = 1e-4;
+	m_refine_steps_count = 1;
 }
 
 nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
@@ -43,6 +44,11 @@ void nbody_solver_rk_butcher::set_substep_subdivisions( size_t v )
 void nbody_solver_rk_butcher::set_error_threshold( nbcoord_t v )
 {
 	m_error_threshold = v;
+}
+
+void nbody_solver_rk_butcher::set_refine_steps_count( size_t v )
+{
+	m_refine_steps_count = v;
 }
 
 void nbody_solver_rk_butcher::step( double dt )
@@ -83,8 +89,6 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 	{
 		if( m_bt->is_implicit() )
 		{
-			size_t	max_iter = 3;
-
 			if( need_first_approach_k )
 			{
 				//Compute first approach for <k>
@@ -97,7 +101,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 			}
 
 			//<k> iterative refinement
-			for( size_t iter = 0; iter != max_iter; ++iter )
+			for( size_t iter = 0; iter != m_refine_steps_count; ++iter )
 			{
 				for( size_t i = 0; i != STEPS; ++i )
 				{
