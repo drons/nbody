@@ -11,7 +11,9 @@ const char* nbody_solver_stormer::type_name() const
 }
 
 void nbody_solver_stormer::step( nbcoord_t dt )
-{/*
+{
+	Q_UNUSED( dt );
+	/*
 	nbvertex_t*	vertites = data()->get_vertites();
 	nbvertex_t*	velosites = data()->get_velosites();
 	size_t		count = data()->get_count();

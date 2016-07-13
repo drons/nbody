@@ -11,8 +11,8 @@ class test_nbody_solvers_equality : public QObject
 
 	nbody_data		data;
 	nbody_engine*	e1;
-	nbody_engine*	e2;
 	nbody_solver*	s1;
+	nbody_engine*	e2;
 	nbody_solver*	s2;
 public:
 	test_nbody_solvers_equality( nbody_engine* _e1, nbody_solver* _s1, nbody_engine* _e2, nbody_solver* _s2 );
@@ -87,9 +87,9 @@ void test_nbody_solvers_equality::run()
 
 	QVERIFY( check_y( 1e-18, 1e-18 ) );
 
-	const int MAX_STEPS = 3;
+	const int MAX_STEPS = 7;
 
-	for( int i = 0; i != 7; ++i )
+	for( int i = 0; i != MAX_STEPS; ++i )
 	{
 		s1->step( s1->get_max_step() );
 		s2->step( s2->get_max_step() );
