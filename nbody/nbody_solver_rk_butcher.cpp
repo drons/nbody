@@ -121,7 +121,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 				}
 				else
 				{
-					for( size_t n = 0; n != i - 1; ++n )
+					for( size_t n = 0; n != i; ++n )
 					{
 						coeff.at(n) = dt*a[i][n];
 					}
