@@ -47,7 +47,7 @@ void test_nbody_solver::initTestCase()
 	data.make_universe( box_size, box_size, box_size );
 
 	e->init( &data );
-	s->set_time_step( 1e-3, 1e-2 );
+	s->set_time_step( 1e-3, 3e-2 );
 	s->set_engine( e );
 }
 
@@ -57,7 +57,9 @@ void test_nbody_solver::cleanupTestCase()
 
 void test_nbody_solver::run()
 {
-	s->run( &data, 0.3, 0, 0.1 );
+	data.print_statistics( e );
+	s->run( &data, 0.3, 0, 0.0 );
+	data.print_statistics( e );
 }
 
 typedef nbody_engine_simple	nbody_engine_active;
