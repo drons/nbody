@@ -45,6 +45,7 @@ script:
   - make -j2
   - ./test/engine/engine
   - ./test/solver/solver
+  - ./test/solvers_equality/solvers_equality
   - cd nbody
   - gcov ./*
 
