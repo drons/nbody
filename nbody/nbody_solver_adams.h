@@ -11,8 +11,9 @@ class nbody_solver_adams : public nbody_solver
 	nbody_solver*			m_starter;
 	nbody_engine::memory*	m_f;
 	nbody_engine::memory*	m_coeff;
+	size_t					m_rank;
 public:
-	nbody_solver_adams();
+	nbody_solver_adams( size_t rank = 5 );
 	~nbody_solver_adams();
 	const char* type_name() const;
 	void step(double dt);
