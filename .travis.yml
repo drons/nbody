@@ -9,7 +9,20 @@ dist: trusty
 language:
   - cpp
 
+
+env:
+  global:
+   - secure: "iwBEXO8w5jQVp2MK8WUPx49Jlx+1HjIAXQKtViAC3nsRFamV+3O6v7B1bsO9YhC72TwcmRYeYrzgp4hVsYQuK3l84R9cFoV7Ur1iaa5gcMgFGcIZvjyCYtPv55KKRVB9dMTECnRWUi8O71McAHMxoE9+8AgDcR4t2vCcWejyj2D1axYLO7Z5DqQPMNpmPL5FfLM48tLDgrMhGwApBXvgYWnNpA21mMHQQF8donAPOmq1j7FEa/tkBPc8RFFQvMcvCgw/0BmBVkxPfLKb8JOL5zMs6uU8VUf3TGLpxZdgxi9iL6DF+OGclbm0aVVA3n3kmRVY8djyzVr+QzpVQVNNrjtliEg8KN6CCbIvVvHSvsJhDUW2ZyJyiPv2gAlnqXf4XWkhKooO8xzkVqjeSgCSbLdLGPR7a8ElstbTjqK+A41NVGxdmc1n6yp4fiqznmXG0mhHhbbUo+gqbKyZ7t4OedNhbjyo7bWy1I6im1w98Qu5D0P45FfDAQtkJcm9gGZGSh7MjO0dL1VmK/bh9zHGsd9v6Zr2CkkmbY7taXj63DSfTCYoGTvkL3LKAppEp/RMAxSkprTMlSUh/F/GX4fCsvE3y4Ze8cO5heAfcv6xcq94cRrCCNCSP9PujZEZM0ITYhdSM1d9rAWuzs41MgtfMPK+IfWQE3I9mfLXmuAnyok="
+
 addons:
+  coverity_scan:
+    project:
+      name: "drons/nbody"
+      description: "Build submitted via Travis CI"
+    notification_email: drons@list.ru
+    build_command_prepend: mkdir build-debug-coverity && cd build-debug-coverity && qmake-qt4 ../nbody.pro CONFIG+=debug
+    build_command:   "make -j 2"
+    branch_pattern: coverity_scan
   apt:
     packages:
     - g++
