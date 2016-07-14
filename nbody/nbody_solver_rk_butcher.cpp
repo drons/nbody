@@ -19,11 +19,11 @@ nbody_solver_rk_butcher::nbody_solver_rk_butcher( nbody_butcher_table* t ) :
 nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 {
 	delete m_bt;
-	engine()->free( m_k );;
-	engine()->free( m_tmpy );
-	engine()->free( m_tmpk );
-	engine()->free( m_y_stack );
-	engine()->free( m_coeff );
+	engine()->free_buffer( m_k );;
+	engine()->free_buffer( m_tmpy );
+	engine()->free_buffer( m_tmpk );
+	engine()->free_buffer( m_y_stack );
+	engine()->free_buffer( m_coeff );
 }
 
 const char* nbody_solver_rk_butcher::type_name() const
@@ -78,11 +78,11 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 	if( m_k == NULL )
 	{
 		need_first_approach_k  = true;
-		m_k = engine()->malloc( sizeof(nbcoord_t)*STEPS*ps );
-		m_tmpy = engine()->malloc( sizeof(nbcoord_t)*ps );
-		m_tmpk = engine()->malloc( sizeof(nbcoord_t)*ps );
-		m_y_stack = engine()->malloc( sizeof(nbcoord_t)*ps*m_max_recursion );
-		m_coeff = engine()->malloc( sizeof(nbcoord_t)*coeff_count );
+		m_k = engine()->create_buffer( sizeof(nbcoord_t)*STEPS*ps );
+		m_tmpy = engine()->create_buffer( sizeof(nbcoord_t)*ps );
+		m_tmpk = engine()->create_buffer( sizeof(nbcoord_t)*ps );
+		m_y_stack = engine()->create_buffer( sizeof(nbcoord_t)*ps*m_max_recursion );
+		m_coeff = engine()->create_buffer( sizeof(nbcoord_t)*coeff_count );
 	}
 
 	for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n, t += dt )
@@ -109,7 +109,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 					{
 						coeff.at(n) = dt*a[i][n];
 					}
-					engine()->memcpy( m_coeff, coeff.data() );
+					engine()->write_buffer( m_coeff, coeff.data() );
 					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, yoff, 0, STEPS );
 					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
@@ -129,7 +129,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 					{
 						coeff.at(n) = dt*a[i][n];
 					}
-					engine()->memcpy( m_coeff, coeff.data() );
+					engine()->write_buffer( m_coeff, coeff.data() );
 					engine()->fmaddn( m_tmpy, y, m_k, m_coeff, ps, 0, yoff, 0, i );
 					engine()->fcompute( t + c[i]*dt, m_tmpy, m_k, 0, i*ps );
 				}
@@ -144,7 +144,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 			{
 				coeff.at(n) = (b2[n] - b1[n]);
 			}
-			engine()->memcpy( m_coeff, coeff.data() );
+			engine()->write_buffer( m_coeff, coeff.data() );
 			//engine()->fmaddn( m_tmpy, NULL, m_k, m_coeff, ps, 0, 0, 0, STEPS );
 			engine()->fmaxabs( m_tmpy, max_error );
 		}
@@ -159,9 +159,9 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 
 //			qDebug() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << max_error << "Down to dt" << new_dt;
 
-			engine()->memcpy( m_y_stack, y, recursion_level*ps, yoff );
+			engine()->copy_buffer( m_y_stack, y, recursion_level*ps, yoff );
 			sub_step( m_substep_subdivisions, t, new_dt, m_y_stack, recursion_level*ps, recursion_level + 1 );
-			engine()->memcpy( y, m_y_stack, yoff, recursion_level*ps );
+			engine()->copy_buffer( y, m_y_stack, yoff, recursion_level*ps );
 		}
 		else
 		{
@@ -169,8 +169,8 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 			{
 				coeff.at(n) = b2[n]*dt;
 			}
-			engine()->memcpy( m_coeff, coeff.data() );
-			engine()->fmaddn( y, m_k, m_coeff, ps, yoff, 0, STEPS );
+			engine()->write_buffer( m_coeff, coeff.data() );
+			engine()->fmaddn_inplace( y, m_k, m_coeff, ps, yoff, 0, STEPS );
 		}
 	}//for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n )
 }

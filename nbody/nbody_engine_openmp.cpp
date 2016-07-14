@@ -74,7 +74,7 @@ void nbody_engine_openmp::fcompute( const nbcoord_t& t, const memory* _y, memory
 	}
 }
 
-void nbody_engine_openmp::memcpy( nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff, size_t boff )
+void nbody_engine_openmp::copy_buffer( nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff, size_t boff )
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
@@ -89,7 +89,7 @@ void nbody_engine_openmp::memcpy( nbody_engine::memory* __a, const nbody_engine:
 	}
 }
 
-void nbody_engine_openmp::fmadd( nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbcoord_t& c )
+void nbody_engine_openmp::fmadd_inplace( memory* __a, const memory* __b, const nbcoord_t& c )
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
@@ -104,7 +104,7 @@ void nbody_engine_openmp::fmadd( nbody_engine::memory* __a, const nbody_engine::
 	}
 }
 
-void nbody_engine_openmp::fmadd( nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff )
+void nbody_engine_openmp::fmadd( memory* __a, const memory* __b, const memory* __c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff )
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
@@ -121,7 +121,7 @@ void nbody_engine_openmp::fmadd( nbody_engine::memory* __a, const nbody_engine::
 	}
 }
 
-void nbody_engine_openmp::fmaddn(nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
+void nbody_engine_openmp::fmaddn_inplace(nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );

@@ -9,9 +9,9 @@ nbody_solver_rk4::nbody_solver_rk4() : nbody_solver()
 
 nbody_solver_rk4::~nbody_solver_rk4()
 {
-	engine()->free( m_k );
-	engine()->free( m_tmp );
-	engine()->free( m_coeff );
+	engine()->free_buffer( m_k );
+	engine()->free_buffer( m_tmp );
+	engine()->free_buffer( m_coeff );
 }
 
 const char* nbody_solver_rk4::type_name() const
@@ -27,9 +27,9 @@ void nbody_solver_rk4::step( double dt )
 
 	if( m_k == NULL )
 	{
-		m_k = engine()->malloc( 4*sizeof(nbcoord_t)*ps );
-		m_tmp = engine()->malloc( sizeof(nbcoord_t)*ps );
-		m_coeff = engine()->malloc( sizeof(nbcoord_t)*4 );
+		m_k = engine()->create_buffer( 4*sizeof(nbcoord_t)*ps );
+		m_tmp = engine()->create_buffer( sizeof(nbcoord_t)*ps );
+		m_coeff = engine()->create_buffer( sizeof(nbcoord_t)*4 );
 	}
 
 	engine()->fcompute( t, y, m_k, 0, 0 ); // k1 = f( t, y )
@@ -46,8 +46,8 @@ void nbody_solver_rk4::step( double dt )
 	//y += 	dt( k1/6 + k2/3 + k3/3 + k4/8 )
 	nbcoord_t	coeff[] = { dt/6.0, dt/3.0, dt/3.0, dt/6.0 };
 
-	engine()->memcpy( m_coeff, coeff );
-	engine()->fmaddn( y, m_k, m_coeff, ps, 0, 0, 4 );
+	engine()->write_buffer( m_coeff, coeff );
+	engine()->fmaddn_inplace( y, m_k, m_coeff, ps, 0, 0, 4 );
 
 	//engine()->fmadd( y, m_k, dt ); //y += dy*dt
 

@@ -44,8 +44,8 @@ bool test_nbody_solvers_equality::check_y( nbcoord_t max_max, nbcoord_t max_mean
 	std::vector<nbcoord_t>	y1( e1->problem_size() );
 	std::vector<nbcoord_t>	y2( e2->problem_size() );
 
-	e1->memcpy( y1.data(), e1->y() );
-	e2->memcpy( y2.data(), e2->y() );
+	e1->read_buffer( y1.data(), e1->y() );
+	e2->read_buffer( y2.data(), e2->y() );
 
 	std::transform( y1.begin(), y1.end(), y2.begin(), y1.begin(), std::minus<nbcoord_t>() );
 	std::transform( y1.begin(), y1.end(), y1.begin(), y1.begin(), std::multiplies<nbcoord_t>() );

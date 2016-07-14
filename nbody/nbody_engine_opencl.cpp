@@ -207,8 +207,8 @@ const char*nbody_engine_opencl::type_name() const
 void nbody_engine_opencl::init( nbody_data* data )
 {
 	d->m_data = data;
-	d->m_mass = (smemory*)malloc( sizeof(nbcoord_t)*data->get_count() );
-	d->m_y = (smemory*)malloc( sizeof( nbcoord_t )*problem_size() );
+	d->m_mass = (smemory*)create_buffer( sizeof(nbcoord_t)*data->get_count() );
+	d->m_y = (smemory*)create_buffer( sizeof( nbcoord_t )*problem_size() );
 
 	std::vector<nbcoord_t>	ytmp( problem_size() );
 	size_t					count = data->get_count();
@@ -231,8 +231,8 @@ void nbody_engine_opencl::init( nbody_data* data )
 		vz[i] = vel[i].z;
 	}
 
-	memcpy( d->m_mass, const_cast<nbcoord_t*>( data->get_mass() ) );
-	memcpy( d->m_y, ytmp.data() );
+	write_buffer( d->m_mass, const_cast<nbcoord_t*>( data->get_mass() ) );
+	write_buffer( d->m_y, ytmp.data() );
 }
 
 void nbody_engine_opencl::get_data( nbody_data* data )
@@ -248,7 +248,7 @@ void nbody_engine_opencl::get_data( nbody_data* data )
 	nbvertex_t*				vrt = data->get_vertites();
 	nbvertex_t*				vel = data->get_velosites();
 
-	memcpy( ytmp.data(), d->m_y );
+	read_buffer( ytmp.data(), d->m_y );
 
 	for( size_t i = 0; i != count; ++i )
 	{
@@ -309,29 +309,29 @@ void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory
 	exec_ev.wait();
 }
 
-nbody_engine::memory* nbody_engine_opencl::malloc( size_t s )
+nbody_engine::memory* nbody_engine_opencl::create_buffer( size_t s )
 {
 	return new smemory( s, d->m_devices[0] );
 }
 
-void nbody_engine_opencl::free( memory* m )
+void nbody_engine_opencl::free_buffer( memory* m )
 {
 	delete m;
 }
 
-void nbody_engine_opencl::memcpy( void* _dst, memory* _src )
+void nbody_engine_opencl::read_buffer( void* _dst, memory* _src )
 {
 	smemory*	src = dynamic_cast<smemory*>( _src );
 	src->queue().enqueueReadBuffer( src->buffer(), CL_TRUE, 0, src->size(), _dst );
 }
 
-void nbody_engine_opencl::memcpy( memory* _dst, void* _src )
+void nbody_engine_opencl::write_buffer( memory* _dst, void* _src )
 {
 	smemory*	dst = dynamic_cast<smemory*>( _dst );
 	dst->queue().enqueueWriteBuffer( dst->buffer(), CL_TRUE, 0, dst->size(), _src );
 }
 
-void nbody_engine_opencl::memcpy( memory* _a, const memory* _b, size_t aoff, size_t boff )
+void nbody_engine_opencl::copy_buffer( memory* _a, const memory* _b, size_t aoff, size_t boff )
 {
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
@@ -342,7 +342,7 @@ void nbody_engine_opencl::memcpy( memory* _a, const memory* _b, size_t aoff, siz
 	ev.wait();
 }
 
-void nbody_engine_opencl::fmadd( memory* _a, const memory* _b, const nbcoord_t& c )
+void nbody_engine_opencl::fmadd_inplace( memory* _a, const memory* _b, const nbcoord_t& c )
 {
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
@@ -369,7 +369,7 @@ void nbody_engine_opencl::fmadd( memory* _a, const memory* _b, const memory* _c,
 	ev.wait();
 }
 
-void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c, size_t bstride, size_t aoff, size_t boff, size_t csize )
+void nbody_engine_opencl::fmaddn_inplace( memory* _a, const memory* _b, const memory* _c, size_t bstride, size_t aoff, size_t boff, size_t csize )
 {
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
@@ -431,7 +431,7 @@ void nbody_engine_opencl::fmaxabs( const memory* _a, nbcoord_t& result )
 
 	std::vector<nbcoord_t> host_buff( rsize );
 
-	memcpy( host_buff.data(), &out );
+	read_buffer( host_buff.data(), &out );
 
 	result = *std::max_element( host_buff.begin(), host_buff.end() );
 }

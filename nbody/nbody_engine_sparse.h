@@ -9,7 +9,7 @@ class nbody_engine_sparse : public nbody_engine
 	std::vector< nbvertex_t >			m_univerce_force;
 public:
 	nbody_engine_sparse();
-	void fcompute( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv );
+	void fcompute_sparce( const nbody_data* data, const nbvertex_t* vertites, nbvertex_t* dv );
 };
 
 #endif // NBODY_ENGINE_SPARSE_H
