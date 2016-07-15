@@ -35,7 +35,7 @@ cl::Program load_programs( const cl::Context& context, const cl::Device& device,
 		devices.push_back( device );
 		prog.build( devices, options.toAscii() );
 	}
-	catch( cl::Error err )
+	catch( cl::Error& err )
 	{
 		qDebug() << prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( device ).data();
 		throw err;
@@ -207,8 +207,8 @@ const char*nbody_engine_opencl::type_name() const
 void nbody_engine_opencl::init( nbody_data* data )
 {
 	d->m_data = data;
-	d->m_mass = (smemory*)create_buffer( sizeof(nbcoord_t)*data->get_count() );
-	d->m_y = (smemory*)create_buffer( sizeof( nbcoord_t )*problem_size() );
+	d->m_mass = dynamic_cast<smemory*>( create_buffer( sizeof(nbcoord_t)*data->get_count() ) );
+	d->m_y = dynamic_cast<smemory*>( create_buffer( sizeof( nbcoord_t )*problem_size() ) );
 
 	std::vector<nbcoord_t>	ytmp( problem_size() );
 	size_t					count = data->get_count();
