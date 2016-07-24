@@ -42,12 +42,12 @@ void nbody_solver_trapeze::step( nbcoord_t dt )
 	engine()->fcompute( t, y, m_f01, 0, 0 );
 	engine()->fmadd( m_predictor, y, m_f01, dt, 0, 0, 0 );
 
+	nbcoord_t	coeff[] = { dt*0.5, dt*0.5 };
+	engine()->write_buffer( m_coeff, coeff );
+
 	for( size_t s = 0; s <= m_refine_steps_count; ++s )
 	{
 		engine()->fcompute( t, m_predictor, m_f01, 0, ps );
-
-		nbcoord_t	coeff[] = { dt*0.5, dt*0.5 };
-		engine()->write_buffer( m_coeff, coeff );
 
 		if( s == m_refine_steps_count )
 		{
