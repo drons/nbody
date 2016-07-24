@@ -70,7 +70,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 	const nbcoord_t*	c = m_bt->get_c();
 	size_t				ps = engine()->problem_size();
 	size_t				coeff_count = STEPS+1;
-	bool				need_first_approach_k = false;
+	bool				need_first_approach_k = true;
 
 	std::vector<nbcoord_t>	coeff;
 	coeff.resize(coeff_count);
@@ -101,7 +101,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 			}
 
 			//<k> iterative refinement
-			for( size_t iter = 0; iter != m_refine_steps_count; ++iter )
+			for( size_t iter = 0; iter <= m_refine_steps_count; ++iter )
 			{
 				for( size_t i = 0; i != STEPS; ++i )
 				{
