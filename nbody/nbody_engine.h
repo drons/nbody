@@ -14,6 +14,8 @@ public:
 	{
 	public:
 		memory();
+		//! Memory size in bytes
+		virtual size_t size() const = 0;
 		virtual ~memory();
 	};
 public:

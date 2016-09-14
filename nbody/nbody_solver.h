@@ -4,6 +4,8 @@
 #include "nbody_data.h"
 #include "nbody_engine.h"
 
+class nbody_data_stream;
+
 class nbody_solver
 {
 	nbody_engine*						m_engine;
@@ -17,7 +19,7 @@ public:
 	void set_time_step( nbcoord_t min_step, nbcoord_t max_step );
 	nbcoord_t get_min_step() const;
 	nbcoord_t get_max_step() const;
-	int run( nbody_data* data, nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt);
+	int run( nbody_data* data, nbody_data_stream* stream, nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt);
 
 	virtual const char* type_name() const = 0;
 	virtual void step( nbcoord_t dt ) = 0;

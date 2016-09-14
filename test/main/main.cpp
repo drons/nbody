@@ -35,7 +35,7 @@ int gui_run( int argc, char *argv[], nbody_solver* solver, nbody_data* data, nbc
 int con_run( int argc, char *argv[], nbody_solver* solver, nbody_data* data )
 {
 	QCoreApplication	a( argc, argv );
-	solver->run( data, 3, 0, 1 );
+	solver->run( data, NULL, 3, 0, 1 );
 	return 0;
 }
 

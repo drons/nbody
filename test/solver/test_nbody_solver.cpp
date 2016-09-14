@@ -59,7 +59,7 @@ void test_nbody_solver::cleanupTestCase()
 void test_nbody_solver::run()
 {
 	data.print_statistics( e );
-	s->run( &data, 0.3, 0, 0.0 );
+	s->run( &data, NULL, 0.3, 0, 0.0 );
 	data.print_statistics( e );
 }
 

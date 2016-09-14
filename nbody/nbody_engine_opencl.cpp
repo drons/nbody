@@ -105,7 +105,7 @@ public:
 	{
 	}
 
-	size_t size()
+	size_t size() const
 	{
 		return m_size;
 	}

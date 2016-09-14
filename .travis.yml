@@ -59,6 +59,7 @@ script:
   - ./test/engine/engine
   - ./test/solver/solver
   - ./test/solvers_equality/solvers_equality
+  - ./test/stream/stream
   - cd nbody
   - gcov ./*
 
