@@ -69,8 +69,6 @@ public:
 	nbcoord_t impulce_err() const;
 	nbcoord_t impulce_moment_err() const;
 	nbcoord_t energy_err() const;
-
-	void dump();
 };
 
 #endif // NBODY_DATA_H

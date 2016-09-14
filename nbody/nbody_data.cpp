@@ -284,8 +284,3 @@ nbcoord_t nbody_data::energy_err() const
 	return fabs( 100.0*( last_total_energy() - total_energy() )/total_energy() );
 }
 
-void nbody_data::dump()
-{
-	qDebug() << "Dump function placeholder";
-}
-
