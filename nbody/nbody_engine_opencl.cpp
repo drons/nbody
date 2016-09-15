@@ -38,7 +38,7 @@ cl::Program load_programs( const cl::Context& context, const cl::Device& device,
 	catch( cl::Error& err )
 	{
 		qDebug() << prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>( device ).data();
-		throw err;
+		throw;
 	}
 	catch(...)
 	{
