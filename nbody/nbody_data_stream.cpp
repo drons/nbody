@@ -8,18 +8,16 @@
 
 struct nbody_data_stream::data
 {
-	quint64			m_file_n;
+	size_t			m_file_n;
 	qint64			m_max_part_size;
 	QTextStream		m_idx_stream;
 	QFile			m_data;
 	QFile			m_idx;
 	QString			m_base_name;
-	QChar			m_separator;
 
 	data() :
 		m_file_n(0),
-		m_max_part_size( 1024*1024*1024 ),
-		m_separator( '\t' )
+		m_max_part_size( 1024*1024*1024 )
 	{
 	}
 
@@ -29,7 +27,7 @@ struct nbody_data_stream::data
 		{
 			m_data.close();
 		}
-		m_data.setFileName( m_base_name + QString::number( m_file_n ) + ".dat" );
+		m_data.setFileName( make_dat_name( m_base_name, m_file_n ) );
 		if( !m_data.open( QFile::WriteOnly ) )
 		{
 			qDebug() << "Can't open file" << m_data.fileName() << m_data.errorString();
@@ -44,7 +42,7 @@ struct nbody_data_stream::data
 		{
 			m_idx.close();
 		}
-		m_idx.setFileName( m_base_name + ".idx" );
+		m_idx.setFileName( make_idx_name( m_base_name ) );
 		if( !m_idx.open( QFile::WriteOnly ) )
 		{
 			qDebug() << "Can't open file" << m_idx.fileName() << m_idx.errorString();
@@ -79,9 +77,7 @@ int nbody_data_stream::write( nbody_engine* e )
 		return -1;
 	}
 
-	qint64	fpos( d->m_data.pos() );
-
-	if( d->m_max_part_size > 0 && fpos >= d->m_max_part_size )
+	if( d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size )
 	{
 		++d->m_file_n;
 		if( 0 != d->open_data_file() )
@@ -91,6 +87,7 @@ int nbody_data_stream::write( nbody_engine* e )
 		}
 	}
 
+	qint64		fpos( d->m_data.pos() );
 	QByteArray	ybuf;
 	ybuf.resize( e->y()->size() );
 	e->read_buffer( ybuf.data(), e->y() );
@@ -104,10 +101,10 @@ int nbody_data_stream::write( nbody_engine* e )
 
 	d->m_data.flush();
 
-	d->m_idx_stream << e->get_step() << d->m_separator
-					<< e->get_time() << d->m_separator
-					<< d->m_file_n << d->m_separator
-					<< d->m_data.pos() << "\n";
+	d->m_idx_stream << e->get_step() << get_idx_separator()
+					<< e->get_time() << get_idx_separator()
+					<< d->m_file_n << get_idx_separator()
+					<< fpos << "\n";
 
 	d->m_idx_stream.flush();
 
@@ -144,4 +141,19 @@ void nbody_data_stream::close()
 	d->m_file_n = 0;
 	d->m_idx.close();
 	d->m_data.close();
+}
+
+QString nbody_data_stream::make_idx_name( const QString& file_base_name )
+{
+	return file_base_name + ".idx";
+}
+
+QString nbody_data_stream::make_dat_name( const QString& file_base_name, size_t file_n )
+{
+	return file_base_name + QString::number( file_n ) + ".dat";
+}
+
+QChar nbody_data_stream::get_idx_separator()
+{
+	return '\t';
 }

@@ -5,6 +5,7 @@
 #include "nbody_solvers.h"
 #include "nbody_engines.h"
 #include "nbody_data_stream.h"
+#include "nbody_data_stream_reader.h"
 
 class test_nbody_stream : public QObject
 {
@@ -56,9 +57,9 @@ void test_nbody_stream::cleanupTestCase()
 
 void test_nbody_stream::run()
 {
-	s->set_time_step( 0.1, 0.1 );
-	//open stream with 1 byte limit
-	QTEST_ASSERT( 0 == stream->open( "/tmp/stream-test/new", 1 ) );
+	s->set_time_step( 0.01, 0.1 );
+	//open stream with 2 frames per data file limit
+	QTEST_ASSERT( 0 == stream->open( "/tmp/stream-test/new", 14000 ) );
 	QTEST_ASSERT( 0 == s->run( &data, stream, 0.31, 0.1, 0.1 ) );
 
 	stream->close();
@@ -72,7 +73,51 @@ void test_nbody_stream::run()
 
 	QTEST_ASSERT( idx.open( QFile::ReadOnly ) );
 
-	QTEST_ASSERT( QString(idx.readAll()).split( QChar('\n'), QString::SkipEmptyParts ).size() == 3 );
+	QTEST_ASSERT( QString(idx.readAll()).split( QChar('\n'), QString::SkipEmptyParts ).size() == 5 );
+
+	{
+		nbody_data_stream_reader	reader;
+		QTEST_ASSERT( 0 == reader.load( "/tmp/stream-test/new" ) );
+		QTEST_ASSERT( 5 == reader.get_frame_count() );
+		QTEST_ASSERT( 4 == reader.get_steps_count() );
+		QTEST_ASSERT( 0.4 == reader.get_max_time() );
+
+		QByteArray	yexpected( e->y()->size(), 0xCC );
+		QByteArray	ycurrent( e->y()->size(), 0xCC );
+
+		e->read_buffer( yexpected.data(), e->y() );
+
+		QTEST_ASSERT( 0 == reader.seek(0) );
+		QTEST_ASSERT( 0 != reader.seek(77) );
+
+		QTEST_ASSERT( 0 == reader.seek(0) );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent != yexpected );
+
+		QTEST_ASSERT( 0 == reader.seek( reader.get_frame_count() - 1 ) );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent == yexpected );
+
+		QTEST_ASSERT( 0 == reader.seek( 0 ) );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent != yexpected );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent != yexpected );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent != yexpected );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent != yexpected );
+		QTEST_ASSERT( 0 == reader.read( e ) );
+		e->read_buffer( ycurrent.data(), e->y() );
+		QTEST_ASSERT( ycurrent == yexpected );
+	}
+
 }
 
 int main(int argc, char *argv[])

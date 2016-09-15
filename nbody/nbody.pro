@@ -30,7 +30,8 @@ SOURCES	+= \
     nbody_solver_rklc.cpp \
 	nbody_solver_stormer.cpp \
 	nbody_solver_trapeze.cpp \
-    nbody_data_stream.cpp
+    nbody_data_stream.cpp \
+    nbody_data_stream_reader.cpp
 
 HEADERS	+= \
 	summation.h \
@@ -58,7 +59,8 @@ HEADERS	+= \
 	nbody_solvers.h \
 	vertex.h \
     nbtype.h \
-    nbody_data_stream.h
+    nbody_data_stream.h \
+    nbody_data_stream_reader.h
 
 contains( DEFINES, HAVE_OPENCL ){
 	OTHER_FILES += nbody_engine_opencl.cl
