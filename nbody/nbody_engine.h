@@ -35,8 +35,12 @@ public:
 	virtual void advise_time( const nbcoord_t& dt ) = 0;
 	//! Get current time
 	virtual nbcoord_t get_time() const = 0;
+	//! Set current time
+	virtual void set_time( nbcoord_t t ) = 0;
 	//! Get current step
 	virtual size_t get_step() const = 0;
+	//! Set current step
+	virtual void set_step( size_t s ) = 0;
 	//! Compute f( t, y )
 	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff ) = 0;
 

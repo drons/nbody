@@ -42,7 +42,9 @@ public:
 	void add_body( const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a, const nbcolor_t& color );
 	void advise_time( nbcoord_t dt );
 	nbcoord_t get_time() const;
+	void set_time( nbcoord_t t );
 	size_t get_step() const;
+	void set_step( size_t s );
 	nbvertex_t* get_vertites();
 	const nbvertex_t* get_vertites() const;
 	nbvertex_t* get_velosites();

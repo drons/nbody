@@ -181,10 +181,15 @@ int nbody_data_stream_reader::read( nbody_engine* e )
 		return -1;
 	}
 
-	seek( d->m_current_frame );
+	if( 0 != seek( d->m_current_frame ) )
+	{
+		qDebug() << "Can't seek to current frame" << d->m_current_frame;
+		return -1;
+	}
 
-	qint64		fpos( d->m_file.pos() );
-	QByteArray	ybuf( d->m_file.read( e->y()->size() ) );
+	qint64				fpos( d->m_file.pos() );
+	QByteArray			ybuf( d->m_file.read( e->y()->size() ) );
+	const data::item&	frame( d->m_frames[ d->m_current_frame ] );
 
 	if( ybuf.size() != (int)e->y()->size() )
 	{
@@ -195,7 +200,8 @@ int nbody_data_stream_reader::read( nbody_engine* e )
 	}
 
 	e->write_buffer( e->y(), ybuf.data() );
-
+	e->set_time( frame.time );
+	e->set_step( frame.step );
 	if( d->m_current_frame < d->m_frames.size() - 1 )
 	{
 		seek( d->m_current_frame + 1 );

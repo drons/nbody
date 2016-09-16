@@ -92,9 +92,19 @@ nbcoord_t nbody_engine_simple::get_time() const
 	return m_data->get_time();
 }
 
+void nbody_engine_simple::set_time( nbcoord_t t )
+{
+	m_data->set_time( t );
+}
+
 size_t nbody_engine_simple::get_step() const
 {
 	return m_data->get_step();
+}
+
+void nbody_engine_simple::set_step( size_t s )
+{
+	m_data->set_step( s );
 }
 
 void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff )

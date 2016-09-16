@@ -18,7 +18,9 @@ public:
 	virtual memory* y();
 	virtual void advise_time( const nbcoord_t& dt );
 	virtual nbcoord_t get_time() const;
+	virtual void set_time( nbcoord_t t );
 	virtual size_t get_step() const;
+	virtual void set_step( size_t s );
 
 	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff );
 

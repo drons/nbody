@@ -101,21 +101,32 @@ void test_nbody_stream::run()
 		QTEST_ASSERT( ycurrent == yexpected );
 
 		QTEST_ASSERT( 0 == reader.seek( 0 ) );
+
 		QTEST_ASSERT( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
 		QTEST_ASSERT( ycurrent != yexpected );
+		QTEST_ASSERT( 0 == e->get_time() );
+		QTEST_ASSERT( 0 == e->get_step() );
+
 		QTEST_ASSERT( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
 		QTEST_ASSERT( ycurrent != yexpected );
+
 		QTEST_ASSERT( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
 		QTEST_ASSERT( ycurrent != yexpected );
+
 		QTEST_ASSERT( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
 		QTEST_ASSERT( ycurrent != yexpected );
+		QTEST_ASSERT( 0.3 == e->get_time() );
+		QTEST_ASSERT( 3 == e->get_step() );
+
 		QTEST_ASSERT( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
 		QTEST_ASSERT( ycurrent == yexpected );
+		QTEST_ASSERT( 0.4 == e->get_time() );
+		QTEST_ASSERT( 4 == e->get_step() );
 	}
 
 }

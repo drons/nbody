@@ -127,9 +127,19 @@ nbcoord_t nbody_data::get_time() const
 	return m_time;
 }
 
+void nbody_data::set_time( nbcoord_t t )
+{
+	m_time = t;
+}
+
 size_t nbody_data::get_step() const
 {
 	return m_step;
+}
+
+void nbody_data::set_step( size_t s )
+{
+	m_step = s;
 }
 
 nbvertex_t* nbody_data::get_vertites()
