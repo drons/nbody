@@ -105,12 +105,12 @@ void nbody_data_stream_reader::close()
 	d->m_current_frame = std::numeric_limits<size_t>::max();
 }
 
-size_t nbody_data_stream_reader::get_frame_count()
+size_t nbody_data_stream_reader::get_frame_count() const
 {
 	return d->m_frames.size();
 }
 
-size_t nbody_data_stream_reader::get_steps_count()
+size_t nbody_data_stream_reader::get_steps_count() const
 {
 	if( d->m_frames.size() == 0 )
 	{
@@ -119,7 +119,7 @@ size_t nbody_data_stream_reader::get_steps_count()
 	return d->m_frames.back().step;
 }
 
-nbcoord_t nbody_data_stream_reader::get_max_time()
+nbcoord_t nbody_data_stream_reader::get_max_time() const
 {
 	if( d->m_frames.size() == 0 )
 	{
@@ -165,6 +165,11 @@ int nbody_data_stream_reader::seek( size_t frame )
 	d->m_current_frame = frame;
 
 	return 0;
+}
+
+size_t nbody_data_stream_reader::get_current_frame() const
+{
+	return d->m_current_frame;
 }
 
 int nbody_data_stream_reader::read( nbody_engine* e )

@@ -30,23 +30,28 @@ public:
 	/*!
 	   \return frame count in stream
 	 */
-	size_t get_frame_count();
+	size_t get_frame_count() const;
 
 	/*!
 	   \return ODE solve steps count in stream
 	 */
-	size_t get_steps_count();
+	size_t get_steps_count() const;
 
 	/*!
 	   \return stream duration
 	 */
-	nbcoord_t get_max_time();
+	nbcoord_t get_max_time() const;
 
 	/*!
 	   \param frame - new frame number to seek
 	   \return 0 on success
 	 */
 	int seek( size_t frame );
+
+	/*!
+	   \return get current frame position
+	*/
+	size_t get_current_frame() const;
 
 	/*!
 	   \brief read stream data to nbody_engine

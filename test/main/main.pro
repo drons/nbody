@@ -14,11 +14,5 @@ INCLUDEPATH += ../../nbody
 LIBS += -L../../nbody
 LIBS += -lnbody
 
-SOURCES	+= main.cpp \
-    wgt_nbody_view.cpp
-
-HEADERS	+= \
-	wgt_nbody_view.h \
-
-
+SOURCES	+= main.cpp
 
