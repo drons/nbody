@@ -5,11 +5,14 @@
 #include <omp.h>
 #include <QDebug>
 #include <QDir>
+#include <QMouseEvent>
+#include <QPropertyAnimation>
 
 wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
+	m_split_point = QPointF( 0.5, 0.5 );
 	m_mesh_sx = box_size;
 	m_mesh_sy = box_size;
 	m_mesh_sz = box_size;
@@ -215,13 +218,13 @@ void wgt_nbody_view::paintGL( GLsizei width, GLsizei height )
 
 	nbvertex_t	center( m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5 );
 	nbcoord_t	dist = 200;
-	int			sx = width/2;
-	int			sy = height/2;
+	int			x = (int)width*m_split_point.x();
+	int			y = (int)height*m_split_point.y();
 
-	paintGL( sx, sy, sx, sy, center - nbvertex_t( 0, dist, dist ), nbvertex_t( 0,0,1 ) );
-	paintGL( 0, 0, sx, sy, center - nbvertex_t( 0, 0, dist ), nbvertex_t( 0,1,0 ) );
-	paintGL( sx, 0, sx, sy, center + nbvertex_t( dist, 0, 0 ), nbvertex_t( 0,1,0 ) );
-	paintGL( 0, sy, sx, sy, center - nbvertex_t( 0, dist, 0 ), nbvertex_t( 0,0,-1 ) );
+	paintGL( x, y, width - x, height - y, center - nbvertex_t( 0, dist, dist ), nbvertex_t( 0,0,1 ) );
+	paintGL( 0, 0, x, y, center - nbvertex_t( 0, 0, dist ), nbvertex_t( 0,1,0 ) );
+	paintGL( x, 0, width - x, y, center + nbvertex_t( dist, 0, 0 ), nbvertex_t( 0,1,0 ) );
+	paintGL( 0, y, x, height - y, center - nbvertex_t( 0, dist, 0 ), nbvertex_t( 0,0,-1 ) );
 }
 
 void wgt_nbody_view::paintGL()
@@ -244,4 +247,55 @@ void wgt_nbody_view::step()
 	nbcoord_t	step_time = omp_get_wtime();
 	m_solver->step( m_solver->get_max_step() );
 	qDebug() << "Step time" << step_time - omp_get_wtime();
+}
+
+void wgt_nbody_view::mouseDoubleClickEvent( QMouseEvent* e )
+{
+	QPoint	p( e->pos() );
+	QPoint	s( size().width() / 2, size().height() / 2 );
+	QPointF	new_split( m_split_point );
+
+	if( m_split_point == QPointF( 0.5, 0.5 ) )
+	{
+		if( p.x() > s.x() && p.y() > s.y() )
+		{
+			new_split = QPointF( 0, 1 );
+		}
+		else
+		if( p.x() > s.x() && p.y() < s.y() )
+		{
+			new_split = QPointF( 0, 0 );
+		}
+		else
+		if( p.x() < s.x() && p.y() > s.y() )
+		{
+			new_split = QPointF( 1, 1 );
+		}
+		else
+		if( p.x() < s.x() && p.y() < s.y() )
+		{
+			new_split = QPointF( 1, 0 );
+		}
+	}
+	else
+	{
+		new_split = QPointF( 0.5, 0.5 );
+	}
+
+	QPropertyAnimation*	anim = new QPropertyAnimation( this, "m_split_point" );
+	anim->setStartValue( m_split_point );
+	anim->setEndValue( new_split );
+	anim->setDuration( 500 );
+	anim->start( QAbstractAnimation::DeleteWhenStopped );
+}
+
+QPointF wgt_nbody_view::get_split_point() const
+{
+	return m_split_point;
+}
+
+void wgt_nbody_view::set_split_point( const QPointF& split_point )
+{
+	m_split_point = split_point;
+	updateGL();
 }
