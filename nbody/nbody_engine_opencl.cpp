@@ -305,6 +305,17 @@ void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory
 	const smemory*	y = dynamic_cast<const smemory*>( _y );
 	smemory*		f = dynamic_cast<smemory*>( _f );
 
+	if( y == NULL )
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+	if( f == NULL )
+	{
+		qDebug() << "f is not smemory";
+		return;
+	}
+
 	if( d->m_devices.empty() )
 	{
 		qDebug() << Q_FUNC_INFO << "m_devices.empty()";
@@ -332,12 +343,26 @@ void nbody_engine_opencl::free_buffer( memory* m )
 void nbody_engine_opencl::read_buffer( void* _dst, memory* _src )
 {
 	smemory*	src = dynamic_cast<smemory*>( _src );
+
+	if( src == NULL )
+	{
+		qDebug() << "src is not smemory";
+		return;
+	}
+
 	src->queue().enqueueReadBuffer( src->buffer(), CL_TRUE, 0, src->size(), _dst );
 }
 
 void nbody_engine_opencl::write_buffer( memory* _dst, void* _src )
 {
 	smemory*	dst = dynamic_cast<smemory*>( _dst );
+
+	if( dst == NULL )
+	{
+		qDebug() << "dst is not smemory";
+		return;
+	}
+
 	dst->queue().enqueueWriteBuffer( dst->buffer(), CL_TRUE, 0, dst->size(), _src );
 }
 
@@ -345,6 +370,18 @@ void nbody_engine_opencl::copy_buffer( memory* _a, const memory* _b, size_t aoff
 {
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
+
+	if( a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+
 	cl::Event		ev;
 	size_t			sz = problem_size()*sizeof( nbcoord_t );
 
@@ -356,6 +393,18 @@ void nbody_engine_opencl::fmadd_inplace( memory* _a, const memory* _b, const nbc
 {
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
+
+	if( a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+
 	data::devctx&	ctx( d->m_devices.front() );
 	cl::NDRange		global_range( problem_size() );
 	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
@@ -370,6 +419,23 @@ void nbody_engine_opencl::fmadd( memory* _a, const memory* _b, const memory* _c,
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
 	const smemory*	c = dynamic_cast<const smemory*>( _c );
+
+	if( a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+	if( c == NULL )
+	{
+		qDebug() << "c is not smemory";
+		return;
+	}
+
 	data::devctx&	ctx( d->m_devices.front() );
 	cl::NDRange		global_range( problem_size() );
 	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
@@ -384,6 +450,23 @@ void nbody_engine_opencl::fmaddn_inplace( memory* _a, const memory* _b, const me
 	smemory*		a = dynamic_cast<smemory*>( _a );
 	const smemory*	b = dynamic_cast<const smemory*>( _b );
 	const smemory*	c = dynamic_cast<const smemory*>( _c );
+
+	if( a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+	if( c == NULL )
+	{
+		qDebug() << "c is not smemory";
+		return;
+	}
+
 	data::devctx&	ctx( d->m_devices.front() );
 	cl::NDRange		global_range( problem_size() );
 	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
@@ -401,6 +484,28 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 		const smemory*	b = dynamic_cast<const smemory*>( _b );
 		const smemory*	c = dynamic_cast<const smemory*>( _c );
 		const smemory*	_d = dynamic_cast<const smemory*>( __d );
+
+		if( a == NULL )
+		{
+			qDebug() << "a is not smemory";
+			return;
+		}
+		if( b == NULL )
+		{
+			qDebug() << "b is not smemory";
+			return;
+		}
+		if( c == NULL )
+		{
+			qDebug() << "c is not smemory";
+			return;
+		}
+		if( _d == NULL )
+		{
+			qDebug() << "d is not smemory";
+			return;
+		}
+
 		data::devctx&	ctx( d->m_devices.front() );
 		cl::NDRange		global_range( problem_size() );
 		cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
@@ -415,6 +520,23 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 		smemory*		a = dynamic_cast<smemory*>( _a );
 		const smemory*	c = dynamic_cast<const smemory*>( _c );
 		const smemory*	_d = dynamic_cast<const smemory*>( __d );
+
+		if( a == NULL )
+		{
+			qDebug() << "a is not smemory";
+			return;
+		}
+		if( c == NULL )
+		{
+			qDebug() << "c is not smemory";
+			return;
+		}
+		if( _d == NULL )
+		{
+			qDebug() << "d is not smemory";
+			return;
+		}
+
 		data::devctx&	ctx( d->m_devices.front() );
 		cl::NDRange		global_range( problem_size() );
 		cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
@@ -430,6 +552,13 @@ void nbody_engine_opencl::fmaxabs( const memory* _a, nbcoord_t& result )
 {
 	size_t			rsize = problem_size()/NBODY_DATA_BLOCK_SIZE;
 	const smemory*	a = dynamic_cast<const smemory*>( _a );
+
+	if( a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+
 	data::devctx&	ctx( d->m_devices.front() );
 	cl::NDRange		global_range( problem_size() );
 	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );

@@ -115,12 +115,12 @@ void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory
 
 	if( y == NULL )
 	{
-		qDebug() << "y not is smemory";
+		qDebug() << "y is not smemory";
 		return;
 	}
 	if( f == NULL )
 	{
-		qDebug() << "f not is smemory";
+		qDebug() << "f is not smemory";
 		return;
 	}
 
@@ -177,12 +177,26 @@ void nbody_engine_simple::free_buffer( memory* m )
 void nbody_engine_simple::read_buffer( void* dst, memory* _src )
 {
 	smemory*		src = dynamic_cast<smemory*>( _src );
+
+	if( src == NULL )
+	{
+		qDebug() << "src is not smemory";
+		return;
+	}
+
 	::memcpy( dst, src->data(), src->size() );
 }
 
 void nbody_engine_simple::write_buffer( memory* _dst, void* src )
 {
 	smemory*		dst = dynamic_cast<smemory*>( _dst );
+
+	if( dst == NULL )
+	{
+		qDebug() << "dst is not smemory";
+		return;
+	}
+
 	::memcpy( dst->data(), src, dst->size() );
 }
 
@@ -190,6 +204,18 @@ void nbody_engine_simple::copy_buffer( nbody_engine::memory* __a, const nbody_en
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
+
+	if( _a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( _b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+
 	nbcoord_t*			a = (nbcoord_t*)_a->data();
 	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 	size_t				count = problem_size();
@@ -204,6 +230,18 @@ void nbody_engine_simple::fmadd_inplace( memory* __a, const memory* __b, const n
 {
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
+
+	if( _a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( _b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+
 	nbcoord_t*			a = (nbcoord_t*)_a->data();
 	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 	size_t				count = problem_size();
@@ -219,6 +257,23 @@ void nbody_engine_simple::fmadd( memory* __a, const memory* __b, const memory* _
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
 	const smemory*		_c = dynamic_cast<const smemory*>( __c );
+
+	if( _a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( _b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+	if( _c == NULL )
+	{
+		qDebug() << "c is not smemory";
+		return;
+	}
+
 	nbcoord_t*			a = (nbcoord_t*)_a->data();
 	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
@@ -235,6 +290,23 @@ void nbody_engine_simple::fmaddn_inplace(nbody_engine::memory* __a, const nbody_
 	smemory*			_a = dynamic_cast<smemory*>( __a );
 	const smemory*		_b = dynamic_cast<const smemory*>( __b );
 	const smemory*		_c = dynamic_cast<const smemory*>( __c );
+
+	if( _a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if( _b == NULL )
+	{
+		qDebug() << "b is not smemory";
+		return;
+	}
+	if( _c == NULL )
+	{
+		qDebug() << "c is not smemory";
+		return;
+	}
+
 	nbcoord_t*			a = (nbcoord_t*)_a->data();
 	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
@@ -259,6 +331,28 @@ void nbody_engine_simple::fmaddn( nbody_engine::memory* __a, const nbody_engine:
 		const smemory*		_b = dynamic_cast<const smemory*>( __b );
 		const smemory*		_c = dynamic_cast<const smemory*>( __c );
 		const smemory*		_d = dynamic_cast<const smemory*>( __d );
+
+		if( _a == NULL )
+		{
+			qDebug() << "a is not smemory";
+			return;
+		}
+		if( _b == NULL )
+		{
+			qDebug() << "b is not smemory";
+			return;
+		}
+		if( _c == NULL )
+		{
+			qDebug() << "c is not smemory";
+			return;
+		}
+		if( _d == NULL )
+		{
+			qDebug() << "d is not smemory";
+			return;
+		}
+
 		nbcoord_t*			a = (nbcoord_t*)_a->data();
 		const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 		const nbcoord_t*	c = (const nbcoord_t*)_c->data();
@@ -280,6 +374,23 @@ void nbody_engine_simple::fmaddn( nbody_engine::memory* __a, const nbody_engine:
 		smemory*			_a = dynamic_cast<smemory*>( __a );
 		const smemory*		_c = dynamic_cast<const smemory*>( __c );
 		const smemory*		_d = dynamic_cast<const smemory*>( __d );
+
+		if( _a == NULL )
+		{
+			qDebug() << "a is not smemory";
+			return;
+		}
+		if( _c == NULL )
+		{
+			qDebug() << "c is not smemory";
+			return;
+		}
+		if( _d == NULL )
+		{
+			qDebug() << "d is not smemory";
+			return;
+		}
+
 		nbcoord_t*			a = (nbcoord_t*)_a->data();
 		const nbcoord_t*	c = (const nbcoord_t*)_c->data();
 		const nbcoord_t*	d = (const nbcoord_t*)_d->data();
@@ -300,6 +411,13 @@ void nbody_engine_simple::fmaddn( nbody_engine::memory* __a, const nbody_engine:
 void nbody_engine_simple::fmaxabs( const nbody_engine::memory* __a, nbcoord_t& result )
 {
 	const smemory*		_a = dynamic_cast<const smemory*>( __a );
+
+	if( _a == NULL )
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+
 	const nbcoord_t*	a = (nbcoord_t*)_a->data();
 	size_t				count = problem_size();
 

@@ -19,12 +19,12 @@ void nbody_engine_block::fcompute( const nbcoord_t& t, const memory* _y, memory*
 
 	if( y == NULL )
 	{
-		qDebug() << "y not is smemory";
+		qDebug() << "y is not smemory";
 		return;
 	}
 	if( f == NULL )
 	{
-		qDebug() << "f not is smemory";
+		qDebug() << "f is not smemory";
 		return;
 	}
 
