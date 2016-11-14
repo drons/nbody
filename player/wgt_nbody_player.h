@@ -23,6 +23,7 @@ public:
 	~wgt_nbody_player();
 public slots:
 	void on_update_data();
+	void on_update_view();
 };
 
 #endif // WGT_NBODY_PLAYER_H

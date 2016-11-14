@@ -20,6 +20,7 @@ wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_
 	m_data = data;
 	m_solver = solver;
 	m_renderer = NULL;
+	m_stereo_base = 0;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
@@ -109,28 +110,8 @@ void wgt_nbody_view::initializeGL()
 void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, const nbvertex_t &camera_position, const nbvertex_t &up )
 {
 	glViewport( x, y, width, height );
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-
-	GLfloat aspect = ((GLfloat)height)/((GLfloat)width);
-
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-
-	GLfloat	near = 1;
-	GLfloat	far = 1000;
-
-	gluPerspective( 60, 1.0/aspect, near, far );
-	gluLookAt( camera_position.x, camera_position.y, camera_position.z,
-			   m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5,
-			   up.x, up.y, up.z );
 
 	glColor3f( 1,1,1 );
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-
 	renderText( 20 , 20, QString( "Step  = %1" ).arg( m_data->get_step() ), QFont("Monospace") );
 	renderText( 20 , 40, QString( "T     = %1" ).arg( m_data->get_time() ), QFont("Monospace") );
 	renderText( 20 , 60, QString( "Stars = %1" ).arg( m_data->get_count() ), QFont("Monospace") );
@@ -138,7 +119,6 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	renderText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->impulce_moment_err(), 3, 'e', 2 ), QFont("Monospace") );
 	renderText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->energy_err(), 3, 'e', 2 ), QFont("Monospace") );
 
-	paint_color_box();
 
 	glDisable( GL_DEPTH_TEST );
 	glLineWidth( 1 );
@@ -147,13 +127,62 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_ONE, GL_ONE );
 
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
-	glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
-	glColorPointer( nbtype_info<nbcolor_t>::size(), nbtype_info<nbcolor_t>::gl_type(), 0, m_data->get_color() );
-	glDrawArrays( GL_POINTS, 0, (GLsizei)m_data->get_count() );
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
+	nbvertex_t	center( m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5 );
+	if( m_stereo_base == 0 )
+	{
+		setup_projection( width, height, center, camera_position, up );
+		paint_color_box();
+
+		glEnableClientState( GL_VERTEX_ARRAY );
+		glEnableClientState( GL_COLOR_ARRAY );
+		glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
+		glColorPointer( nbtype_info<nbcolor_t>::size(), nbtype_info<nbcolor_t>::gl_type(), 0, m_data->get_color() );
+		glDrawArrays( GL_POINTS, 0, (GLsizei)m_data->get_count() );
+		glDisableClientState( GL_VERTEX_ARRAY );
+		glDisableClientState( GL_COLOR_ARRAY );
+	}
+	else
+	{
+		nbvertex_t	camera_ray( center - camera_position );
+		nbvertex_t	base( camera_ray ^ up );
+
+
+		base *= ( camera_ray.length()/base.length() );
+		base *= ( m_stereo_base / 100.0 );
+		float		y = 0.2;
+		nbcolor_t	col[] = { nbcolor_t( y,  0, 0, 1 ),
+							  nbcolor_t( 0,  y*0.4, y*0.4, 1 ) };
+		nbvertex_t	cpos[] = { camera_position + base,
+							   camera_position - base };
+
+		for( size_t plane = 0; plane != 2; ++plane )
+		{
+			setup_projection( width, height, center, cpos[plane], up );
+			//paint_color_box();
+			glColor3f( col[plane].x, col[plane].y, col[plane].z );
+			glEnableClientState( GL_VERTEX_ARRAY );
+			glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
+			glDrawArrays( GL_POINTS, 0, (GLsizei)m_data->get_count() );
+			glDisableClientState( GL_VERTEX_ARRAY );
+		}
+	}
+}
+
+void wgt_nbody_view::setup_projection( GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position, const nbvertex_t& up )
+{
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+
+	GLfloat aspect = ((GLfloat)height)/((GLfloat)width);
+	GLfloat	near = 1;
+	GLfloat	far = 1000;
+
+	gluPerspective( 60, 1.0/aspect, near, far );
+	gluLookAt( camera_position.x, camera_position.y, camera_position.z,
+			   center.x, center.y, center.z,
+			   up.x, up.y, up.z );
 }
 
 void wgt_nbody_view::render_file()
@@ -298,4 +327,9 @@ void wgt_nbody_view::set_split_point( const QPointF& split_point )
 {
 	m_split_point = split_point;
 	updateGL();
+}
+
+void wgt_nbody_view::set_stereo_base( int base )
+{
+	m_stereo_base = base;
 }

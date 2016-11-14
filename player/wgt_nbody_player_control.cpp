@@ -23,11 +23,15 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 	m_act_forward = bar->addAction( QIcon::fromTheme( "media-seek-forward" ), tr( "Forward>" ) );
 
 	m_timeline = new QSlider( this );
+	m_stereo_base = new QSlider( this );
 	m_timeline->setOrientation( Qt::Horizontal );
+	m_stereo_base->setOrientation( Qt::Horizontal );
 	layout->addWidget( bar );
 	layout->addWidget( m_timeline );
+	layout->addWidget( m_stereo_base );
 
 	m_timeline->setRange( 0, (int)stream->get_frame_count() - 1 );
+	m_stereo_base->setRange( 0, 100 );
 
 	m_animation = new QPropertyAnimation( this );
 	m_animation->setDuration( 5000 );
@@ -43,6 +47,8 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 			this, SIGNAL( frame_number_updated() ) );
 	connect( m_animation, SIGNAL( finished() ),
 			 this, SLOT( on_finished() ) );
+	connect( m_stereo_base, SIGNAL( valueChanged(int) ),
+			 this, SLOT( on_stereo_base_changed(int) ) );
 	connect( m_act_start, SIGNAL( triggered(bool) ), this, SLOT( on_start() ) );
 	connect( m_act_pause, SIGNAL( triggered(bool) ), this, SLOT( on_pause() ) );
 	connect( m_act_backward, SIGNAL( triggered(bool) ), this, SLOT( on_backward() ) );
@@ -55,6 +61,11 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 size_t wgt_nbody_player_control::get_current_frame() const
 {
 	return (size_t)m_timeline->value();
+}
+
+int wgt_nbody_player_control::get_stereo_base() const
+{
+	return m_stereo_base->value();
 }
 
 void wgt_nbody_player_control::on_start()
@@ -99,4 +110,9 @@ void wgt_nbody_player_control::on_finished()
 	m_act_start->setEnabled( true );
 	m_act_stop->setEnabled( false );
 	m_act_pause->setEnabled( false );
+}
+
+void wgt_nbody_player_control::on_stereo_base_changed( int )
+{
+	emit frame_state_updated();
 }

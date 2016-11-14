@@ -16,20 +16,24 @@ class wgt_nbody_view : public QGLWidget
 	nbcoord_t				m_mesh_sz;
 	QGLFramebufferObject*	m_renderer;
 	QPointF					m_split_point;
+	int						m_stereo_base;
 public:
 	wgt_nbody_view( nbody_solver*, nbody_data*, nbcoord_t box_size );
 	~wgt_nbody_view();
 
 	QPointF get_split_point() const;
 	void set_split_point( const QPointF& split_point );
+	void set_stereo_base( int );
 	void paint_color_box();
 	void initializeGL();
 	void paintGL();
 	void paintGL( GLsizei width, GLsizei height );
 	void paintGL( GLint x, GLint y,	GLsizei width, GLsizei height, const nbvertex_t& camera_position, const nbvertex_t& up );
+	void setup_projection( GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position, const nbvertex_t& up );
 	void render_file();
 	void step();
 	void mouseDoubleClickEvent( QMouseEvent* );
+
 };
 
 
