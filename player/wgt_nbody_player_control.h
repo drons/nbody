@@ -13,7 +13,7 @@ class wgt_nbody_player_control : public QWidget
 	Q_OBJECT
 	QSlider*			m_timeline;
 	QSlider*			m_stereo_base;
-	QLabel*				m_time;
+	QLabel*				m_frame_number;
 	QPropertyAnimation*	m_animation;
 	QAction*			m_act_start;
 	QAction*			m_act_pause;
@@ -32,6 +32,7 @@ public slots:
 	void on_forward();
 	void on_finished();
 	void on_stereo_base_changed( int );
+	void on_frame_number_updated();
 signals:
 	void frame_number_updated();
 	void frame_state_updated();

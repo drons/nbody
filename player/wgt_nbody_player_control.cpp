@@ -21,14 +21,16 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 	m_act_backward = bar->addAction( QIcon::fromTheme( "media-seek-backward" ), tr( "<Backward" ) );
 	m_act_stop = bar->addAction( QIcon::fromTheme( "media-playback-stop" ), tr( "Stop" ) );
 	m_act_forward = bar->addAction( QIcon::fromTheme( "media-seek-forward" ), tr( "Forward>" ) );
-
 	m_timeline = new QSlider( this );
 	m_stereo_base = new QSlider( this );
+	m_frame_number = new QLabel( this );
 	m_timeline->setOrientation( Qt::Horizontal );
 	m_stereo_base->setOrientation( Qt::Horizontal );
 	layout->addWidget( bar );
 	layout->addWidget( m_timeline );
 	layout->addWidget( m_stereo_base );
+	layout->addWidget( m_frame_number );
+	m_frame_number->setFixedWidth( fontMetrics().width( "000:000:000" ) );
 
 	m_timeline->setRange( 0, (int)stream->get_frame_count() - 1 );
 	m_stereo_base->setRange( 0, 100 );
@@ -49,6 +51,8 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 			 this, SLOT( on_finished() ) );
 	connect( m_stereo_base, SIGNAL( valueChanged(int) ),
 			 this, SLOT( on_stereo_base_changed(int) ) );
+	connect( this, SIGNAL( frame_number_updated() ),
+			 this, SLOT( on_frame_number_updated() ) );
 	connect( m_act_start, SIGNAL( triggered(bool) ), this, SLOT( on_start() ) );
 	connect( m_act_pause, SIGNAL( triggered(bool) ), this, SLOT( on_pause() ) );
 	connect( m_act_backward, SIGNAL( triggered(bool) ), this, SLOT( on_backward() ) );
@@ -115,4 +119,9 @@ void wgt_nbody_player_control::on_finished()
 void wgt_nbody_player_control::on_stereo_base_changed( int )
 {
 	emit frame_state_updated();
+}
+
+void wgt_nbody_player_control::on_frame_number_updated()
+{
+	m_frame_number->setText( QString( "F%1" ).arg( get_current_frame(), 8, 10, QChar('0') ) );
 }
