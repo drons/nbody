@@ -312,6 +312,12 @@ bool test_fmaxabs( nbody_engine* e )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	std::vector<nbcoord_t>	a( e->problem_size() );
+
+	if( a.empty() )
+	{
+		return false;
+	}
+
 	nbody_engine::memory*	mem_a = e->create_buffer( sizeof(nbcoord_t)*a.size() );
 	nbcoord_t				result = 2878767678687;//Garbage
 

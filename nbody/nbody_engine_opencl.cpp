@@ -163,7 +163,15 @@ nbody_engine_opencl::data::devctx::devctx( cl::Device& device ) :
 void nbody_engine_opencl::data::find_devices()
 {
 	std::vector<cl::Platform>		platforms;
-	cl::Platform::get( &platforms );
+	try
+	{
+		cl::Platform::get( &platforms );
+	}
+	catch( cl::Error& e )
+	{
+		qDebug() << e.err() << e.what();
+		return;
+	}
 	qDebug() << "Available platforms & devices:";
 	for( size_t i = 0; i != platforms.size(); ++i )
 	{
@@ -206,6 +214,11 @@ const char*nbody_engine_opencl::type_name() const
 
 void nbody_engine_opencl::init( nbody_data* data )
 {
+	if( d->m_devices.empty() )
+	{
+		qDebug() << "No OpenCL device available";
+		return;
+	}
 	d->m_data = data;
 	d->m_mass = dynamic_cast<smemory*>( create_buffer( sizeof(nbcoord_t)*data->get_count() ) );
 	d->m_y = dynamic_cast<smemory*>( create_buffer( sizeof( nbcoord_t )*problem_size() ) );
@@ -237,6 +250,12 @@ void nbody_engine_opencl::init( nbody_data* data )
 
 void nbody_engine_opencl::get_data( nbody_data* data )
 {
+	if( d->m_devices.empty() )
+	{
+		qDebug() << "No OpenCL device available";
+		return;
+	}
+
 	std::vector<nbcoord_t>	ytmp( problem_size() );
 	size_t					count = data->get_count();
 	const nbcoord_t*		rx = ytmp.data();
@@ -263,6 +282,10 @@ void nbody_engine_opencl::get_data( nbody_data* data )
 
 size_t nbody_engine_opencl::problem_size() const
 {
+	if( d->m_data == NULL )
+	{
+		return 0;
+	}
 	return 6*d->m_data->get_count();
 }
 
@@ -298,6 +321,12 @@ void nbody_engine_opencl::set_step( size_t s )
 
 void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff )
 {
+	if( d->m_devices.empty() )
+	{
+		qDebug() << "No OpenCL device available";
+		return;
+	}
+
 	Q_UNUSED( t );
 	advise_compute_count();
 
@@ -332,11 +361,21 @@ void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory
 
 nbody_engine::memory* nbody_engine_opencl::create_buffer( size_t s )
 {
+	if( d->m_devices.empty() )
+	{
+		qDebug() << "No OpenCL device available";
+		return NULL;
+	}
 	return new smemory( s, d->m_devices[0] );
 }
 
 void nbody_engine_opencl::free_buffer( memory* m )
 {
+	if( d->m_devices.empty() )
+	{
+		qDebug() << "No OpenCL device available";
+		return;
+	}
 	delete m;
 }
 
@@ -579,7 +618,15 @@ void nbody_engine_opencl::fmaxabs( const memory* _a, nbcoord_t& result )
 int nbody_engine_opencl::info()
 {
 	std::vector<cl::Platform>		platforms;
-	cl::Platform::get( &platforms );
+	try
+	{
+		cl::Platform::get( &platforms );
+	}
+	catch( cl::Error& e )
+	{
+		qDebug() << e.err() << e.what();
+		return -1;
+	}
 	qDebug() << "Available platforms & devices:";
 	for( size_t i = 0; i != platforms.size(); ++i )
 	{
