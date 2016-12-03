@@ -66,7 +66,7 @@ void test_nbody_solvers_equality::initTestCase()
 	qDebug() << "#1 Solver =" << s1->type_name() << "engine" << e1->type_name();
 	qDebug() << "#2 Solver =" << s2->type_name() << "engine" << e2->type_name();
 
-	data.make_universe( box_size, box_size, box_size );
+	data.make_universe( 64, box_size, box_size, box_size );
 
 	e1->init( &data );
 	s1->set_time_step( 1e-3, 1e-2 );

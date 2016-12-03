@@ -220,11 +220,10 @@ void nbody_data::add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t r
 	}
 }
 
-void nbody_data::make_universe( nbcoord_t sx, nbcoord_t sy, nbcoord_t sz )
+void nbody_data::make_universe( size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz )
 {
 	nbcoord_t	radius = sx*0.5;
 	nbcoord_t	galaxy_mass = 1000;
-	size_t		star_count = 64;
 	nbvertex_t	center( sx*0.5, sy*0.5, sz*0.5 );
 	nbvertex_t	base( radius, 0, 0 );
 	nbvertex_t	velosity( 0, sqrt(force( nbvertex_t(), base, galaxy_mass, galaxy_mass ).length()*(base).length()/(2*galaxy_mass)), 0 );

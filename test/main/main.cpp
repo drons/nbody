@@ -43,8 +43,9 @@ int main( int argc, char *argv[] )
 {
 	nbody_data              data;
 	nbcoord_t				box_size = 100;
+	size_t					stars_count = 64;
 
-	data.make_universe( box_size, box_size, box_size );
+	data.make_universe( stars_count, box_size, box_size, box_size );
 
 	nbody_engine_simple		engine;
 	nbody_solver_rk4		solver;

@@ -375,7 +375,7 @@ void test_nbody_engine::initTestCase()
 
 	qDebug() << "Engine" << e->type_name();
 
-	data.make_universe( box_size, box_size, box_size );
+	data.make_universe( 64, box_size, box_size, box_size );
 	e->init( &data );
 }
 

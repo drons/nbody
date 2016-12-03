@@ -44,7 +44,7 @@ void test_nbody_stream::initTestCase()
 	nbcoord_t			box_size = 100;
 
 	qDebug() << "Solver =" << s->type_name() << "engine" << e->type_name();
-	data.make_universe( box_size, box_size, box_size );
+	data.make_universe( 64, box_size, box_size, box_size );
 
 	e->init( &data );
 	s->set_time_step( 1e-3, 3e-2 );
