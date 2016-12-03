@@ -15,7 +15,7 @@ int main( int argc, char *argv[] )
 	nbody_engine_simple	engine;
 	nbody_solver_euler	solver;
 
-	data.make_universe( box_size, box_size, box_size );
+	data.make_universe( 1024, box_size, box_size, box_size );
 
 	engine.init( &data );
 	solver.set_engine( &engine );
