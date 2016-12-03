@@ -21,6 +21,7 @@ wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_
 	m_solver = solver;
 	m_renderer = NULL;
 	m_stereo_base = 0;
+	m_star_intensity = 255;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
@@ -149,9 +150,8 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 
 		base *= ( camera_ray.length()/base.length() );
 		base *= ( m_stereo_base / 100.0 );
-		float		y = 0.2;
-		nbcolor_t	col[] = { nbcolor_t( y,  0, 0, 1 ),
-							  nbcolor_t( 0,  y*0.4, y*0.4, 1 ) };
+		nbcolor_t	col[] = { nbcolor_t( 1,  0, 0, 1 ),
+							  nbcolor_t( 0,  1, 1, 1 ) };
 		nbvertex_t	cpos[] = { camera_position + base,
 							   camera_position - base };
 
@@ -159,7 +159,8 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 		{
 			setup_projection( width, height, center, cpos[plane], up );
 			//paint_color_box();
-			glColor3f( col[plane].x, col[plane].y, col[plane].z );
+			GLfloat	factor = ((GLfloat)m_star_intensity)/255.0f;
+			glColor3f( col[plane].x*factor, col[plane].y*factor, col[plane].z*factor );
 			glEnableClientState( GL_VERTEX_ARRAY );
 			glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
 			glDrawArrays( GL_POINTS, 0, (GLsizei)m_data->get_count() );
@@ -332,4 +333,9 @@ void wgt_nbody_view::set_split_point( const QPointF& split_point )
 void wgt_nbody_view::set_stereo_base( int base )
 {
 	m_stereo_base = base;
+}
+
+void wgt_nbody_view::set_star_intensity( int star_intensity )
+{
+	m_star_intensity = star_intensity;
 }

@@ -7,12 +7,14 @@
 class nbody_data_stream_reader;
 class QLabel;
 class QSlider;
+class QSpinBox;
 
 class wgt_nbody_player_control : public QWidget
 {
 	Q_OBJECT
 	QSlider*			m_timeline;
 	QSlider*			m_stereo_base;
+	QSpinBox*			m_stars_intensity;
 	QLabel*				m_frame_number;
 	QPropertyAnimation*	m_animation;
 	QAction*			m_act_start;
@@ -24,6 +26,7 @@ public:
 	wgt_nbody_player_control( QWidget* parent, const nbody_data_stream_reader* stream );
 	size_t get_current_frame() const;
 	int get_stereo_base() const;
+	int get_star_intensity() const;
 public slots:
 	void on_start();
 	void on_pause();
@@ -36,6 +39,7 @@ public slots:
 signals:
 	void frame_number_updated();
 	void frame_state_updated();
+	void star_intensity_updated();
 };
 
 #endif // WGT_NBODY_PLAYER_CONTROL_H

@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QToolBar>
+#include <QSpinBox>
 #include <QAction>
 #include <QIcon>
 #include <QDebug>
@@ -23,12 +24,17 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 	m_act_forward = bar->addAction( QIcon::fromTheme( "media-seek-forward" ), tr( "Forward>" ) );
 	m_timeline = new QSlider( this );
 	m_stereo_base = new QSlider( this );
+	m_stars_intensity = new QSpinBox( this );
 	m_frame_number = new QLabel( this );
 	m_timeline->setOrientation( Qt::Horizontal );
 	m_stereo_base->setOrientation( Qt::Horizontal );
+	m_stars_intensity->setRange( 1, 255 );
+	m_stars_intensity->setValue( 255 );
+
 	layout->addWidget( bar );
 	layout->addWidget( m_timeline );
 	layout->addWidget( m_stereo_base );
+	layout->addWidget( m_stars_intensity );
 	layout->addWidget( m_frame_number );
 	m_frame_number->setFixedWidth( fontMetrics().width( "000:000:000" ) );
 
@@ -53,6 +59,9 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 			 this, SLOT( on_stereo_base_changed(int) ) );
 	connect( this, SIGNAL( frame_number_updated() ),
 			 this, SLOT( on_frame_number_updated() ) );
+	connect( m_stars_intensity, SIGNAL( valueChanged(int) ),
+			 this, SIGNAL( star_intensity_updated() ) );
+
 	connect( m_act_start, SIGNAL( triggered(bool) ), this, SLOT( on_start() ) );
 	connect( m_act_pause, SIGNAL( triggered(bool) ), this, SLOT( on_pause() ) );
 	connect( m_act_backward, SIGNAL( triggered(bool) ), this, SLOT( on_backward() ) );
@@ -70,6 +79,11 @@ size_t wgt_nbody_player_control::get_current_frame() const
 int wgt_nbody_player_control::get_stereo_base() const
 {
 	return m_stereo_base->value();
+}
+
+int wgt_nbody_player_control::get_star_intensity() const
+{
+	return m_stars_intensity->value();
 }
 
 void wgt_nbody_player_control::on_start()

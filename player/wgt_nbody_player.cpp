@@ -20,7 +20,7 @@ wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbco
 	m_view = new wgt_nbody_view( solver, data, box_size );
 	m_stream = new nbody_data_stream_reader();
 	m_stream->load( "/home/sas/tmp/nbody/main-stream" );
-
+	qDebug() << "Load stream" << m_stream->get_max_time();
 	m_control = new wgt_nbody_player_control( this, m_stream );
 	layout->addWidget( m_view, 1000 );
 	layout->addWidget( m_control );
@@ -28,6 +28,8 @@ wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbco
 	connect( m_control, SIGNAL( frame_number_updated() ),
 			 this, SLOT( on_update_data() ) );
 	connect( m_control, SIGNAL( frame_state_updated() ),
+			 this, SLOT( on_update_view() ) );
+	connect( m_control, SIGNAL( star_intensity_updated() ),
 			 this, SLOT( on_update_view() ) );
 }
 
@@ -57,5 +59,6 @@ void wgt_nbody_player::on_update_data()
 void wgt_nbody_player::on_update_view()
 {
 	m_view->set_stereo_base( m_control->get_stereo_base() );
+	m_view->set_star_intensity( m_control->get_star_intensity() );
 	m_view->updateGL();
 }

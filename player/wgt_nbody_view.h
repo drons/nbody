@@ -17,6 +17,7 @@ class wgt_nbody_view : public QGLWidget
 	QGLFramebufferObject*	m_renderer;
 	QPointF					m_split_point;
 	int						m_stereo_base;
+	int						m_star_intensity;
 public:
 	wgt_nbody_view( nbody_solver*, nbody_data*, nbcoord_t box_size );
 	~wgt_nbody_view();
@@ -24,6 +25,7 @@ public:
 	QPointF get_split_point() const;
 	void set_split_point( const QPointF& split_point );
 	void set_stereo_base( int );
+	void set_star_intensity( int );
 	void paint_color_box();
 	void initializeGL();
 	void paintGL();
