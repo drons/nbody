@@ -145,7 +145,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 				coeff.at(n) = (b2[n] - b1[n]);
 			}
 			engine()->write_buffer( m_coeff, coeff.data() );
-			//engine()->fmaddn( m_tmpy, NULL, m_k, m_coeff, ps, 0, 0, 0, STEPS );
+			engine()->fmaddn( m_tmpy, NULL, m_k, m_coeff, ps, 0, 0, 0, STEPS );
 			engine()->fmaxabs( m_tmpy, max_error );
 		}
 
