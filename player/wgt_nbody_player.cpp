@@ -3,7 +3,7 @@
 #include "wgt_nbody_player_control.h"
 
 #include "nbody_data_stream_reader.h"
-#include "nbody_frame_compressor.h"
+#include "nbody_frame_compressor_image.h"
 
 #include <QLayout>
 #include <QDebug>
@@ -84,7 +84,7 @@ void wgt_nbody_player::on_start_record()
 	progress.show();
 	timer.start();
 
-	nbody_frame_compressor	compressor;
+	nbody_frame_compressor_image	compressor;
 
 	if( !compressor.set_destination( out_dir ) )
 	{

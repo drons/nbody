@@ -2,22 +2,16 @@
 #define NBODY_FRAME_COMPRESSOR_H
 
 #include <QObject>
-#include <QImage>
-#include <QList>
-#include <QtConcurrentRun>
 
-class nbody_frame_compressor
+class QImage;
+
+class nbody_frame_compressor : public QObject
 {
-	QString					m_destination;
-	QString					m_name_tmpl;
-	QList< QFuture<bool> >	m_results;
 public:
 	nbody_frame_compressor();
-	~nbody_frame_compressor();
-	bool set_destination( const QString& );
-	void push_frame( const QImage& f, size_t frame_n );
-private:
-	void wait_results( int max_queue_size );
+	virtual ~nbody_frame_compressor();
+	virtual bool set_destination( const QString& ) = 0;
+	virtual void push_frame( const QImage& f, size_t frame_n ) = 0;
 };
 
 #endif // NBODY_FRAME_COMPRESSOR_H
