@@ -3,6 +3,7 @@
 #include "wgt_nbody_player_control.h"
 
 #include "nbody_data_stream_reader.h"
+#include "nbody_frame_compressor.h"
 
 #include <QLayout>
 #include <QDebug>
@@ -77,10 +78,19 @@ void wgt_nbody_player::on_start_record()
 {
 	QProgressDialog		progress( this );
 	QTime				timer;
+	QString				out_dir( "/home/sas/tmp/nbody/video" );
 
 	progress.setRange( 0, (int)m_stream->get_frame_count() );
 	progress.show();
 	timer.start();
+
+	nbody_frame_compressor	compressor;
+
+	if( !compressor.set_destination( out_dir ) )
+	{
+		qDebug() << "can't setup compressor";
+		return;
+	}
 
 	for( size_t frame_n = 0; frame_n != m_stream->get_frame_count(); ++frame_n )
 	{
@@ -103,7 +113,15 @@ void wgt_nbody_player::on_start_record()
 
 		m_solver->engine()->get_data( m_data );
 
-		m_view->render_file( "/home/sas/tmp/nbody/video" );
+		QImage	frame( m_view->render_to_image() );
+
+		if( frame.isNull() )
+		{
+			qDebug() << "Render frame failed";
+			break;
+		}
+
+		compressor.push_frame( frame, frame_n );
 
 		progress.setValue( (int)frame_n );
 		progress.setLabelText( QString( "Done %1 from %2 ( %3 fps )" )

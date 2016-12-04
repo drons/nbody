@@ -17,12 +17,14 @@ LIBS += -lnbody
 SOURCES	+= main.cpp \
     wgt_nbody_view.cpp \
     wgt_nbody_player.cpp \
-    wgt_nbody_player_control.cpp
+    wgt_nbody_player_control.cpp \
+    nbody_frame_compressor.cpp
 
 HEADERS	+= \
 	wgt_nbody_view.h \
     wgt_nbody_player.h \
-    wgt_nbody_player_control.h
+    wgt_nbody_player_control.h \
+    nbody_frame_compressor.h
 
 
 

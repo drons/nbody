@@ -34,7 +34,7 @@ public:
 	void paintGL( GLsizei width, GLsizei height );
 	void paintGL( GLint x, GLint y,	GLsizei width, GLsizei height, const nbvertex_t& camera_position, const nbvertex_t& up );
 	void setup_projection( GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position, const nbvertex_t& up );
-	void render_file( const QString& out_dir );
+	QImage render_to_image();
 	void step();
 	void mouseDoubleClickEvent( QMouseEvent* );
 signals:

@@ -4,7 +4,6 @@
 #include <GL/glu.h>
 #include <omp.h>
 #include <QDebug>
-#include <QDir>
 #include <QMouseEvent>
 #include <QPropertyAnimation>
 
@@ -202,26 +201,26 @@ void wgt_nbody_view::setup_projection( GLsizei width, GLsizei height, const nbve
 			   up.x, up.y, up.z );
 }
 
-void wgt_nbody_view::render_file( const QString& out_dir )
+QImage wgt_nbody_view::render_to_image()
 {
 	makeCurrent();
 
 	if( !m_renderer->bind() )
 	{
 		qDebug() << "Can't bind QGLFramebufferObject";
-		return;
+		return QImage();
 	}
 	paintGL( m_renderer->width(), m_renderer->height() );
 	if( !m_renderer->release() )
 	{
 		qDebug() << "Can't release QGLFramebufferObject";
-		return;
+		return QImage();
 	}
 	QImage	image( m_renderer->toImage() );
 	if( image.isNull() )
 	{
 		qDebug() << "Can't convert QGLFramebufferObject to image";
-		return;
+		return QImage();
 	}
 
 	{
@@ -239,21 +238,7 @@ void wgt_nbody_view::render_file( const QString& out_dir )
 		p.drawText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->impulce_moment_err(), 3, 'e', 2 )  );
 		p.drawText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->energy_err(), 3, 'e', 2 )  );
 	}
-	QString name = out_dir + "/%1.png";
-
-	if( !QDir( out_dir ).mkpath(".") )
-	{
-		qDebug() << "Can't mkpath" << out_dir;
-		return;
-	}
-
-	name = name.arg( m_data->get_step(), 8, 10,  QChar('0') );
-
-//	if( !image.save( name, "PNG" ) )
-//	{
-//		qDebug() << "Can't save image" << name;
-//		return;
-//	}
+	return image;
 }
 
 void wgt_nbody_view::paintGL( GLsizei width, GLsizei height )
