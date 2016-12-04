@@ -24,6 +24,7 @@ class wgt_nbody_player_control : public QWidget
 	QAction*			m_act_backward;
 	QAction*			m_act_stop;
 	QAction*			m_act_forward;
+	QAction*			m_act_record;
 public:
 	wgt_nbody_player_control( QWidget* parent, const nbody_data_stream_reader* stream );
 	size_t get_current_frame() const;
@@ -46,6 +47,7 @@ signals:
 	void frame_state_updated();
 	void star_intensity_updated();
 	void star_size_updated();
+	void start_record();
 };
 
 #endif // WGT_NBODY_PLAYER_CONTROL_H

@@ -195,10 +195,10 @@ void wgt_nbody_view::setup_projection( GLsizei width, GLsizei height, const nbve
 			   up.x, up.y, up.z );
 }
 
-void wgt_nbody_view::render_file()
+void wgt_nbody_view::render_file( const QString& out_dir )
 {
 	makeCurrent();
-	QString		out_dir( "/home/sas/Documents/prg/nbody/video" );
+
 	if( !m_renderer->bind() )
 	{
 		qDebug() << "Can't bind QGLFramebufferObject";
@@ -221,7 +221,7 @@ void wgt_nbody_view::render_file()
 		QPainter	p( &image );
 		p.setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing );
 		p.setPen( Qt::white );
-		p.setFont( QFont("Monospace", 16) );
+		p.setFont( QFont("Monospace", 8 ) );
 		p.drawLine( QPointF( 0, image.height()/2.0 ), QPointF( image.width(), image.height()/2.0 ) );
 		p.drawLine( QPointF( image.width()/2.0, 0 ), QPointF( image.width()/2.0, image.height() ) );
 
@@ -242,11 +242,11 @@ void wgt_nbody_view::render_file()
 
 	name = name.arg( m_data->get_step(), 8, 10,  QChar('0') );
 
-	if( !image.save( name, "PNG" ) )
-	{
-		qDebug() << "Can't save image" << name;
-		return;
-	}
+//	if( !image.save( name, "PNG" ) )
+//	{
+//		qDebug() << "Can't save image" << name;
+//		return;
+//	}
 }
 
 void wgt_nbody_view::paintGL( GLsizei width, GLsizei height )

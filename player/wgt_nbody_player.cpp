@@ -7,6 +7,9 @@
 #include <QLayout>
 #include <QDebug>
 #include <QTimerEvent>
+#include <QProgressDialog>
+#include <QCoreApplication>
+#include <QTime>
 
 wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
 {
@@ -33,6 +36,8 @@ wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbco
 			 this, SLOT( on_update_view() ) );
 	connect( m_control, SIGNAL( star_size_updated() ),
 			 this, SLOT( on_update_view() ) );
+	connect( m_control, SIGNAL( start_record() ),
+			 this, SLOT( on_start_record() ) );
 	connect( m_view, SIGNAL( stars_size_range_changed(double,double,double) ),
 			 m_control, SLOT( on_stars_size_range_changed(double,double,double) ) );
 }
@@ -66,4 +71,53 @@ void wgt_nbody_player::on_update_view()
 	m_view->set_star_intensity( m_control->get_star_intensity() );
 	m_view->set_star_size( m_control->get_star_size() );
 	m_view->updateGL();
+}
+
+void wgt_nbody_player::on_start_record()
+{
+	QProgressDialog		progress( this );
+	QTime				timer;
+
+	progress.setRange( 0, (int)m_stream->get_frame_count() );
+	progress.show();
+	timer.start();
+
+	for( size_t frame_n = 0; frame_n != m_stream->get_frame_count(); ++frame_n )
+	{
+		if( 0 != m_stream->seek( frame_n ) )
+		{
+			qDebug() << "Fail to seek stream frame #" << frame_n;
+			break;
+		}
+
+		if( 0 != m_stream->read( m_solver->engine() ) )
+		{
+			qDebug() << "Fail to read stream frame #" << frame_n;
+			break;
+		}
+
+		if( frame_n % 100 == 0 )
+		{
+			m_data->print_statistics( m_solver->engine() );
+		}
+
+		m_solver->engine()->get_data( m_data );
+
+		m_view->render_file( "/home/sas/tmp/nbody/video" );
+
+		progress.setValue( (int)frame_n );
+		progress.setLabelText( QString( "Done %1 from %2 ( %3 fps )" )
+								.arg( frame_n )
+								.arg( m_stream->get_frame_count() )
+								.arg( ((double)frame_n)/(timer.elapsed()/1000.0) ) );
+		if( progress.wasCanceled() )
+		{
+			break;
+		}
+		QCoreApplication::processEvents();
+	}
+
+	on_update_data();
+
+	qDebug() << "Record done!";
 }

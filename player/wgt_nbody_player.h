@@ -24,6 +24,7 @@ public:
 public slots:
 	void on_update_data();
 	void on_update_view();
+	void on_start_record();
 };
 
 #endif // WGT_NBODY_PLAYER_H

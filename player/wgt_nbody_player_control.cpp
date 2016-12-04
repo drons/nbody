@@ -23,6 +23,8 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 	m_act_backward = bar->addAction( QIcon::fromTheme( "media-seek-backward" ), tr( "<Backward" ) );
 	m_act_stop = bar->addAction( QIcon::fromTheme( "media-playback-stop" ), tr( "Stop" ) );
 	m_act_forward = bar->addAction( QIcon::fromTheme( "media-seek-forward" ), tr( "Forward>" ) );
+	m_act_record = bar->addAction( QIcon::fromTheme( "media-record" ), tr( "Record*" ) );
+
 	m_timeline = new QSlider( this );
 	m_stereo_base = new QSlider( this );
 	m_stars_intensity = new QSpinBox( this );
@@ -79,6 +81,7 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 	connect( m_act_backward, SIGNAL( triggered(bool) ), this, SLOT( on_backward() ) );
 	connect( m_act_stop, SIGNAL( triggered(bool) ), this, SLOT( on_stop() ) );
 	connect( m_act_forward, SIGNAL( triggered(bool) ), this, SLOT( on_forward() ) );
+	connect( m_act_record, SIGNAL( triggered(bool) ), this, SIGNAL( start_record() ) );
 
 	on_finished();
 }
