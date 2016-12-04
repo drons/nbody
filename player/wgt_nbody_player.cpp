@@ -31,6 +31,10 @@ wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbco
 			 this, SLOT( on_update_view() ) );
 	connect( m_control, SIGNAL( star_intensity_updated() ),
 			 this, SLOT( on_update_view() ) );
+	connect( m_control, SIGNAL( star_size_updated() ),
+			 this, SLOT( on_update_view() ) );
+	connect( m_view, SIGNAL( stars_size_range_changed(double,double,double) ),
+			 m_control, SLOT( on_stars_size_range_changed(double,double,double) ) );
 }
 
 wgt_nbody_player::~wgt_nbody_player()
@@ -60,5 +64,6 @@ void wgt_nbody_player::on_update_view()
 {
 	m_view->set_stereo_base( m_control->get_stereo_base() );
 	m_view->set_star_intensity( m_control->get_star_intensity() );
+	m_view->set_star_size( m_control->get_star_size() );
 	m_view->updateGL();
 }

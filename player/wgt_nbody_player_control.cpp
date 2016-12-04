@@ -6,6 +6,7 @@
 #include <QLayout>
 #include <QToolBar>
 #include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QAction>
 #include <QIcon>
 #include <QDebug>
@@ -25,16 +26,25 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 	m_timeline = new QSlider( this );
 	m_stereo_base = new QSlider( this );
 	m_stars_intensity = new QSpinBox( this );
+	m_stars_size = new QDoubleSpinBox( this );
 	m_frame_number = new QLabel( this );
 	m_timeline->setOrientation( Qt::Horizontal );
 	m_stereo_base->setOrientation( Qt::Horizontal );
 	m_stars_intensity->setRange( 1, 255 );
 	m_stars_intensity->setValue( 255 );
 
+	GLfloat size_range[2] = {1,1};
+	GLfloat size_step = 1;
+
+	m_stars_size->setRange( size_range[0], size_range[1] );
+	m_stars_size->setSingleStep( size_step );
+	m_stars_size->setValue( size_range[0] );
+
 	layout->addWidget( bar );
 	layout->addWidget( m_timeline );
 	layout->addWidget( m_stereo_base );
 	layout->addWidget( m_stars_intensity );
+	layout->addWidget( m_stars_size );
 	layout->addWidget( m_frame_number );
 	m_frame_number->setFixedWidth( fontMetrics().width( "000:000:000" ) );
 
@@ -61,6 +71,8 @@ wgt_nbody_player_control::wgt_nbody_player_control( QWidget* parent, const nbody
 			 this, SLOT( on_frame_number_updated() ) );
 	connect( m_stars_intensity, SIGNAL( valueChanged(int) ),
 			 this, SIGNAL( star_intensity_updated() ) );
+	connect( m_stars_size, SIGNAL( valueChanged(double) ),
+			 this, SIGNAL( star_size_updated() ) );
 
 	connect( m_act_start, SIGNAL( triggered(bool) ), this, SLOT( on_start() ) );
 	connect( m_act_pause, SIGNAL( triggered(bool) ), this, SLOT( on_pause() ) );
@@ -84,6 +96,18 @@ int wgt_nbody_player_control::get_stereo_base() const
 int wgt_nbody_player_control::get_star_intensity() const
 {
 	return m_stars_intensity->value();
+}
+
+double wgt_nbody_player_control::get_star_size() const
+{
+	return m_stars_size->value();
+}
+
+void wgt_nbody_player_control::set_star_size_range( double size_range_min, double size_range_max, double size_step )
+{
+	m_stars_size->setRange( size_range_min, size_range_max );
+	m_stars_size->setSingleStep( size_step );
+	m_stars_size->setValue( size_range_min );
 }
 
 void wgt_nbody_player_control::on_start()
@@ -138,4 +162,11 @@ void wgt_nbody_player_control::on_stereo_base_changed( int )
 void wgt_nbody_player_control::on_frame_number_updated()
 {
 	m_frame_number->setText( QString( "F%1" ).arg( get_current_frame(), 8, 10, QChar('0') ) );
+}
+
+void wgt_nbody_player_control::on_stars_size_range_changed( double size_range_min, double size_range_max, double size_step )
+{
+	m_stars_size->setRange( size_range_min, size_range_max );
+	m_stars_size->setSingleStep( size_step );
+	m_stars_size->setValue( size_range_min );
 }

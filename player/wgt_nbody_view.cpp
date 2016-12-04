@@ -22,6 +22,7 @@ wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_
 	m_renderer = NULL;
 	m_stereo_base = 0;
 	m_star_intensity = 255;
+	m_star_size = 1;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
@@ -106,6 +107,14 @@ void wgt_nbody_view::paint_color_box()
 void wgt_nbody_view::initializeGL()
 {
 	m_renderer = new QGLFramebufferObject( 1920, 1080 );
+
+	GLfloat size_range[2] = {1,1};
+	GLfloat size_step = 1;
+
+	glGetFloatv( GL_POINT_SIZE_RANGE, size_range );
+	glGetFloatv( GL_POINT_SIZE_GRANULARITY, &size_step );
+
+	emit stars_size_range_changed( size_range[0], size_range[1], size_step );
 }
 
 void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, const nbvertex_t &camera_position, const nbvertex_t &up )
@@ -123,7 +132,7 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 
 	glDisable( GL_DEPTH_TEST );
 	glLineWidth( 1 );
-	glPointSize( 3 );
+	glPointSize( (GLfloat)m_star_size );
 	glEnable( GL_POINT_SMOOTH );
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_ONE, GL_ONE );
@@ -338,4 +347,9 @@ void wgt_nbody_view::set_stereo_base( int base )
 void wgt_nbody_view::set_star_intensity( int star_intensity )
 {
 	m_star_intensity = star_intensity;
+}
+
+void wgt_nbody_view::set_star_size( double star_size )
+{
+	m_star_size = star_size;
 }
