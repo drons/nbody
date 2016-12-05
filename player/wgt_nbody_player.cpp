@@ -4,6 +4,7 @@
 
 #include "nbody_data_stream_reader.h"
 #include "nbody_frame_compressor_image.h"
+#include "nbody_frame_compressor_av.h"
 
 #include <QLayout>
 #include <QDebug>
@@ -78,13 +79,13 @@ void wgt_nbody_player::on_start_record()
 {
 	QProgressDialog		progress( this );
 	QTime				timer;
-	QString				out_dir( "/home/sas/tmp/nbody/video" );
+	QString				out_dir( "/home/sas/tmp/nbody/video.avi" );
 
 	progress.setRange( 0, (int)m_stream->get_frame_count() );
 	progress.show();
 	timer.start();
 
-	nbody_frame_compressor_image	compressor;
+	nbody_frame_compressor_av	compressor;
 
 	if( !compressor.set_destination( out_dir ) )
 	{
@@ -92,7 +93,9 @@ void wgt_nbody_player::on_start_record()
 		return;
 	}
 
-	for( size_t frame_n = 0; frame_n != m_stream->get_frame_count(); ++frame_n )
+	size_t	frame_count = m_stream->get_frame_count();
+
+	for( size_t frame_n = 0; frame_n != frame_count; ++frame_n )
 	{
 		if( 0 != m_stream->seek( frame_n ) )
 		{

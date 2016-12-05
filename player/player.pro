@@ -13,6 +13,7 @@ LIBS += -lGLU -lgomp
 INCLUDEPATH += ../nbody
 LIBS += -L../nbody
 LIBS += -lnbody
+LIBS += -lavcodec -lavformat -lavdevice -lavfilter -lavutil -lavresample -lswscale
 
 SOURCES	+= main.cpp \
     wgt_nbody_view.cpp \
