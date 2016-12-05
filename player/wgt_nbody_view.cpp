@@ -162,7 +162,7 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 
 
 		base *= ( camera_ray.length()/base.length() );
-		base *= ( m_stereo_base / 100.0 );
+		base *= ( m_stereo_base / 1000.0 );
 		nbcolor_t	col[] = { nbcolor_t( 1,  0, 0, 1 ),
 							  nbcolor_t( 0,  1, 1, 1 ) };
 		nbvertex_t	cpos[] = { camera_position + base,
