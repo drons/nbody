@@ -135,13 +135,17 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	glPointSize( (GLfloat)m_star_size );
 	glEnable( GL_POINT_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_ONE, GL_ONE );
 
 	nbvertex_t	center( m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5 );
+	GLfloat		factor( ((GLfloat)m_star_intensity)/255.0f );
+
 	if( m_stereo_base == 0 )
 	{
 		setup_projection( width, height, center, camera_position, up );
 		paint_color_box();
+
+		glBlendFunc( GL_CONSTANT_ALPHA, GL_ONE );
+		glBlendColor( factor, factor, factor, factor );
 
 		glEnableClientState( GL_VERTEX_ARRAY );
 		glEnableClientState( GL_COLOR_ARRAY );
@@ -164,11 +168,12 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 		nbvertex_t	cpos[] = { camera_position + base,
 							   camera_position - base };
 
+		glBlendFunc( GL_ONE, GL_ONE );
+
 		for( size_t plane = 0; plane != 2; ++plane )
 		{
 			setup_projection( width, height, center, cpos[plane], up );
 			//paint_color_box();
-			GLfloat	factor = ((GLfloat)m_star_intensity)/255.0f;
 			glColor3f( col[plane].x*factor, col[plane].y*factor, col[plane].z*factor );
 			glEnableClientState( GL_VERTEX_ARRAY );
 			glVertexPointer( nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites() );
@@ -176,6 +181,8 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 			glDisableClientState( GL_VERTEX_ARRAY );
 		}
 	}
+
+	glBlendFunc( GL_ONE, GL_ONE );
 }
 
 void wgt_nbody_view::setup_projection( GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position, const nbvertex_t& up )
