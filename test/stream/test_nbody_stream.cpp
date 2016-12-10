@@ -184,6 +184,106 @@ void test_nbody_stream::negative_branch()
 		QVERIFY( 0 != stream.write( e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/2");
 	}
+
+	{
+		nbody_data_stream_reader	stream;
+		QVERIFY( 0 != stream.load( "/nameless/stream" ) );
+	}
+
+	{
+		nbody_data_stream_reader	stream;
+		QDir("/tmp/nbody_test/3").mkpath(".");
+		{
+			QFile	f( "/tmp/nbody_test/3/stream.idx" );
+			f.open( QFile::WriteOnly );
+			f.write( QByteArray("0\t1\t2\n") );
+		}
+		QVERIFY( 0 != stream.load( "/tmp/nbody_test/3/stream" ) );
+	}
+
+	{
+		nbody_data_stream_reader	stream;
+		QDir("/tmp/nbody_test/4").mkpath(".");
+		{
+			QFile	f( "/tmp/nbody_test/4/stream.idx" );
+			f.open( QFile::WriteOnly );
+			f.write( QByteArray("a\tb\tc\td\n") );
+		}
+		QVERIFY( 0 != stream.load( "/tmp/nbody_test/4/stream" ) );
+	}
+
+	{
+		nbody_data_stream_reader	stream;
+		QVERIFY( 0 == stream.get_frame_count() );
+		QVERIFY( 0 == stream.get_steps_count() );
+		QVERIFY( 0 == stream.get_max_time() );
+	}
+
+	{
+		{
+			nbody_data_stream	stream;
+			QVERIFY( 0 == stream.open( "/tmp/nbody_test/5/stream", 1 ) );
+			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( e ) );
+			QFile::remove( "/tmp/nbody_test/5/stream0.dat" );
+		}
+
+		nbody_data_stream_reader	stream;
+		QVERIFY( 0 != stream.load( "/tmp/nbody_test/5/stream" ) );
+	}
+
+	{
+		{
+			nbody_data_stream	stream;
+			QVERIFY( 0 == stream.open( "/tmp/nbody_test/6/stream", 1 ) );
+			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( e ) );
+			QFile::remove( "/tmp/nbody_test/6/stream1.dat" );
+		}
+
+		nbody_data_stream_reader	stream;
+		QVERIFY( 0 == stream.load( "/tmp/nbody_test/6/stream" ) );
+		QVERIFY( 0 == stream.read( e ) );
+		QVERIFY( 0 != stream.read( e ) );
+	}
+
+	{
+		{
+			nbody_data_stream	stream;
+			QVERIFY( 0 == stream.open( "/tmp/nbody_test/7/stream", 1 ) );
+			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( e ) );
+		}
+		{
+			QFile	f( "/tmp/nbody_test/7/stream.idx" );
+			f.open( QFile::WriteOnly );
+			f.write( QByteArray("1\t1\t0\t0\n") );
+			f.write( QByteArray("1\t1\t1\t-1\n") );//Negative file offset
+			f.write( QByteArray("1\t1\t2\t-1\n") );//Negative file offset
+		}
+
+		nbody_data_stream_reader	stream;
+		QVERIFY( 0 == stream.load( "/tmp/nbody_test/7/stream" ) );
+		QVERIFY( 0 == stream.read( e ) );
+		QVERIFY( 0 != stream.read( e ) );
+		QVERIFY( 0 != stream.read( e ) );
+	}
+
+
+	{
+		{
+			nbody_data_stream	stream;
+			QVERIFY( 0 == stream.open( "/tmp/nbody_test/8/stream", 1 ) );
+			QVERIFY( 0 == stream.write( e ) );
+		}
+
+		nbody_data_stream_reader	stream;
+		nbody_engine_simple			e0;
+		QVERIFY( 0 == stream.load( "/tmp/nbody_test/8/stream" ) );
+		QVERIFY( 0 != stream.read( NULL ) );
+		QVERIFY( 0 != stream.read( &e0 ) );
+	}
 }
 
 int main(int argc, char *argv[])

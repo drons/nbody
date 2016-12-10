@@ -159,6 +159,7 @@ int nbody_data_stream_reader::seek( size_t frame )
 	{
 		qDebug() << "Can't seek file" << d->m_file.fileName()
 				 << "To offset" << i.file_pos << d->m_file.errorString();
+		d->m_file.close();
 		return -1;
 	}
 
