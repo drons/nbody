@@ -22,6 +22,7 @@ private Q_SLOTS:
 	void initTestCase();
 	void cleanupTestCase();
 	void run();
+	void negative_branch();
 };
 
 test_nbody_stream::test_nbody_stream() :
@@ -129,6 +130,60 @@ void test_nbody_stream::run()
 		QTEST_ASSERT( 4 == e->get_step() );
 	}
 
+}
+
+void test_nbody_stream::negative_branch()
+{
+	{
+		nbody_data_stream	stream;
+		QTEST_ASSERT( 0 != stream.write( NULL ) );
+	}
+	{
+		nbody_data_stream	stream;
+		nbody_engine_simple	e;
+		QTEST_ASSERT( 0 != stream.write( &e ) );
+	}
+
+	{
+		nbody_data_stream	stream;
+		QTEST_ASSERT( 0 != stream.open( "/nameless/file", 1000 ) );
+		QTEST_ASSERT( 0 != stream.write( e ) );
+	}
+
+	{
+		nbody_data_stream	stream;
+		QTEST_ASSERT( 0 != stream.write( e ) );
+	}
+
+	{
+		nbody_data_stream	stream;
+		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/00/stream", 1000 ) );
+		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/01/stream", 1000 ) );
+		QTEST_ASSERT( 0 != stream.write( e ) );
+	}
+
+	{
+		nbody_data_stream	stream;
+		QDir("/tmp/nbody_test/0/stream0.dat").mkpath(".");
+		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/0/stream", 1 ) );
+		QTEST_ASSERT( 0 != stream.write( e ) );
+		QDir( "/tmp" ).rmpath("nbody_test/0");
+	}
+	{
+		nbody_data_stream	stream;
+		QDir("/tmp/nbody_test/1/stream.idx").mkpath(".");
+		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/1/stream", 1 ) );
+		QTEST_ASSERT( 0 != stream.write( e ) );
+		QDir( "/tmp" ).rmpath("nbody_test/1");
+	}
+	{
+		nbody_data_stream	stream;
+		QDir("/tmp/nbody_test/2/stream1.dat").mkpath(".");
+		QTEST_ASSERT( 0 == stream.open( "/tmp/nbody_test/2/stream", 1 ) );
+		QTEST_ASSERT( 0 == stream.write( e ) );
+		QTEST_ASSERT( 0 != stream.write( e ) );
+		QDir( "/tmp" ).rmpath("nbody_test/2");
+	}
 }
 
 int main(int argc, char *argv[])

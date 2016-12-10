@@ -77,6 +77,12 @@ int nbody_data_stream::write( nbody_engine* e )
 		return -1;
 	}
 
+	if( !d->m_idx.isOpen() )
+	{
+		qDebug() << "Index not open yet!";
+		return -1;
+	}
+
 	if( d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size )
 	{
 		++d->m_file_n;
