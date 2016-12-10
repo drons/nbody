@@ -60,74 +60,74 @@ void test_nbody_stream::run()
 {
 	s->set_time_step( 0.01, 0.1 );
 	//open stream with 2 frames per data file limit
-	QTEST_ASSERT( 0 == stream->open( "/tmp/stream-test/new", 14000 ) );
-	QTEST_ASSERT( 0 == s->run( &data, stream, 0.31, 0.1, 0.1 ) );
+	QVERIFY( 0 == stream->open( "/tmp/stream-test/new", 14000 ) );
+	QVERIFY( 0 == s->run( &data, stream, 0.31, 0.1, 0.1 ) );
 
 	stream->close();
 
-	QTEST_ASSERT( QFile::exists( "/tmp/stream-test/new.idx" ) );
-	QTEST_ASSERT( QFile::exists( "/tmp/stream-test/new0.dat" ) );
-	QTEST_ASSERT( QFile::exists( "/tmp/stream-test/new1.dat" ) );
-	QTEST_ASSERT( QFile::exists( "/tmp/stream-test/new2.dat" ) );
+	QVERIFY( QFile::exists( "/tmp/stream-test/new.idx" ) );
+	QVERIFY( QFile::exists( "/tmp/stream-test/new0.dat" ) );
+	QVERIFY( QFile::exists( "/tmp/stream-test/new1.dat" ) );
+	QVERIFY( QFile::exists( "/tmp/stream-test/new2.dat" ) );
 
 	QFile	idx("/tmp/stream-test/new.idx");
 
-	QTEST_ASSERT( idx.open( QFile::ReadOnly ) );
+	QVERIFY( idx.open( QFile::ReadOnly ) );
 
-	QTEST_ASSERT( QString(idx.readAll()).split( QChar('\n'), QString::SkipEmptyParts ).size() == 5 );
+	QVERIFY( QString(idx.readAll()).split( QChar('\n'), QString::SkipEmptyParts ).size() == 5 );
 
 	{
 		nbody_data_stream_reader	reader;
-		QTEST_ASSERT( 0 == reader.load( "/tmp/stream-test/new" ) );
-		QTEST_ASSERT( 5 == reader.get_frame_count() );
-		QTEST_ASSERT( 4 == reader.get_steps_count() );
-		QTEST_ASSERT( 0.4 == reader.get_max_time() );
+		QVERIFY( 0 == reader.load( "/tmp/stream-test/new" ) );
+		QVERIFY( 5 == reader.get_frame_count() );
+		QVERIFY( 4 == reader.get_steps_count() );
+		QVERIFY( 0.4 == reader.get_max_time() );
 
 		QByteArray	yexpected( e->y()->size(), 0xCC );
 		QByteArray	ycurrent( e->y()->size(), 0xCC );
 
 		e->read_buffer( yexpected.data(), e->y() );
 
-		QTEST_ASSERT( 0 == reader.seek(0) );
-		QTEST_ASSERT( 0 != reader.seek(77) );
+		QVERIFY( 0 == reader.seek(0) );
+		QVERIFY( 0 != reader.seek(77) );
 
-		QTEST_ASSERT( 0 == reader.seek(0) );
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.seek(0) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent != yexpected );
+		QVERIFY( ycurrent != yexpected );
 
-		QTEST_ASSERT( 0 == reader.seek( reader.get_frame_count() - 1 ) );
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.seek( reader.get_frame_count() - 1 ) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent == yexpected );
+		QVERIFY( ycurrent == yexpected );
 
-		QTEST_ASSERT( 0 == reader.seek( 0 ) );
+		QVERIFY( 0 == reader.seek( 0 ) );
 
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent != yexpected );
-		QTEST_ASSERT( 0 == e->get_time() );
-		QTEST_ASSERT( 0 == e->get_step() );
+		QVERIFY( ycurrent != yexpected );
+		QVERIFY( 0 == e->get_time() );
+		QVERIFY( 0 == e->get_step() );
 
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent != yexpected );
+		QVERIFY( ycurrent != yexpected );
 
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent != yexpected );
+		QVERIFY( ycurrent != yexpected );
 
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent != yexpected );
-		QTEST_ASSERT( 0.3 == e->get_time() );
-		QTEST_ASSERT( 3 == e->get_step() );
+		QVERIFY( ycurrent != yexpected );
+		QVERIFY( 0.3 == e->get_time() );
+		QVERIFY( 3 == e->get_step() );
 
-		QTEST_ASSERT( 0 == reader.read( e ) );
+		QVERIFY( 0 == reader.read( e ) );
 		e->read_buffer( ycurrent.data(), e->y() );
-		QTEST_ASSERT( ycurrent == yexpected );
-		QTEST_ASSERT( 0.4 == e->get_time() );
-		QTEST_ASSERT( 4 == e->get_step() );
+		QVERIFY( ycurrent == yexpected );
+		QVERIFY( 0.4 == e->get_time() );
+		QVERIFY( 4 == e->get_step() );
 	}
 
 }
@@ -136,52 +136,52 @@ void test_nbody_stream::negative_branch()
 {
 	{
 		nbody_data_stream	stream;
-		QTEST_ASSERT( 0 != stream.write( NULL ) );
+		QVERIFY( 0 != stream.write( NULL ) );
 	}
 	{
 		nbody_data_stream	stream;
 		nbody_engine_simple	e;
-		QTEST_ASSERT( 0 != stream.write( &e ) );
+		QVERIFY( 0 != stream.write( &e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
-		QTEST_ASSERT( 0 != stream.open( "/nameless/file", 1000 ) );
-		QTEST_ASSERT( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.open( "/nameless/file", 1000 ) );
+		QVERIFY( 0 != stream.write( e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
-		QTEST_ASSERT( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.write( e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
-		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/00/stream", 1000 ) );
-		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/01/stream", 1000 ) );
-		QTEST_ASSERT( 0 != stream.write( e ) );
+		QVERIFY( 0 == stream.open( "/tmp/nbody_test/00/stream", 1000 ) );
+		QVERIFY( 0 == stream.open( "/tmp/nbody_test/01/stream", 1000 ) );
+		QVERIFY( 0 == stream.write( e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
 		QDir("/tmp/nbody_test/0/stream0.dat").mkpath(".");
-		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/0/stream", 1 ) );
-		QTEST_ASSERT( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.open( "/tmp/nbody_test/0/stream", 1 ) );
+		QVERIFY( 0 != stream.write( e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/0");
 	}
 	{
 		nbody_data_stream	stream;
 		QDir("/tmp/nbody_test/1/stream.idx").mkpath(".");
-		QTEST_ASSERT( 0 != stream.open( "/tmp/nbody_test/1/stream", 1 ) );
-		QTEST_ASSERT( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.open( "/tmp/nbody_test/1/stream", 1 ) );
+		QVERIFY( 0 != stream.write( e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/1");
 	}
 	{
 		nbody_data_stream	stream;
 		QDir("/tmp/nbody_test/2/stream1.dat").mkpath(".");
-		QTEST_ASSERT( 0 == stream.open( "/tmp/nbody_test/2/stream", 1 ) );
-		QTEST_ASSERT( 0 == stream.write( e ) );
-		QTEST_ASSERT( 0 != stream.write( e ) );
+		QVERIFY( 0 == stream.open( "/tmp/nbody_test/2/stream", 1 ) );
+		QVERIFY( 0 == stream.write( e ) );
+		QVERIFY( 0 != stream.write( e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/2");
 	}
 }
