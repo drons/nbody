@@ -51,11 +51,12 @@ typedef cl::make_kernel< cl_int,cl_int,	//Block offset
 						 cl::Buffer,	//mass
 						 cl::Buffer,	//y
 						 cl::Buffer,	//f
-						 cl_int,cl_int	//yoff,foff
+						 cl_int,cl_int,	//yoff,foff
+						 cl_int,cl_int	//points_count,stride
 						> ComputeBlock;
 
 
-typedef cl::make_kernel< cl::Buffer, cl::Buffer, const nbcoord_t > FMadd1;
+typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMadd1;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd2;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int, cl_int > FMaddn1;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int, cl_int, cl_int > FMaddn2;
@@ -80,8 +81,9 @@ struct nbody_engine_opencl::data
 
 		static QString build_options();
 		static QStringList sources();
-		devctx( cl::Device& device );
+		devctx( cl::Context& context, cl::Device& device );
 	};
+	cl::Context				m_context;
 	std::vector<devctx>		m_devices;
 	smemory*				m_mass;
 	smemory*				m_y;
@@ -141,8 +143,8 @@ QStringList nbody_engine_opencl::data::devctx::sources()
 	return QStringList() << ":/nbody_engine_opencl.cl";
 }
 
-nbody_engine_opencl::data::devctx::devctx( cl::Device& device ) :
-	context( device ),
+nbody_engine_opencl::data::devctx::devctx( cl::Context& _context, cl::Device& device ) :
+	context( _context ),
 	prog( load_programs( context, device, build_options(), sources() ) ),
 	queue( context, device, 0 ),
 	fcompute( prog, "ComputeBlockLocal" ),
@@ -182,6 +184,8 @@ void nbody_engine_opencl::data::find_devices()
 
 		platform.getDevices( CL_DEVICE_TYPE_ALL, &devices );
 
+		cl::Context	context( devices );
+
 		for( size_t j = 0; j != devices.size(); ++j )
 		{
 			cl::Device&		device( devices[j] );
@@ -189,7 +193,7 @@ void nbody_engine_opencl::data::find_devices()
 			qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
 			qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
 
-			m_devices.push_back( devctx( device ) );
+			m_devices.push_back( devctx( context, device ) );
 		}
 	}
 
@@ -330,7 +334,6 @@ void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory
 	Q_UNUSED( t );
 	advise_compute_count();
 
-	size_t			count = d->m_data->get_count();
 	const smemory*	y = dynamic_cast<const smemory*>( _y );
 	smemory*		f = dynamic_cast<smemory*>( _f );
 
@@ -350,13 +353,25 @@ void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory
 		qDebug() << Q_FUNC_INFO << "m_devices.empty()";
 		return;
 	}
-	data::devctx&	ctx( d->m_devices.front() );
-	cl::NDRange		global_range( count );
-	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-	cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-	cl::Event		exec_ev( ctx.fcompute( eargs, 0, 0, d->m_mass->buffer(),
-							 y->buffer(), f->buffer(), yoff, foff ) );
-	exec_ev.wait();
+
+	size_t					device_count( d->m_devices.size() );
+	size_t					device_data_size = d->m_data->get_count()/device_count;
+	cl::NDRange				global_range( device_data_size );
+	cl::NDRange				local_range( NBODY_DATA_BLOCK_SIZE );
+	std::vector<cl::Event>	events;
+
+	for( size_t dev_n = 0; dev_n != device_count; ++dev_n )
+	{
+		size_t			offset = dev_n*device_data_size;
+		data::devctx&	ctx( d->m_devices[dev_n] );
+		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+		cl::Event		ev( ctx.fcompute( eargs, offset, 0, d->m_mass->buffer(),
+							y->buffer(), f->buffer(), yoff, foff,
+							d->m_data->get_count(), d->m_data->get_count() ) );
+		events.push_back( ev );
+	}
+
+	cl::Event::waitForEvents( events );
 }
 
 nbody_engine::memory* nbody_engine_opencl::create_buffer( size_t s )
@@ -444,13 +459,23 @@ void nbody_engine_opencl::fmadd_inplace( memory* _a, const memory* _b, const nbc
 		return;
 	}
 
-	data::devctx&	ctx( d->m_devices.front() );
-	cl::NDRange		global_range( problem_size() );
-	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-	cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+	size_t					device_count( d->m_devices.size() );
+	size_t					device_data_size = problem_size()/device_count;
+	cl::NDRange				global_range( device_data_size );
+	cl::NDRange				local_range( NBODY_DATA_BLOCK_SIZE );
+	std::vector<cl::Event>	events;
 
-	cl::Event		ev( ctx.fmadd1( eargs, a->buffer(), b->buffer(), c ) );
-	ev.wait();
+	for( size_t dev_n = 0; dev_n != device_count; ++dev_n )
+	{
+		size_t			offset = dev_n*device_data_size;
+		data::devctx&	ctx( d->m_devices[dev_n] );
+		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+		cl::Event		ev( ctx.fmadd1( eargs, offset, a->buffer(), b->buffer(), c ) );
+
+		events.push_back( ev );
+	}
+
+	cl::Event::waitForEvents( events );
 }
 
 void nbody_engine_opencl::fmadd( memory* _a, const memory* _b, const memory* _c, const nbcoord_t& _d, size_t aoff, size_t boff, size_t coff )
@@ -475,13 +500,24 @@ void nbody_engine_opencl::fmadd( memory* _a, const memory* _b, const memory* _c,
 		return;
 	}
 
-	data::devctx&	ctx( d->m_devices.front() );
-	cl::NDRange		global_range( problem_size() );
-	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-	cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+	size_t					device_count( d->m_devices.size() );
+	size_t					device_data_size = problem_size()/device_count;
+	cl::NDRange				global_range( device_data_size );
+	cl::NDRange				local_range( NBODY_DATA_BLOCK_SIZE );
+	std::vector<cl::Event>	events;
 
-	cl::Event		ev( ctx.fmadd2( eargs, a->buffer(), b->buffer(), c->buffer(), _d, aoff, boff, coff ) );
-	ev.wait();
+	for( size_t dev_n = 0; dev_n != device_count; ++dev_n )
+	{
+		size_t			offset = dev_n*device_data_size;
+		data::devctx&	ctx( d->m_devices[dev_n] );
+		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+		cl::Event		ev( ctx.fmadd2( eargs, a->buffer(), b->buffer(), c->buffer(),
+										_d, aoff + offset, boff + offset, coff + offset ) );
+
+		events.push_back( ev );
+	}
+
+	cl::Event::waitForEvents( events );
 }
 
 void nbody_engine_opencl::fmaddn_inplace( memory* _a, const memory* _b, const memory* _c, size_t bstride, size_t aoff, size_t boff, size_t csize )
@@ -506,13 +542,24 @@ void nbody_engine_opencl::fmaddn_inplace( memory* _a, const memory* _b, const me
 		return;
 	}
 
-	data::devctx&	ctx( d->m_devices.front() );
-	cl::NDRange		global_range( problem_size() );
-	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-	cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+	size_t					device_count( d->m_devices.size() );
+	size_t					device_data_size = problem_size()/device_count;
+	cl::NDRange				global_range( device_data_size );
+	cl::NDRange				local_range( NBODY_DATA_BLOCK_SIZE );
+	std::vector<cl::Event>	events;
 
-	cl::Event		ev( ctx.fmaddn1( eargs, a->buffer(), b->buffer(), c->buffer(), bstride, aoff, boff, csize ) );
-	ev.wait();
+	for( size_t dev_n = 0; dev_n != device_count; ++dev_n )
+	{
+		size_t			offset = dev_n*device_data_size;
+		data::devctx&	ctx( d->m_devices[dev_n] );
+		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+		cl::Event		ev( ctx.fmaddn1( eargs, a->buffer(), b->buffer(), c->buffer(),
+										 bstride, aoff + offset, boff + offset, csize ) );
+
+		events.push_back( ev );
+	}
+
+	cl::Event::waitForEvents( events );
 }
 
 void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c, const memory* __d, size_t cstride, size_t aoff, size_t boff, size_t coff, size_t dsize )
@@ -545,14 +592,24 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 			return;
 		}
 
-		data::devctx&	ctx( d->m_devices.front() );
-		cl::NDRange		global_range( problem_size() );
-		cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+		size_t					device_count( d->m_devices.size() );
+		size_t					device_data_size = problem_size()/device_count;
+		cl::NDRange				global_range( device_data_size );
+		cl::NDRange				local_range( NBODY_DATA_BLOCK_SIZE );
+		std::vector<cl::Event>	events;
 
-		cl::Event		ev( ctx.fmaddn2( eargs, a->buffer(), b->buffer(), c->buffer(), _d->buffer(),
-							cstride, aoff, boff, coff, dsize ) );
-		ev.wait();
+		for( size_t dev_n = 0; dev_n != device_count; ++dev_n )
+		{
+			size_t			offset = dev_n*device_data_size;
+			data::devctx&	ctx( d->m_devices[dev_n] );
+			cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+			cl::Event		ev( ctx.fmaddn2( eargs, a->buffer(), b->buffer(), c->buffer(), _d->buffer(),
+								cstride, aoff + offset, boff + offset, coff + offset, dsize ) );
+
+			events.push_back( ev );
+		}
+
+		cl::Event::waitForEvents( events );
 	}
 	else
 	{
@@ -576,14 +633,24 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 			return;
 		}
 
-		data::devctx&	ctx( d->m_devices.front() );
-		cl::NDRange		global_range( problem_size() );
-		cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
 
-		cl::Event		ev( ctx.fmaddn3( eargs, a->buffer(), c->buffer(), _d->buffer(),
-							cstride, aoff, coff, dsize ) );
-		ev.wait();
+		size_t					device_count( d->m_devices.size() );
+		size_t					device_data_size = problem_size()/device_count;
+		cl::NDRange				global_range( device_data_size );
+		cl::NDRange				local_range( NBODY_DATA_BLOCK_SIZE );
+		std::vector<cl::Event>	events;
+
+		for( size_t dev_n = 0; dev_n != device_count; ++dev_n )
+		{
+			size_t			offset = dev_n*device_data_size;
+			data::devctx&	ctx( d->m_devices[dev_n] );
+			cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+			cl::Event		ev( ctx.fmaddn3( eargs, a->buffer(), c->buffer(), _d->buffer(),
+								cstride, aoff + offset, coff + offset, dsize ) );
+			events.push_back( ev );
+		}
+
+		cl::Event::waitForEvents( events );
 	}
 }
 
@@ -637,6 +704,8 @@ int nbody_engine_opencl::info()
 
 		platform.getDevices( CL_DEVICE_TYPE_ALL, &devices );
 
+		cl::Context	context( devices );
+
 		for( size_t j = 0; j != devices.size(); ++j )
 		{
 			cl::Device&		device( devices[j] );
@@ -664,7 +733,7 @@ int nbody_engine_opencl::info()
 
 			try
 			{
-				nbody_engine_opencl::data::devctx	c( device );
+				nbody_engine_opencl::data::devctx	c( context, device );
 			}
 			catch( cl::Error& e )
 			{

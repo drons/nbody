@@ -47,25 +47,24 @@ __kernel void ComputeBlock( int offset_n1, int offset_n2,
 }
 
 __kernel void ComputeBlockLocal( int offset_n1, int offset_n2,
-                            __global const nbcoord_t* mass,
+							__global const nbcoord_t* mass,
 							__global const nbcoord_t* y,
-							__global nbcoord_t* f, int yoff, int foff )
+							__global nbcoord_t* f, int yoff, int foff, int points_count, int stride )
 {
-    int		b1 = get_global_id(0);
-	int		n1 = b1 + offset_n1;
+	int		n1 = get_global_id(0) + offset_n1;
 	__global const nbcoord_t*	rx = y + yoff;
-	__global const nbcoord_t*	ry = rx + get_global_size(0);
-	__global const nbcoord_t*	rz = rx + 2*get_global_size(0);
-	__global const nbcoord_t*	vx = rx + 3*get_global_size(0);
-	__global const nbcoord_t*	vy = rx + 4*get_global_size(0);
-	__global const nbcoord_t*	vz = rx + 5*get_global_size(0);
+	__global const nbcoord_t*	ry = rx + stride;
+	__global const nbcoord_t*	rz = rx + 2*stride;
+	__global const nbcoord_t*	vx = rx + 3*stride;
+	__global const nbcoord_t*	vy = rx + 4*stride;
+	__global const nbcoord_t*	vz = rx + 5*stride;
 
 	__global nbcoord_t*	frx = f + foff;
-	__global nbcoord_t*	fry = frx + get_global_size(0);
-	__global nbcoord_t*	frz = frx + 2*get_global_size(0);
-	__global nbcoord_t*	fvx = frx + 3*get_global_size(0);
-	__global nbcoord_t*	fvy = frx + 4*get_global_size(0);
-	__global nbcoord_t*	fvz = frx + 5*get_global_size(0);
+	__global nbcoord_t*	fry = frx + stride;
+	__global nbcoord_t*	frz = frx + 2*stride;
+	__global nbcoord_t*	fvx = frx + 3*stride;
+	__global nbcoord_t*	fvy = frx + 4*stride;
+	__global nbcoord_t*	fvz = frx + 5*stride;
 
 	nbcoord_t	x1 = rx[n1];
 	nbcoord_t	y1 = ry[n1];
@@ -81,7 +80,7 @@ __kernel void ComputeBlockLocal( int offset_n1, int offset_n2,
 	__local nbcoord_t	m2[NBODY_DATA_BLOCK_SIZE];
 
 	// NB! get_local_size(0) == NBODY_DATA_BLOCK_SIZE
-	for( int b2 = 0; b2 < get_global_size(0); b2 += NBODY_DATA_BLOCK_SIZE )
+	for( int b2 = 0; b2 < points_count; b2 += NBODY_DATA_BLOCK_SIZE )
 	{
 		int			n2 = b2 + offset_n2 + get_local_id(0);
 
@@ -128,18 +127,18 @@ __kernel void ComputeBlockLocal( int offset_n1, int offset_n2,
 		res_z += local_res_z;
 	}
 
-	frx[b1] = vx[b1];
-	fry[b1] = vy[b1];
-	frz[b1] = vz[b1];
-	fvx[b1] = res_x;
-	fvy[b1] = res_y;
-	fvz[b1] = res_z;
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+	fvx[n1] = res_x;
+	fvy[n1] = res_y;
+	fvz[n1] = res_z;
 }
 
 //! a[i] += b[i]*c
-__kernel void fmadd1( __global nbcoord_t* a, __global const nbcoord_t* b, nbcoord_t c )
+__kernel void fmadd1( int offset, __global nbcoord_t* a, __global const nbcoord_t* b, nbcoord_t c )
 {
-	int		i = get_global_id(0);
+	int		i = get_global_id(0) + offset;
 	a[i] += b[i]*c;
 }
 
