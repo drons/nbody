@@ -341,6 +341,47 @@ bool test_fmaxabs( nbody_engine* e )
 	return ret;
 }
 
+bool test_fcompute( nbody_engine* e, nbody_data* data )
+{
+	const nbcoord_t			eps = 1e-13;
+	nbody_engine_simple		e0;
+	e0.init( data );
+
+	std::vector<nbcoord_t>	f0( e0.problem_size() );
+
+	{
+		nbody_engine::memory*	fbuff;
+		fbuff = e0.create_buffer( sizeof(nbcoord_t)*e0.problem_size() );
+		e0.fcompute( 0, e0.y(), fbuff, 0, 0 );
+
+		e0.read_buffer( f0.data(), fbuff );
+		e0.free_buffer( fbuff );
+	}
+
+
+	std::vector<nbcoord_t>	f( e->problem_size() );
+
+	{
+		nbody_engine::memory*	fbuff;
+		fbuff = e->create_buffer( sizeof(nbcoord_t)*e->problem_size() );
+		e->fcompute( 0, e->y(), fbuff, 0, 0 );
+
+		e->read_buffer( f.data(), fbuff );
+		e->free_buffer( fbuff );
+	}
+
+	bool	ret = true;
+	for( size_t i = 0; i != f.size(); ++i )
+	{
+		if( fabs( f[i] - f0[i] ) > eps )
+		{
+			ret = false;
+			qDebug() << i << fabs( f[i] - f0[i] );
+		}
+	}
+
+	return ret;
+}
 
 class test_nbody_engine : public QObject
 {
@@ -363,6 +404,7 @@ private slots:
 	void test_fmaddn2();
 	void test_fmaddn3();
 	void test_fmaxabs();
+	void test_fcompute();
 };
 
 test_nbody_engine::test_nbody_engine( nbody_engine* _e ) :
@@ -434,6 +476,11 @@ void test_nbody_engine::test_fmaddn3()
 void test_nbody_engine::test_fmaxabs()
 {
 	QVERIFY( ::test_fmaxabs( e ) );
+}
+
+void test_nbody_engine::test_fcompute()
+{
+	QVERIFY( ::test_fcompute( e, &data ) );
 }
 
 int main(int argc, char *argv[])
