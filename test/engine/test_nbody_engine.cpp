@@ -38,6 +38,35 @@ bool test_memcpy( nbody_engine* e )
 	return ret;
 }
 
+bool test_copy_buffer( nbody_engine* e )
+{
+	const size_t			cnt = e->problem_size();
+	size_t					off1  = 33;
+	size_t					off2 = 44;
+	std::vector<nbcoord_t>	data1;
+	std::vector<nbcoord_t>	data2;
+	nbody_engine::memory*	mem1 = e->create_buffer( (cnt + off1)*sizeof( nbcoord_t ) );
+	nbody_engine::memory*	mem2 = e->create_buffer( (cnt + off2)*sizeof( nbcoord_t ) );
+
+	data1.resize( cnt + off1 );
+	data2.resize( cnt + off2 );
+
+	for( size_t i = 0; i != data1.size(); ++i )
+	{
+		data1[i] = i;
+	}
+
+	e->write_buffer( mem1, data1.data() );
+	e->copy_buffer( mem2, mem1, off2, off1 );
+	e->read_buffer( data2.data(), mem2 );
+
+	bool	ret = ( 0 == memcmp( data1.data() + off1, data2.data() + off2, cnt*sizeof( nbcoord_t ) ) );
+
+	e->free_buffer( mem1 );
+	e->free_buffer( mem2 );
+
+	return ret;
+}
 bool test_fmadd1( nbody_engine* e )
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
@@ -398,6 +427,7 @@ private slots:
 	void cleanupTestCase();
 	void test_mem();
 	void test_memcpy();
+	void test_copy_buffer();
 	void test_fmadd1();
 	void test_fmadd2();
 	void test_fmaddn1();
@@ -440,6 +470,11 @@ void test_nbody_engine::test_mem()
 void test_nbody_engine::test_memcpy()
 {
 	QVERIFY( ::test_memcpy( e ) );
+}
+
+void test_nbody_engine::test_copy_buffer()
+{
+	QVERIFY( ::test_copy_buffer( e ) );
 }
 
 void test_nbody_engine::test_fmadd1()
