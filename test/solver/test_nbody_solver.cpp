@@ -42,6 +42,7 @@ void test_nbody_solver::initTestCase()
 		butcher->set_max_recursion( 1 );
 		butcher->set_substep_subdivisions( 2 );
 		butcher->set_refine_steps_count(1);
+		butcher->set_error_threshold( 1e-5 );
 	}
 
 	qDebug() << "Solver =" << s->type_name() << "engine" << e->type_name();
