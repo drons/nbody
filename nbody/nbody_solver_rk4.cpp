@@ -22,7 +22,7 @@ const char* nbody_solver_rk4::type_name() const
 void nbody_solver_rk4::step( double dt )
 {
 	nbody_engine::memory*	y = engine()->y();
-	nbcoord_t				t = 0;
+	nbcoord_t				t = engine()->get_time();
 	size_t					ps = engine()->problem_size();
 
 	if( m_k == NULL )
