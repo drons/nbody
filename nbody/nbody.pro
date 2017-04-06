@@ -15,6 +15,7 @@ SOURCES	+= \
 	nbody_data.cpp \
 	nbody_engine.cpp \
 	nbody_engine_block.cpp \
+	nbody_engine_block_vv.cpp \
 	nbody_engine_openmp.cpp \
 	nbody_engine_simple.cpp \
 #	nbody_engine_sparse.cpp \
@@ -40,6 +41,7 @@ HEADERS	+= \
 	nbody_data.h \
 	nbody_engine.h \
 	nbody_engine_block.h \
+	nbody_engine_block_vv.h \
 	nbody_engine_openmp.h \
 	nbody_engine_simple.h \
 #	nbody_engine_sparse.h \

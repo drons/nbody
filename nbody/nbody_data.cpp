@@ -188,11 +188,13 @@ void nbody_data::add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t r
 
 	nbvertex_t	up( 0,0,1 );
 	nbvertex_t	right( 1,0,0 );
-	nbcoord_t	black_hole_mass_ratio = 0.999;
+	nbcoord_t	black_hole_mass_ratio = 0.5;
 	nbcoord_t	black_hole_mass = total_mass*black_hole_mass_ratio;
 	nbcoord_t	star_mass = ( total_mass - black_hole_mass )/((nbcoord_t)count);
 	nbcoord_t	all_stars_mass = count*star_mass;
 
+	black_hole_mass = 1;
+	star_mass = 1;
 	add_body( center, velosity, black_hole_mass, 1, nbcolor_t( 0, 1, 0, 1 ) );
 
 	for( size_t n = 0; n != count; ++n )
@@ -206,7 +208,7 @@ void nbody_data::add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t r
 			--n;
 			continue;
 		}
-		r.z *= 0.3;
+		//r.z *= 0.3;
 		r += center;
 		nbvertex_t	v( (r - center)^up );
 		if( v.length() < 1e-7 )
@@ -216,6 +218,7 @@ void nbody_data::add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t r
 		v.normalize();
 		nbcoord_t effective_mass = pow( rlen/radius, 3.0 )*all_stars_mass + black_hole_mass;
 		v *=  sqrt( force( r, center, star_mass, effective_mass ).length()*( r - center ).length()/star_mass );
+		v = nbvertex_t(0,0,0);
 		add_body( r, v + velosity, star_mass, 1, color );
 	}
 }
@@ -225,7 +228,7 @@ void nbody_data::make_universe( size_t star_count, nbcoord_t sx, nbcoord_t sy, n
 	nbcoord_t	radius = sx*0.5;
 	nbcoord_t	galaxy_mass = 1000;
 	nbvertex_t	center( sx*0.5, sy*0.5, sz*0.5 );
-	nbvertex_t	base( radius, 0, 0 );
+	nbvertex_t	base( 2*radius, 0, 0 );
 	nbvertex_t	velosity( 0, sqrt(force( nbvertex_t(), base, galaxy_mass, galaxy_mass ).length()*(base).length()/(2*galaxy_mass)), 0 );
 	srand(1);
 
@@ -235,7 +238,16 @@ void nbody_data::make_universe( size_t star_count, nbcoord_t sx, nbcoord_t sy, n
 
 	add_galaxy( center - base, velosity/3, radius, galaxy_mass, star_count, color1 );
 	add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count, color2 );
-	//add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
+
+	std::swap( base.x, base.y );
+	add_galaxy( center - base, velosity/3, radius, galaxy_mass, star_count, color1 );
+	add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count, color2 );
+
+	std::swap( base.y, base.z );
+	add_galaxy( center - base, velosity/3, radius, galaxy_mass, star_count, color1 );
+	add_galaxy( center + base, -velosity/3, radius, galaxy_mass, star_count, color2 );
+
+	//	add_galaxy( center, nbvertex_t(), radius, galaxy_mass, star_count, color1 );
 }
 
 nbvertex_t nbody_data::total_impulce() const

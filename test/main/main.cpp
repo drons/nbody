@@ -47,11 +47,11 @@ int main( int argc, char *argv[] )
 
 	data.make_universe( stars_count, box_size, box_size, box_size );
 
-	nbody_engine_simple		engine;
-	nbody_solver_rk4		solver;
+	nbody_engine_block_vv	engine;
+	nbody_solver_rkdp		solver;
 
 	engine.init( &data );
-	solver.set_time_step( 1e-9, 1e-2 );
+	solver.set_time_step( 1e-9, 1e+1 );
 	solver.set_engine( &engine );
 
 	//return con_run( argc, argv, &solver, &data );

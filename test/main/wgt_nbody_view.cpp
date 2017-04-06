@@ -241,7 +241,7 @@ void wgt_nbody_view::step()
 		//render_file();
 	}
 
-	nbcoord_t	step_time = omp_get_wtime();
+//	nbcoord_t	step_time = omp_get_wtime();
 	m_solver->step( m_solver->get_max_step() );
-	qDebug() << "Step time" << step_time - omp_get_wtime();
+//	qDebug() << "Step time" << step_time - omp_get_wtime();
 }
