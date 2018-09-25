@@ -30,6 +30,7 @@ addons:
     - valgrind
     - libqt4-dev
     - libqt4-opengl-dev
+    - libopencv-dev
 
 #env:
 #- COMPILER_VERSION=4.6

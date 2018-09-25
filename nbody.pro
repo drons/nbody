@@ -2,10 +2,15 @@ include( pri/nbody.pri )
 
 TEMPLATE = subdirs
 
-SUBDIRS += nbody test
+SUBDIRS += nbody
+SUBDIRS += player
+SUBDIRS += test
 
 src.subdir = src
-#src.depends = 
+#src.depends =
+
+player.subdir = player
+player.depends = nbody
 
 test.subdir = test
 test.depends = nbody
