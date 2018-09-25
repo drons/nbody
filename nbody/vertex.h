@@ -57,7 +57,6 @@ struct vertex3
 	//************************************************************************************************
 	// Vector Sum
 	//************************************************************************************************
-
 	vertex3<T> operator + (const vertex3<T>& V) const
 	{
 		return vertex3<T>(x + V.x, y + V.y, z + V.z);
@@ -196,6 +195,38 @@ struct vertex4
 	vertex4(const T& x_, const  T& y_, const  T& z_, const  T& w_) :
 		x(x_), y(y_), z(z_), w(w_)
 	{}
+
+	//************************************************************************************************
+	// Vector Sum
+	//************************************************************************************************
+	vertex4<T> operator + (const vertex4<T>& V) const
+	{
+		return vertex4<T>(x + V.x, y + V.y, z + V.z, w + V.w);
+	}
+	vertex4<T>& operator += (const vertex4<T>& V)
+	{
+		x += V.x;
+		y += V.y;
+		z += V.z;
+		w += V.w;
+		return *this;
+	}
+
+	//************************************************************************************************
+	//Vector Sub
+	//************************************************************************************************
+	vertex4<T> operator - (const vertex4<T>& V) const
+	{
+		return vertex4<T>(x - V.x, y - V.y, z - V.z, w - V.w);
+	}
+	vertex4<T>& operator -= (const vertex4<T>& V)
+	{
+		x -= V.x;
+		y -= V.y;
+		z -= V.z;
+		w -= V.w;
+		return *this;
+	}
 };
 
 #endif//_VERTEX_

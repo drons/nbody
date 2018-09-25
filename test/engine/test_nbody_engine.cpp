@@ -721,6 +721,11 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc3, argc, argv);
 	}
 
+	{
+		test_nbody_engine tc3(new nbody_engine_simple_bh());
+		res += QTest::qExec(&tc3, argc, argv);
+	}
+
 	return res;
 }
 
