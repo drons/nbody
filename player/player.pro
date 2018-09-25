@@ -1,5 +1,6 @@
 include( ../pri/nbody.pri )
 include( ../pri/opencl.pri )
+include( ../pri/opencv.pri )
 include( ../pri/vectorize.pri )
 
 TEMPLATE	= app
@@ -13,7 +14,6 @@ LIBS += -lGLU -lgomp
 INCLUDEPATH += ../nbody
 LIBS += -L../nbody
 LIBS += -lnbody
-LIBS += -lavcodec -lavformat -lavdevice -lavfilter -lavutil -lavresample -lswscale
 
 SOURCES	+= main.cpp \
     wgt_nbody_view.cpp \
@@ -21,7 +21,7 @@ SOURCES	+= main.cpp \
     wgt_nbody_player_control.cpp \
     nbody_frame_compressor.cpp \
     nbody_frame_compressor_image.cpp \
-    nbody_frame_compressor_av.cpp
+    nbody_frame_compressor_opencv.cpp
 
 HEADERS	+= \
 	wgt_nbody_view.h \
@@ -29,7 +29,7 @@ HEADERS	+= \
     wgt_nbody_player_control.h \
     nbody_frame_compressor.h \
     nbody_frame_compressor_image.h \
-    nbody_frame_compressor_av.h
+    nbody_frame_compressor_opencv.h
 
 
 

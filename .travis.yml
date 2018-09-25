@@ -30,13 +30,7 @@ addons:
     - valgrind
     - libqt4-dev
     - libqt4-opengl-dev
-    - libavcodec-dev
-    - libavformat-dev
-    - libavdevice-dev
-    - libavfilter-dev
-    - libavutil-dev
-    - libavresample-dev
-    - libswscale-dev
+	- libopencv-dev
 
 #env:
 #- COMPILER_VERSION=4.6

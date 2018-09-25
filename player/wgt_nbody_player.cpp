@@ -4,7 +4,7 @@
 
 #include "nbody_data_stream_reader.h"
 #include "nbody_frame_compressor_image.h"
-#include "nbody_frame_compressor_av.h"
+#include "nbody_frame_compressor_opencv.h"
 
 #include <QLayout>
 #include <QDebug>
@@ -24,7 +24,7 @@ wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbco
 	m_data = data;
 	m_view = new wgt_nbody_view( solver, data, box_size );
 	m_stream = new nbody_data_stream_reader();
-	m_stream->load( "/home/sas/tmp/nbody/main-stream" );
+	m_stream->load( "/home/sas/Documents/tmp/nbody/main-stream" );
 	qDebug() << "Load stream" << m_stream->get_max_time();
 	m_control = new wgt_nbody_player_control( this, m_stream );
 	layout->addWidget( m_view, 1000 );
@@ -79,13 +79,13 @@ void wgt_nbody_player::on_start_record()
 {
 	QProgressDialog		progress( this );
 	QTime				timer;
-	QString				out_dir( "/home/sas/tmp/nbody/video.avi" );
+	QString				out_dir( "/home/sas/Documents/tmp/nbody/video.avi" );
 
 	progress.setRange( 0, (int)m_stream->get_frame_count() );
 	progress.show();
 	timer.start();
 
-	nbody_frame_compressor_av	compressor;
+    nbody_frame_compressor_opencv	compressor;
 
 	if( !compressor.set_destination( out_dir ) )
 	{
