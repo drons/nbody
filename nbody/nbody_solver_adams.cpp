@@ -23,7 +23,7 @@ const char* nbody_solver_adams::type_name() const
 	return "nbody_solver_adams";
 }
 
-void nbody_solver_adams::step( double dt )
+void nbody_solver_adams::advise( double dt )
 {
 	const nbcoord_t		a1[1] = { 1.0 };
 	const nbcoord_t		a2[2] = { 3.0/2.0, -1.0/2.0 };
@@ -33,7 +33,7 @@ void nbody_solver_adams::step( double dt )
 	const nbcoord_t*	ar[] = { NULL, a1, a2, a3, a4, a5 };
 	const nbcoord_t*	a = ar[m_rank];
 
-	nbody_engine::memory*	y = engine()->y();
+	nbody_engine::memory*	y = engine()->get_y();
 	nbcoord_t				t = engine()->get_time();
 	size_t					step = engine()->get_step();
 	size_t					fnum = step % m_rank;

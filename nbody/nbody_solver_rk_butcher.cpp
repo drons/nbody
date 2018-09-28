@@ -51,9 +51,9 @@ void nbody_solver_rk_butcher::set_refine_steps_count( size_t v )
 	m_refine_steps_count = v;
 }
 
-void nbody_solver_rk_butcher::step( double dt )
+void nbody_solver_rk_butcher::advise( double dt )
 {
-	nbody_engine::memory*	y = engine()->y();
+	nbody_engine::memory*	y = engine()->get_y();
 	nbcoord_t				t = engine()->get_time();
 
 	sub_step( 1, t, dt, y, 0, 0 );
@@ -155,7 +155,7 @@ void nbody_solver_rk_butcher::sub_step( size_t substeps_count, nbcoord_t t, nbco
 
 		if( can_subdivide && need_subdivide )
 		{
-			nbcoord_t	new_dt = dt/m_substep_subdivisions;
+			nbcoord_t	new_dt = dt/static_cast<nbcoord_t>(m_substep_subdivisions);
 
 //			qDebug() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << max_error << "Down to dt" << new_dt;
 

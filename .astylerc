@@ -1,0 +1,71 @@
+#
+# Astyle format http://astyle.sourceforge.net/astyle.html
+#
+
+#
+# Bracket Style Options
+#
+
+style=allman
+
+#
+# Tab Options
+#
+
+indent=tab=4
+indent=force-tab=4
+
+#
+# Bracket Modify Options
+#
+
+attach-namespaces
+#attach-classes
+#attach-inlines
+attach-extern-c
+
+#
+# Indentation Options
+#
+
+#--indent-classes=no
+#--indent-modifiers=no
+#--indent-switches=no
+#--indent-cases=no
+#--indent-namespaces=no
+#--indent-labels=no
+#--indent-preproc-block
+#--indent-preproc-cond=no
+
+#
+# Padding Options
+#
+
+#break-blocks
+pad-oper
+#pad-paren-in
+unpad-paren
+#delete-empty-lines
+align-pointer=type
+align-reference=type
+max-instatement-indent=80
+
+#
+# Formatting Options
+#
+
+#break-elseifs
+keep-one-line-blocks
+add-brackets
+keep-one-line-statements
+#remove-comment-prefix
+max-code-length=120
+break-after-logical
+mode=c
+
+#
+# Other Options
+#
+suffix=none
+formatted
+lineend=linux

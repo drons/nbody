@@ -44,15 +44,15 @@ bool test_nbody_solvers_equality::check_y( nbcoord_t max_max, nbcoord_t max_mean
 	std::vector<nbcoord_t>	y1( e1->problem_size() );
 	std::vector<nbcoord_t>	y2( e2->problem_size() );
 
-	e1->read_buffer( y1.data(), e1->y() );
-	e2->read_buffer( y2.data(), e2->y() );
+	e1->read_buffer( y1.data(), e1->get_y() );
+	e2->read_buffer( y2.data(), e2->get_y() );
 
 	std::transform( y1.begin(), y1.end(), y2.begin(), y1.begin(), std::minus<nbcoord_t>() );
 	std::transform( y1.begin(), y1.end(), y1.begin(), y1.begin(), std::multiplies<nbcoord_t>() );
 
 	nbcoord_t	max_delta = sqrt( *std::max_element( y1.begin(), y1.end() ) );
 	nbcoord_t	min_delta = sqrt( *std::min_element( y1.begin(), y1.end() ) );
-	nbcoord_t	mean_delta = sqrt( summation<nbcoord_t, const nbcoord_t*>( y1.data(), y1.size() ) ) / y1.size();
+	nbcoord_t	mean_delta = sqrt( summation<nbcoord_t, const nbcoord_t*>( y1.data(), y1.size() ) ) / static_cast<nbcoord_t>(y1.size());
 
 	qDebug() << "max_delta" << max_delta << "min_delta" << min_delta << "mean_delta" << mean_delta;
 	qDebug() << "max_max" << max_max << "max_mean" << max_mean;
@@ -91,11 +91,11 @@ void test_nbody_solvers_equality::run()
 
 	for( int i = 0; i != MAX_STEPS; ++i )
 	{
-		s1->step( s1->get_max_step() );
-		s2->step( s2->get_max_step() );
+		s1->advise( s1->get_max_step() );
+		s2->advise( s2->get_max_step() );
 	}
 
-	QVERIFY( check_y( 1e-14, 1e-16 ) );
+	QVERIFY( check_y( 1e-13, 1e-16 ) );
 }
 
 typedef nbody_engine_simple	nbody_engine_active;

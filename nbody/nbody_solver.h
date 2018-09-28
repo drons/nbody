@@ -22,7 +22,7 @@ public:
 	int run( nbody_data* data, nbody_data_stream* stream, nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt);
 
 	virtual const char* type_name() const = 0;
-	virtual void step( nbcoord_t dt ) = 0;
+	virtual void advise( nbcoord_t dt ) = 0;
 };
 
 #endif // NBODY_SOLVER_H

@@ -8,8 +8,8 @@ TARGET		= nbodyplayer
 MOC_DIR = ./.tmp/moc
 
 CONFIG		+= qt
-QT += opengl
-LIBS += -lGLU -lgomp
+QT += opengl concurrent
+LIBS += -lGLU
 
 INCLUDEPATH += ../nbody
 LIBS += -L../nbody

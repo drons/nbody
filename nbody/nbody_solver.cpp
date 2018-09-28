@@ -12,9 +12,9 @@ nbody_solver::~nbody_solver()
 
 }
 
-void nbody_solver::set_engine( nbody_engine* engine )
+void nbody_solver::set_engine( nbody_engine* e )
 {
-	m_engine = engine;
+	m_engine = e;
 }
 
 nbody_engine* nbody_solver::engine()
@@ -56,7 +56,7 @@ int nbody_solver::run( nbody_data* data, nbody_data_stream* stream, nbcoord_t ma
 
 	while( data->get_time() < max_time )
 	{
-		step( dt );
+		advise( dt );
 
 		nbcoord_t   t = data->get_time();
 

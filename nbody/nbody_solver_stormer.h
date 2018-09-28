@@ -11,8 +11,8 @@ class nbody_solver_stormer : public nbody_solver
 	std::vector< nbvertex_t >	m_correction_vel;
 public:
 	nbody_solver_stormer();
-	const char* type_name() const;
-	virtual void step( nbcoord_t dt );
+	const char* type_name() const override;
+	virtual void advise( nbcoord_t dt ) override;
 };
 
 #endif // NBODY_SOLVER_STORMER_H

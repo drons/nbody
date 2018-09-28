@@ -19,9 +19,9 @@ const char* nbody_solver_rk4::type_name() const
 	return "nbody_solver_rk4";
 }
 
-void nbody_solver_rk4::step( double dt )
+void nbody_solver_rk4::advise( double dt )
 {
-	nbody_engine::memory*	y = engine()->y();
+	nbody_engine::memory*	y = engine()->get_y();
 	nbcoord_t				t = engine()->get_time();
 	size_t					ps = engine()->problem_size();
 

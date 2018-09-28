@@ -8,7 +8,7 @@ MOC_DIR = ./.tmp/moc
 
 CONFIG		+= qt testcase
 QT += opengl testlib
-LIBS += -lGLU -lgomp
+LIBS += -lGLU
 
 INCLUDEPATH += ../../nbody
 LIBS += -L../../nbody

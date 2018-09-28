@@ -15,4 +15,4 @@ player.depends = nbody
 test.subdir = test
 test.depends = nbody
 
-OTHER_FILES += .travis.yml README.md
+OTHER_FILES += .travis.yml README.md .astylerc

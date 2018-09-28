@@ -13,7 +13,7 @@
 #include <QCoreApplication>
 #include <QTime>
 
-wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
+wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* _data, nbcoord_t box_size )
 {
 	QVBoxLayout*	layout = new QVBoxLayout( this );
 
@@ -21,8 +21,8 @@ wgt_nbody_player::wgt_nbody_player( nbody_solver* solver, nbody_data* data, nbco
 	setMinimumSize( 320, 240 );
 
 	m_solver = solver;
-	m_data = data;
-	m_view = new wgt_nbody_view( solver, data, box_size );
+	m_data = _data;
+	m_view = new wgt_nbody_view( solver, _data, box_size );
 	m_stream = new nbody_data_stream_reader();
 	m_stream->load( "/home/sas/Documents/tmp/nbody/main-stream" );
 	qDebug() << "Load stream" << m_stream->get_max_time();

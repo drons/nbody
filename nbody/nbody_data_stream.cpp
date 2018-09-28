@@ -71,7 +71,7 @@ int nbody_data_stream::write( nbody_engine* e )
 		return -1;
 	}
 
-	if( e->y() == NULL )
+	if( e->get_y() == NULL )
 	{
 		qDebug() << "e->y() == NULL";
 		return -1;
@@ -95,8 +95,8 @@ int nbody_data_stream::write( nbody_engine* e )
 
 	qint64		fpos( d->m_data.pos() );
 	QByteArray	ybuf;
-	ybuf.resize( e->y()->size() );
-	e->read_buffer( ybuf.data(), e->y() );
+	ybuf.resize( static_cast<int>(e->get_y()->size()) );
+	e->read_buffer( ybuf.data(), e->get_y() );
 
 	if( ybuf.size() != d->m_data.write( ybuf ) )
 	{

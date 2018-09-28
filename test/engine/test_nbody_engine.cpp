@@ -53,7 +53,7 @@ bool test_copy_buffer( nbody_engine* e )
 
 	for( size_t i = 0; i != data1.size(); ++i )
 	{
-		data1[i] = i;
+		data1[i] = static_cast<nbcoord_t>(i);
 	}
 
 	e->write_buffer( mem1, data1.data() );
@@ -352,7 +352,7 @@ bool test_fmaxabs( nbody_engine* e )
 
 	for( size_t n = 0; n != a.size(); ++n )
 	{
-		a[n] = rand() % 10000;
+		a[n] = rand() % 10000 - 9000;
 	}
 
 	e->write_buffer( mem_a, a.data() );
@@ -360,7 +360,7 @@ bool test_fmaxabs( nbody_engine* e )
 	//! @result = max( fabs(a[k]), k=[0...asize) )
 	e->fmaxabs( mem_a, result );
 
-	std::transform( a.begin(), a.end(), a.begin(), fabs );
+	std::for_each( a.begin(), a.end(), [](nbcoord_t& x){x = fabs(x);} );
 	nbcoord_t testmax = *std::max_element( a.begin(), a.end() );
 
 	bool	ret = ( fabs( result - testmax ) < eps );
@@ -381,7 +381,7 @@ bool test_fcompute( nbody_engine* e, nbody_data* data )
 	{
 		nbody_engine::memory*	fbuff;
 		fbuff = e0.create_buffer( sizeof(nbcoord_t)*e0.problem_size() );
-		e0.fcompute( 0, e0.y(), fbuff, 0, 0 );
+		e0.fcompute( 0, e0.get_y(), fbuff, 0, 0 );
 
 		e0.read_buffer( f0.data(), fbuff );
 		e0.free_buffer( fbuff );
@@ -393,7 +393,7 @@ bool test_fcompute( nbody_engine* e, nbody_data* data )
 	{
 		nbody_engine::memory*	fbuff;
 		fbuff = e->create_buffer( sizeof(nbcoord_t)*e->problem_size() );
-		e->fcompute( 0, e->y(), fbuff, 0, 0 );
+		e->fcompute( 0, e->get_y(), fbuff, 0, 0 );
 
 		e->read_buffer( f.data(), fbuff );
 		e->free_buffer( fbuff );
@@ -526,7 +526,7 @@ public:
 	nbody_engine_memory_fake( size_t sz ) : m_size( sz )
 	{
 	}
-	size_t size() const
+	size_t size() const override
 	{
 		return m_size;
 	}

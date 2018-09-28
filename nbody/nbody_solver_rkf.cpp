@@ -9,13 +9,13 @@ class nbody_butcher_table_rkf : public nbody_butcher_table
 public:
 	nbody_butcher_table_rkf();
 
-	size_t get_steps() const;
-	const nbcoord_t**get_a() const;
-	const nbcoord_t*get_b1() const;
-	const nbcoord_t*get_b2() const;
-	const nbcoord_t*get_c() const;
-	bool is_implicit() const;
-	bool is_embedded() const;
+	size_t get_steps() const override;
+	const nbcoord_t**get_a() const override;
+	const nbcoord_t*get_b1() const override;
+	const nbcoord_t*get_b2() const override;
+	const nbcoord_t*get_c() const override;
+	bool is_implicit() const override;
+	bool is_embedded() const override;
 };
 
 nbody_butcher_table_rkf::nbody_butcher_table_rkf()

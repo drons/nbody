@@ -1,14 +1,130 @@
-#
-# Available repositories are listed here:
-# https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
-#
-
-sudo: required
-dist: trusty
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc
+      env: NAME="gcc4 + Qt4 + gcov + debug"
+      addons:
+        apt:
+          packages:
+          - gdb
+          - libqt4-dev
+          - libqt4-opengl-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - mkdir build-debug-gcov
+      - cd build-debug-gcov
+      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=build-gcov
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+      - cd nbody
+      - gcov ./*
+      after_success:
+      - bash <(curl -s https://codecov.io/bash)
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc
+      env: NAME="gcc4 + Qt4 + valgrind + debug"
+      addons:
+        apt:
+          packages:
+          - gdb
+          - valgrind
+          - libqt4-dev
+          - libqt4-opengl-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - mkdir build-debug-valgrind
+      - cd build-debug-valgrind
+      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=debug
+      - make -j2
+      - valgrind --tool=memcheck --trace-children=yes --log-file=./memsupp.log --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/memsupp/memsupp
+      - grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
+#      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
+      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: clang
+      env: NAME="clang + Qt5 + release"
+      addons:
+        apt:
+          packages:
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libiomp-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - mkdir build-release-clang
+      - cd build-release-clang
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release -spec linux-clang
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: clang
+      env: NAME="LLVM Scanbuild"
+      addons:
+        apt:
+          packages:
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - mkdir build-release-scanbuild
+      - cd build-release-scanbuild
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
+      - scan-build -maxloop 4 -analyze-headers -analyzer-config stable-report-filename=true -o ./ make -j2
+    - os: linux
+      dist: trusty
+      sudo: required
+      env: NAME="gcc7 + Qt5 + release"
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-7
+          - libopencv-dev
+      before_script:
+      - sudo add-apt-repository -y ppa:beineri/opt-qt-5.10.1-trusty
+      - sudo apt-get update -q
+      - sudo apt-get install qt510base qt510tools
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - gcc --version
+      - gcc-7 --version
+      - sudo ln -f -s /usr/bin/gcc-7 /usr/bin/gcc
+      - sudo ln -f -s /usr/bin/g++-7 /usr/bin/g++
+      - gcc --version
+      - mkdir build-release-gcc7
+      - cd build-release-gcc7
+      - /opt/qt510/bin/qmake ../nbody.pro CONFIG+=release
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
 
 language:
   - cpp
-
 
 env:
   global:
@@ -25,44 +141,8 @@ addons:
     branch_pattern: coverity_scan
   apt:
     packages:
-    - g++
     - gdb
-    - valgrind
     - libqt4-dev
     - libqt4-opengl-dev
     - libopencv-dev
 
-#env:
-#- COMPILER_VERSION=4.6
-
-before_script:
-  - gcc --version
-  - mkdir build-debug-gcov
-  - mkdir build-debug-valg
-  - cd build-debug-gcov
-  - qmake-qt4 ../nbody.pro CONFIG+=debug CONFIG+=build-gcov
-  - cd ..
-  - cd build-debug-valg
-  - qmake-qt4 ../nbody.pro CONFIG+=debug
-  - cd ..
-
-script:
-  - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
-  - cd build-debug-valg
-  - make -j2
-  - valgrind --tool=memcheck --trace-children=yes --log-file=./memsupp.log --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/memsupp/memsupp
-  - grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
-#  - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
-  - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
-  - cd ..
-  - cd build-debug-gcov
-  - make -j2
-  - ./test/engine/engine
-  - ./test/solver/solver
-  - ./test/solvers_equality/solvers_equality
-  - ./test/stream/stream
-  - cd nbody
-  - gcov ./*
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)

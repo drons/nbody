@@ -59,18 +59,18 @@ public:
 	void add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count, nbcolor_t& color );
 	void make_universe( size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz );
 
-	nbvertex_t total_impulce() const;
-	nbvertex_t total_impulce_moment() const;
-	nbvertex_t mass_center() const;
-	nbcoord_t total_energy() const;
-	nbvertex_t last_total_impulce() const;
-	nbvertex_t last_total_impulce_moment() const;
-	nbvertex_t last_mass_center() const;
-	nbcoord_t last_total_energy() const;
+	nbvertex_t get_total_impulce() const;
+	nbvertex_t get_total_impulce_moment() const;
+	nbvertex_t get_mass_center() const;
+	nbcoord_t get_total_energy() const;
+	nbvertex_t get_last_total_impulce() const;
+	nbvertex_t get_last_total_impulce_moment() const;
+	nbvertex_t get_last_mass_center() const;
+	nbcoord_t get_last_total_energy() const;
 
-	nbcoord_t impulce_err() const;
-	nbcoord_t impulce_moment_err() const;
-	nbcoord_t energy_err() const;
+	nbcoord_t get_impulce_err() const;
+	nbcoord_t get_impulce_moment_err() const;
+	nbcoord_t get_energy_err() const;
 };
 
 #endif // NBODY_DATA_H

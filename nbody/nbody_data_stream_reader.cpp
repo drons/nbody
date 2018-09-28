@@ -181,7 +181,7 @@ int nbody_data_stream_reader::read( nbody_engine* e )
 		return -1;
 	}
 
-	if( e->y() == NULL )
+	if( e->get_y() == NULL )
 	{
 		qDebug() << "e->y() == NULL";
 		return -1;
@@ -194,18 +194,18 @@ int nbody_data_stream_reader::read( nbody_engine* e )
 	}
 
 	qint64				fpos( d->m_file.pos() );
-	QByteArray			ybuf( d->m_file.read( e->y()->size() ) );
+	QByteArray			ybuf( d->m_file.read( e->get_y()->size() ) );
 	const data::item&	frame( d->m_frames[ d->m_current_frame ] );
 
-	if( ybuf.size() != (int)e->y()->size() )
+	if( ybuf.size() != (int)e->get_y()->size() )
 	{
 		qDebug() << "Can't read file" << d->m_file.fileName()
-				 << "Need to read" << e->y()->size() << "But only" << ybuf.size() << "from pos" << fpos
+				 << "Need to read" << e->get_y()->size() << "But only" << ybuf.size() << "from pos" << fpos
 				 << d->m_file.errorString();
 		return -1;
 	}
 
-	e->write_buffer( e->y(), ybuf.data() );
+	e->write_buffer( e->get_y(), ybuf.data() );
 	e->set_time( frame.time );
 	e->set_step( frame.step );
 	if( d->m_current_frame < d->m_frames.size() - 1 )

@@ -86,10 +86,10 @@ void nbody_data::print_statistics( nbody_engine* engine )
 	qDebug()<< "#" << QString("%1").arg( m_step, 8, 10,  QChar('0') )
 			<< "t" << QString("%1").arg( m_time, 6, 'f', 6, QChar(' ') )
 			<< "CC" << QString("%1").arg( engine->get_compute_count(), 8, 10,  QChar('0') )
-			<< "dP" << QString("%1").arg( impulce_err(), 4, 'e', 3 )
-			<< "dL" << QString("%1").arg( impulce_moment_err(), 4, 'e', 3 )
+			<< "dP" << QString("%1").arg( get_impulce_err(), 4, 'e', 3 )
+			<< "dL" << QString("%1").arg( get_impulce_moment_err(), 4, 'e', 3 )
 //			<< "Vcm" << (mass_center/m_time).length()
-			<< "dE" << QString("%1").arg( energy_err(), 4, 'e', 3 )
+			<< "dE" << QString("%1").arg( get_energy_err(), 4, 'e', 3 )
 //			<< "St" << ( timer_end - m_timer_start )/( m_step - m_timer_step )
 //			<< "Wt" << ( omp_get_wtime() - m_timer_start )/( m_step - m_timer_step )
 			<< "";
@@ -191,7 +191,7 @@ void nbody_data::add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t r
 	nbcoord_t	black_hole_mass_ratio = 0.999;
 	nbcoord_t	black_hole_mass = total_mass*black_hole_mass_ratio;
 	nbcoord_t	star_mass = ( total_mass - black_hole_mass )/((nbcoord_t)count);
-	nbcoord_t	all_stars_mass = count*star_mass;
+	nbcoord_t	all_stars_mass = static_cast<nbcoord_t>(count)*star_mass;
 
 	add_body( center, velosity, black_hole_mass, 1, nbcolor_t( 0, 1, 0, 1 ) );
 
@@ -238,58 +238,58 @@ void nbody_data::make_universe( size_t star_count, nbcoord_t sx, nbcoord_t sy, n
 	//add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
 }
 
-nbvertex_t nbody_data::total_impulce() const
+nbvertex_t nbody_data::get_total_impulce() const
 {
 	return m_total_impulce;
 }
 
-nbvertex_t nbody_data::total_impulce_moment() const
+nbvertex_t nbody_data::get_total_impulce_moment() const
 {
 	return m_total_impulce_moment;
 }
 
-nbvertex_t nbody_data::mass_center() const
+nbvertex_t nbody_data::get_mass_center() const
 {
 	return m_mass_center;
 }
 
-nbcoord_t nbody_data::total_energy() const
+nbcoord_t nbody_data::get_total_energy() const
 {
 	return m_total_kinetic_energy + m_total_potential_energy;
 }
 
-nbvertex_t nbody_data::last_total_impulce() const
+nbvertex_t nbody_data::get_last_total_impulce() const
 {
 	return m_last_total_impulce;
 }
 
-nbvertex_t nbody_data::last_total_impulce_moment() const
+nbvertex_t nbody_data::get_last_total_impulce_moment() const
 {
 	return m_last_total_impulce_moment;
 }
 
-nbvertex_t nbody_data::last_mass_center() const
+nbvertex_t nbody_data::get_last_mass_center() const
 {
 	return m_last_mass_center;
 }
 
-nbcoord_t nbody_data::last_total_energy() const
+nbcoord_t nbody_data::get_last_total_energy() const
 {
 	return m_last_total_kinetic_energy + m_last_total_potential_energy;
 }
 
-nbcoord_t nbody_data::impulce_err() const
+nbcoord_t nbody_data::get_impulce_err() const
 {
 	return fabs( 100.0*( m_last_total_impulce - m_total_impulce ).length()/m_total_impulce.length() );
 }
 
-nbcoord_t nbody_data::impulce_moment_err() const
+nbcoord_t nbody_data::get_impulce_moment_err() const
 {
 	return fabs( 100.0*( m_last_total_impulce_moment - m_total_impulce_moment ).length()/m_total_impulce_moment.length() );
 }
 
-nbcoord_t nbody_data::energy_err() const
+nbcoord_t nbody_data::get_energy_err() const
 {
-	return fabs( 100.0*( last_total_energy() - total_energy() )/total_energy() );
+	return fabs( 100.0*( get_last_total_energy() - get_total_energy() )/get_total_energy() );
 }
 

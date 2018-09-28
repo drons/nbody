@@ -8,7 +8,7 @@ MOC_DIR = ./.tmp/moc
 
 CONFIG		+= qt
 QT += opengl
-LIBS += -lGLU -lgomp
+LIBS += -lGLU
 
 SOURCES	+= \
     nbody_butcher_table.cpp \

@@ -11,10 +11,10 @@ class test_nbody_stream : public QObject
 {
 	Q_OBJECT
 
-	nbody_data			data;
-	nbody_engine*		e;
-	nbody_solver*		s;
-	nbody_data_stream*	stream;
+	nbody_data			m_data;
+	nbody_engine*		m_e;
+	nbody_solver*		m_s;
+	nbody_data_stream*	m_stream;
 public:
 	test_nbody_stream();
 	~test_nbody_stream();
@@ -26,30 +26,30 @@ private Q_SLOTS:
 };
 
 test_nbody_stream::test_nbody_stream() :
-	e( new nbody_engine_simple() ),
-    s( new nbody_solver_euler() ),
-    stream( new nbody_data_stream() )
+	m_e( new nbody_engine_simple() ),
+	m_s( new nbody_solver_euler() ),
+	m_stream( new nbody_data_stream() )
 {
 
 }
 
 test_nbody_stream::~test_nbody_stream()
 {
-	delete s;
-	delete e;
-	delete stream;
+	delete m_s;
+	delete m_e;
+	delete m_stream;
 }
 
 void test_nbody_stream::initTestCase()
 {
 	nbcoord_t			box_size = 100;
 
-	qDebug() << "Solver =" << s->type_name() << "engine" << e->type_name();
-	data.make_universe( 64, box_size, box_size, box_size );
+	qDebug() << "Solver =" << m_s->type_name() << "engine" << m_e->type_name();
+	m_data.make_universe( 64, box_size, box_size, box_size );
 
-	e->init( &data );
-	s->set_time_step( 1e-3, 3e-2 );
-	s->set_engine( e );
+	m_e->init( &m_data );
+	m_s->set_time_step( 1e-3, 3e-2 );
+	m_s->set_engine( m_e );
 }
 
 void test_nbody_stream::cleanupTestCase()
@@ -58,12 +58,12 @@ void test_nbody_stream::cleanupTestCase()
 
 void test_nbody_stream::run()
 {
-	s->set_time_step( 0.01, 0.1 );
+	m_s->set_time_step( 0.01, 0.1 );
 	//open stream with 2 frames per data file limit
-	QVERIFY( 0 == stream->open( "/tmp/stream-test/new", 14000 ) );
-	QVERIFY( 0 == s->run( &data, stream, 0.31, 0.1, 0.1 ) );
+	QVERIFY( 0 == m_stream->open( "/tmp/stream-test/new", 14000 ) );
+	QVERIFY( 0 == m_s->run( &m_data, m_stream, 0.31, 0.1, 0.1 ) );
 
-	stream->close();
+	m_stream->close();
 
 	QVERIFY( QFile::exists( "/tmp/stream-test/new.idx" ) );
 	QVERIFY( QFile::exists( "/tmp/stream-test/new0.dat" ) );
@@ -83,51 +83,51 @@ void test_nbody_stream::run()
 		QVERIFY( 4 == reader.get_steps_count() );
 		QVERIFY( 0.4 == reader.get_max_time() );
 
-		QByteArray	yexpected( e->y()->size(), 0xCC );
-		QByteArray	ycurrent( e->y()->size(), 0xCC );
+		QByteArray	yexpected( static_cast<int>(m_e->get_y()->size()), static_cast<char>(0xCC) );
+		QByteArray	ycurrent( static_cast<int>(m_e->get_y()->size()), static_cast<char>(0xCC) );
 
-		e->read_buffer( yexpected.data(), e->y() );
+		m_e->read_buffer( yexpected.data(), m_e->get_y() );
 
 		QVERIFY( 0 == reader.seek(0) );
 		QVERIFY( 0 != reader.seek(77) );
 
 		QVERIFY( 0 == reader.seek(0) );
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
 		QVERIFY( ycurrent != yexpected );
 
 		QVERIFY( 0 == reader.seek( reader.get_frame_count() - 1 ) );
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
 		QVERIFY( ycurrent == yexpected );
 
 		QVERIFY( 0 == reader.seek( 0 ) );
 
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
 		QVERIFY( ycurrent != yexpected );
-		QVERIFY( 0 == e->get_time() );
-		QVERIFY( 0 == e->get_step() );
+		QVERIFY( 0 == m_e->get_time() );
+		QVERIFY( 0 == m_e->get_step() );
 
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
-		QVERIFY( ycurrent != yexpected );
-
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
 		QVERIFY( ycurrent != yexpected );
 
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
 		QVERIFY( ycurrent != yexpected );
-		QVERIFY( 0.3 == e->get_time() );
-		QVERIFY( 3 == e->get_step() );
 
-		QVERIFY( 0 == reader.read( e ) );
-		e->read_buffer( ycurrent.data(), e->y() );
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
+		QVERIFY( ycurrent != yexpected );
+		QVERIFY( 0.3 == m_e->get_time() );
+		QVERIFY( 3 == m_e->get_step() );
+
+		QVERIFY( 0 == reader.read( m_e ) );
+		m_e->read_buffer( ycurrent.data(), m_e->get_y() );
 		QVERIFY( ycurrent == yexpected );
-		QVERIFY( 0.4 == e->get_time() );
-		QVERIFY( 4 == e->get_step() );
+		QVERIFY( 0.4 == m_e->get_time() );
+		QVERIFY( 4 == m_e->get_step() );
 	}
 
 }
@@ -147,41 +147,41 @@ void test_nbody_stream::negative_branch()
 	{
 		nbody_data_stream	stream;
 		QVERIFY( 0 != stream.open( "/nameless/file", 1000 ) );
-		QVERIFY( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.write( m_e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
-		QVERIFY( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.write( m_e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
 		QVERIFY( 0 == stream.open( "/tmp/nbody_test/00/stream", 1000 ) );
 		QVERIFY( 0 == stream.open( "/tmp/nbody_test/01/stream", 1000 ) );
-		QVERIFY( 0 == stream.write( e ) );
+		QVERIFY( 0 == stream.write( m_e ) );
 	}
 
 	{
 		nbody_data_stream	stream;
 		QDir("/tmp/nbody_test/0/stream0.dat").mkpath(".");
 		QVERIFY( 0 != stream.open( "/tmp/nbody_test/0/stream", 1 ) );
-		QVERIFY( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.write( m_e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/0");
 	}
 	{
 		nbody_data_stream	stream;
 		QDir("/tmp/nbody_test/1/stream.idx").mkpath(".");
 		QVERIFY( 0 != stream.open( "/tmp/nbody_test/1/stream", 1 ) );
-		QVERIFY( 0 != stream.write( e ) );
+		QVERIFY( 0 != stream.write( m_e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/1");
 	}
 	{
 		nbody_data_stream	stream;
 		QDir("/tmp/nbody_test/2/stream1.dat").mkpath(".");
 		QVERIFY( 0 == stream.open( "/tmp/nbody_test/2/stream", 1 ) );
-		QVERIFY( 0 == stream.write( e ) );
-		QVERIFY( 0 != stream.write( e ) );
+		QVERIFY( 0 == stream.write( m_e ) );
+		QVERIFY( 0 != stream.write( m_e ) );
 		QDir( "/tmp" ).rmpath("nbody_test/2");
 	}
 
@@ -223,8 +223,8 @@ void test_nbody_stream::negative_branch()
 		{
 			nbody_data_stream	stream;
 			QVERIFY( 0 == stream.open( "/tmp/nbody_test/5/stream", 1 ) );
-			QVERIFY( 0 == stream.write( e ) );
-			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
 			QFile::remove( "/tmp/nbody_test/5/stream0.dat" );
 		}
 
@@ -236,24 +236,24 @@ void test_nbody_stream::negative_branch()
 		{
 			nbody_data_stream	stream;
 			QVERIFY( 0 == stream.open( "/tmp/nbody_test/6/stream", 1 ) );
-			QVERIFY( 0 == stream.write( e ) );
-			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
 			QFile::remove( "/tmp/nbody_test/6/stream1.dat" );
 		}
 
 		nbody_data_stream_reader	stream;
 		QVERIFY( 0 == stream.load( "/tmp/nbody_test/6/stream" ) );
-		QVERIFY( 0 == stream.read( e ) );
-		QVERIFY( 0 != stream.read( e ) );
+		QVERIFY( 0 == stream.read( m_e ) );
+		QVERIFY( 0 != stream.read( m_e ) );
 	}
 
 	{
 		{
 			nbody_data_stream	stream;
 			QVERIFY( 0 == stream.open( "/tmp/nbody_test/7/stream", 1 ) );
-			QVERIFY( 0 == stream.write( e ) );
-			QVERIFY( 0 == stream.write( e ) );
-			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
 		}
 		{
 			QFile	f( "/tmp/nbody_test/7/stream.idx" );
@@ -265,9 +265,9 @@ void test_nbody_stream::negative_branch()
 
 		nbody_data_stream_reader	stream;
 		QVERIFY( 0 == stream.load( "/tmp/nbody_test/7/stream" ) );
-		QVERIFY( 0 == stream.read( e ) );
-		QVERIFY( 0 != stream.read( e ) );
-		QVERIFY( 0 != stream.read( e ) );
+		QVERIFY( 0 == stream.read( m_e ) );
+		QVERIFY( 0 != stream.read( m_e ) );
+		QVERIFY( 0 != stream.read( m_e ) );
 	}
 
 
@@ -275,7 +275,7 @@ void test_nbody_stream::negative_branch()
 		{
 			nbody_data_stream	stream;
 			QVERIFY( 0 == stream.open( "/tmp/nbody_test/8/stream", 1 ) );
-			QVERIFY( 0 == stream.write( e ) );
+			QVERIFY( 0 == stream.write( m_e ) );
 		}
 
 		nbody_data_stream_reader	stream;

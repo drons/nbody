@@ -7,7 +7,7 @@
 #include <QMouseEvent>
 #include <QPropertyAnimation>
 
-wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_t box_size )
+wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* _data, nbcoord_t box_size )
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
@@ -16,7 +16,7 @@ wgt_nbody_view::wgt_nbody_view( nbody_solver* solver, nbody_data* data, nbcoord_
 	m_mesh_sy = box_size;
 	m_mesh_sz = box_size;
 
-	m_data = data;
+	m_data = _data;
 	m_solver = solver;
 	m_renderer = NULL;
 	m_stereo_base = 0;
@@ -124,9 +124,9 @@ void wgt_nbody_view::paintGL( GLint x, GLint y, GLsizei width, GLsizei height, c
 	renderText( 20 , 20, QString( "Step  = %1" ).arg( m_data->get_step() ), QFont("Monospace") );
 	renderText( 20 , 40, QString( "T     = %1" ).arg( m_data->get_time() ), QFont("Monospace") );
 	renderText( 20 , 60, QString( "Stars = %1" ).arg( m_data->get_count() ), QFont("Monospace") );
-	renderText( 20 , 80, QString( "dP    = %1 %" ).arg( m_data->impulce_err(), 3, 'e', 2 ), QFont("Monospace") );
-	renderText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->impulce_moment_err(), 3, 'e', 2 ), QFont("Monospace") );
-	renderText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->energy_err(), 3, 'e', 2 ), QFont("Monospace") );
+	renderText( 20 , 80, QString( "dP    = %1 %" ).arg( m_data->get_impulce_err(), 3, 'e', 2 ), QFont("Monospace") );
+	renderText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->get_impulce_moment_err(), 3, 'e', 2 ), QFont("Monospace") );
+	renderText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->get_energy_err(), 3, 'e', 2 ), QFont("Monospace") );
 
 
 	glDisable( GL_DEPTH_TEST );
@@ -234,9 +234,9 @@ QImage wgt_nbody_view::render_to_image()
 		p.drawText( 20 , 20, QString( "Step  = %1" ).arg( m_data->get_step() ) );
 		p.drawText( 20 , 40, QString( "T     = %1" ).arg( m_data->get_time() ) );
 		p.drawText( 20 , 60, QString( "Stars = %1" ).arg( m_data->get_count() ) );
-		p.drawText( 20 , 80, QString( "dP    = %1 %" ).arg( m_data->impulce_err(), 3, 'e', 2  ) );
-		p.drawText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->impulce_moment_err(), 3, 'e', 2 )  );
-		p.drawText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->energy_err(), 3, 'e', 2 )  );
+		p.drawText( 20 , 80, QString( "dP    = %1 %" ).arg( m_data->get_impulce_err(), 3, 'e', 2  ) );
+		p.drawText( 20 ,100, QString( "dL    = %1 %" ).arg( m_data->get_impulce_moment_err(), 3, 'e', 2 )  );
+		p.drawText( 20 ,120, QString( "dE    = %1 %" ).arg( m_data->get_energy_err(), 3, 'e', 2 )  );
 	}
 	return image;
 }
@@ -249,8 +249,8 @@ void wgt_nbody_view::paintGL( GLsizei width, GLsizei height )
 
 	nbvertex_t	center( m_mesh_sx*0.5, m_mesh_sy*0.5, m_mesh_sz*0.5 );
 	nbcoord_t	dist = 200;
-	int			x = (int)width*m_split_point.x();
-	int			y = (int)height*m_split_point.y();
+	GLint		x = static_cast<GLint>(width*m_split_point.x());
+	GLint		y = static_cast<GLint>(height*m_split_point.y());
 
 	paintGL( x, y, width - x, height - y, center - nbvertex_t( 0, dist, dist ), nbvertex_t( 0,0,1 ) );
 	paintGL( 0, 0, x, y, center - nbvertex_t( 0, 0, dist ), nbvertex_t( 0,1,0 ) );
@@ -276,7 +276,7 @@ void wgt_nbody_view::step()
 	}
 
 	nbcoord_t	step_time = omp_get_wtime();
-	m_solver->step( m_solver->get_max_step() );
+	m_solver->advise( m_solver->get_max_step() );
 	qDebug() << "Step time" << step_time - omp_get_wtime();
 }
 

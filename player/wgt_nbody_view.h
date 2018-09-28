@@ -29,14 +29,14 @@ public:
 	void set_star_intensity( int );
 	void set_star_size( double );
 	void paint_color_box();
-	void initializeGL();
-	void paintGL();
+	void initializeGL() override;
+	void paintGL() override;
 	void paintGL( GLsizei width, GLsizei height );
 	void paintGL( GLint x, GLint y,	GLsizei width, GLsizei height, const nbvertex_t& camera_position, const nbvertex_t& up );
 	void setup_projection( GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position, const nbvertex_t& up );
 	QImage render_to_image();
 	void step();
-	void mouseDoubleClickEvent( QMouseEvent* );
+	void mouseDoubleClickEvent( QMouseEvent* ) override;
 signals:
 	void stars_size_range_changed( double, double, double );
 };

@@ -62,8 +62,8 @@ void nbody_engine_openmp::fcompute( const nbcoord_t& t, const memory* _y, memory
 			if( body1 == body2 )
 				continue;
 			const nbvertex_t	v2( rx[ body2 ], ry[ body2 ], rz[ body2 ] );
-			const nbvertex_t	f( m_data->force( v1, v2, mass[body1], mass[body2] ) );
-			total_force += f;
+			const nbvertex_t	force( m_data->force( v1, v2, mass[body1], mass[body2] ) );
+			total_force += force;
 		}
 		frx[body1] = vx[body1];
 		fry[body1] = vy[body1];

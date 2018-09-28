@@ -15,8 +15,8 @@ class nbody_solver_adams : public nbody_solver
 public:
 	nbody_solver_adams( size_t rank = 5 );
 	~nbody_solver_adams();
-	const char* type_name() const;
-	void step(double dt);
+	const char* type_name() const override;
+	void advise(double dt) override;
 };
 
 #endif // NBODY_SOLVER_ADAMS_H

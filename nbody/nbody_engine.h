@@ -30,7 +30,7 @@ public:
 	//! @returns vector <y> size
 	virtual size_t problem_size() const = 0;
 	//! Current <y> state
-	virtual memory* y() = 0;
+	virtual memory* get_y() = 0;
 	//! Advise time state
 	virtual void advise_time( const nbcoord_t& dt ) = 0;
 	//! Get current time

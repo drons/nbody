@@ -16,9 +16,9 @@ const char* nbody_solver_euler::type_name() const
 	return "nbody_solver_euler";
 }
 
-void nbody_solver_euler::step( nbcoord_t dt )
+void nbody_solver_euler::advise( nbcoord_t dt )
 {
-	nbody_engine::memory* y = engine()->y();
+	nbody_engine::memory* y = engine()->get_y();
 
 	if( m_dy == NULL )
 	{
