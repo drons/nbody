@@ -3,9 +3,22 @@
 #include <QFile>
 #include <QStringList>
 
+#ifdef HAVE_OPENCL2
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
+#define CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY
+#define CL_HPP_TARGET_OPENCL_VERSION 120
+#define CL_HPP_MINIMUM_OPENCL_VERSION 120
+#include <CL/cl2.hpp>
+namespace cl {
+using namespace compatibility;
+}
+#else //HAVE_OPENCL2
 #define __CL_ENABLE_EXCEPTIONS
+#define CL_HPP_ENABLE_EXCEPTIONS
 #define CL_USE_DEPRECATED_OPENCL_2_0_APIS
 #include <CL/cl.hpp>
+#endif //HAVE_OPENCL2
 
 std::string load_program( const QString& filename )
 {
@@ -67,17 +80,16 @@ struct nbody_engine_opencl::data
 {
 	struct devctx
 	{
-		cl::Context			context;
-		cl::Device			device;
-		cl::Program			prog;
-		cl::CommandQueue	queue;
-		ComputeBlock		fcompute;
-		FMadd1				fmadd1;
-		FMadd2				fmadd2;
-		FMaddn1				fmaddn1;
-		FMaddn2				fmaddn2;
-		FMaddn3				fmaddn3;
-		FMaxabs				fmaxabs;
+		cl::Context			m_context;
+		cl::Program			m_prog;
+		cl::CommandQueue	m_queue;
+		ComputeBlock		m_fcompute;
+		FMadd1				m_fmadd1;
+		FMadd2				m_fmadd2;
+		FMaddn1				m_fmaddn1;
+		FMaddn2				m_fmaddn2;
+		FMaddn3				m_fmaddn3;
+		FMaxabs				m_fmaxabs;
 
 		static QString build_options();
 		static QStringList sources();
@@ -102,8 +114,8 @@ class nbody_engine_opencl::smemory : public nbody_engine::memory
 public:
 	smemory( size_t size, data::devctx& dev ) :
 		m_size( size ),
-		m_buffer( dev.context, CL_MEM_READ_WRITE, size ),
-		m_queue( dev.queue )
+		m_buffer( dev.m_context, CL_MEM_READ_WRITE, size ),
+		m_queue( dev.m_queue )
 	{
 	}
 
@@ -144,16 +156,16 @@ QStringList nbody_engine_opencl::data::devctx::sources()
 }
 
 nbody_engine_opencl::data::devctx::devctx( cl::Context& _context, cl::Device& device ) :
-	context( _context ),
-	prog( load_programs( context, device, build_options(), sources() ) ),
-	queue( context, device, 0 ),
-	fcompute( prog, "ComputeBlockLocal" ),
-	fmadd1( prog, "fmadd1" ),
-	fmadd2( prog, "fmadd2" ),
-	fmaddn1( prog, "fmaddn1" ),
-	fmaddn2( prog, "fmaddn2" ),
-	fmaddn3( prog, "fmaddn3" ),
-	fmaxabs( prog, "fmaxabs" )
+	m_context( _context ),
+	m_prog( load_programs( m_context, device, build_options(), sources() ) ),
+	m_queue( m_context, device, 0 ),
+	m_fcompute( m_prog, "ComputeBlockLocal" ),
+	m_fmadd1( m_prog, "fmadd1" ),
+	m_fmadd2( m_prog, "fmadd2" ),
+	m_fmaddn1( m_prog, "fmaddn1" ),
+	m_fmaddn2( m_prog, "fmaddn2" ),
+	m_fmaddn3( m_prog, "fmaddn3" ),
+	m_fmaxabs( m_prog, "fmaxabs" )
 {
 	size_t	local_memory_amount = 0;
 
@@ -216,27 +228,27 @@ const char*nbody_engine_opencl::type_name() const
 	return "nbody_engine_opencl";
 }
 
-void nbody_engine_opencl::init( nbody_data* data )
+void nbody_engine_opencl::init( nbody_data* body_data )
 {
 	if( d->m_devices.empty() )
 	{
 		qDebug() << "No OpenCL device available";
 		return;
 	}
-	d->m_data = data;
-	d->m_mass = dynamic_cast<smemory*>( create_buffer( sizeof(nbcoord_t)*data->get_count() ) );
+	d->m_data = body_data;
+	d->m_mass = dynamic_cast<smemory*>( create_buffer( sizeof(nbcoord_t)*d->m_data->get_count() ) );
 	d->m_y = dynamic_cast<smemory*>( create_buffer( sizeof( nbcoord_t )*problem_size() ) );
 
 	std::vector<nbcoord_t>	ytmp( problem_size() );
-	size_t					count = data->get_count();
+	size_t					count = d->m_data->get_count();
 	nbcoord_t*				rx = ytmp.data();
 	nbcoord_t*				ry = rx + count;
 	nbcoord_t*				rz = rx + 2*count;
 	nbcoord_t*				vx = rx + 3*count;
 	nbcoord_t*				vy = rx + 4*count;
 	nbcoord_t*				vz = rx + 5*count;
-	const nbvertex_t*		vrt = data->get_vertites();
-	const nbvertex_t*		vel = data->get_velosites();
+	const nbvertex_t*		vrt = d->m_data->get_vertites();
+	const nbvertex_t*		vel = d->m_data->get_velosites();
 
 	for( size_t i = 0; i != count; ++i )
 	{
@@ -248,11 +260,11 @@ void nbody_engine_opencl::init( nbody_data* data )
 		vz[i] = vel[i].z;
 	}
 
-	write_buffer( d->m_mass, const_cast<nbcoord_t*>( data->get_mass() ) );
+	write_buffer( d->m_mass, const_cast<nbcoord_t*>( d->m_data->get_mass() ) );
 	write_buffer( d->m_y, ytmp.data() );
 }
 
-void nbody_engine_opencl::get_data( nbody_data* data )
+void nbody_engine_opencl::get_data( nbody_data* body_data )
 {
 	if( d->m_devices.empty() )
 	{
@@ -261,15 +273,15 @@ void nbody_engine_opencl::get_data( nbody_data* data )
 	}
 
 	std::vector<nbcoord_t>	ytmp( problem_size() );
-	size_t					count = data->get_count();
+	size_t					count = body_data->get_count();
 	const nbcoord_t*		rx = ytmp.data();
 	const nbcoord_t*		ry = rx + count;
 	const nbcoord_t*		rz = rx + 2*count;
 	const nbcoord_t*		vx = rx + 3*count;
 	const nbcoord_t*		vy = rx + 4*count;
 	const nbcoord_t*		vz = rx + 5*count;
-	nbvertex_t*				vrt = data->get_vertites();
-	nbvertex_t*				vel = data->get_velosites();
+	nbvertex_t*				vrt = body_data->get_vertites();
+	nbvertex_t*				vel = body_data->get_velosites();
 
 	read_buffer( ytmp.data(), d->m_y );
 
@@ -293,7 +305,7 @@ size_t nbody_engine_opencl::problem_size() const
 	return 6*d->m_data->get_count();
 }
 
-nbody_engine::memory* nbody_engine_opencl::y()
+nbody_engine::memory* nbody_engine_opencl::get_y()
 {
 	return d->m_y;
 }
@@ -364,8 +376,8 @@ void nbody_engine_opencl::fcompute( const nbcoord_t& t, const memory* _y, memory
 	{
 		size_t			offset = dev_n*device_data_size;
 		data::devctx&	ctx( d->m_devices[dev_n] );
-		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-		cl::Event		ev( ctx.fcompute( eargs, offset, 0, d->m_mass->buffer(),
+		cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
+		cl::Event		ev( ctx.m_fcompute( eargs, offset, 0, d->m_mass->buffer(),
 							y->buffer(), f->buffer(), yoff, foff,
 							d->m_data->get_count(), d->m_data->get_count() ) );
 		events.push_back( ev );
@@ -469,8 +481,8 @@ void nbody_engine_opencl::fmadd_inplace( memory* _a, const memory* _b, const nbc
 	{
 		size_t			offset = dev_n*device_data_size;
 		data::devctx&	ctx( d->m_devices[dev_n] );
-		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-		cl::Event		ev( ctx.fmadd1( eargs, offset, a->buffer(), b->buffer(), c ) );
+		cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
+		cl::Event		ev( ctx.m_fmadd1( eargs, offset, a->buffer(), b->buffer(), c ) );
 
 		events.push_back( ev );
 	}
@@ -510,9 +522,9 @@ void nbody_engine_opencl::fmadd( memory* _a, const memory* _b, const memory* _c,
 	{
 		size_t			offset = dev_n*device_data_size;
 		data::devctx&	ctx( d->m_devices[dev_n] );
-		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-		cl::Event		ev( ctx.fmadd2( eargs, a->buffer(), b->buffer(), c->buffer(),
-										_d, aoff + offset, boff + offset, coff + offset ) );
+		cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
+		cl::Event		ev( ctx.m_fmadd2( eargs, a->buffer(), b->buffer(), c->buffer(),
+										  _d, aoff + offset, boff + offset, coff + offset ) );
 
 		events.push_back( ev );
 	}
@@ -552,9 +564,9 @@ void nbody_engine_opencl::fmaddn_inplace( memory* _a, const memory* _b, const me
 	{
 		size_t			offset = dev_n*device_data_size;
 		data::devctx&	ctx( d->m_devices[dev_n] );
-		cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-		cl::Event		ev( ctx.fmaddn1( eargs, a->buffer(), b->buffer(), c->buffer(),
-										 bstride, aoff + offset, boff + offset, csize ) );
+		cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
+		cl::Event		ev( ctx.m_fmaddn1( eargs, a->buffer(), b->buffer(), c->buffer(),
+										   bstride, aoff + offset, boff + offset, csize ) );
 
 		events.push_back( ev );
 	}
@@ -602,9 +614,9 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 		{
 			size_t			offset = dev_n*device_data_size;
 			data::devctx&	ctx( d->m_devices[dev_n] );
-			cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-			cl::Event		ev( ctx.fmaddn2( eargs, a->buffer(), b->buffer(), c->buffer(), _d->buffer(),
-								cstride, aoff + offset, boff + offset, coff + offset, dsize ) );
+			cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
+			cl::Event		ev( ctx.m_fmaddn2( eargs, a->buffer(), b->buffer(), c->buffer(), _d->buffer(),
+											   cstride, aoff + offset, boff + offset, coff + offset, dsize ) );
 
 			events.push_back( ev );
 		}
@@ -644,9 +656,9 @@ void nbody_engine_opencl::fmaddn( memory* _a, const memory* _b, const memory* _c
 		{
 			size_t			offset = dev_n*device_data_size;
 			data::devctx&	ctx( d->m_devices[dev_n] );
-			cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
-			cl::Event		ev( ctx.fmaddn3( eargs, a->buffer(), c->buffer(), _d->buffer(),
-								cstride, aoff + offset, coff + offset, dsize ) );
+			cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
+			cl::Event		ev( ctx.m_fmaddn3( eargs, a->buffer(), c->buffer(), _d->buffer(),
+											   cstride, aoff + offset, coff + offset, dsize ) );
 			events.push_back( ev );
 		}
 
@@ -668,10 +680,10 @@ void nbody_engine_opencl::fmaxabs( const memory* _a, nbcoord_t& result )
 	data::devctx&	ctx( d->m_devices.front() );
 	cl::NDRange		global_range( problem_size() );
 	cl::NDRange		local_range( NBODY_DATA_BLOCK_SIZE );
-	cl::EnqueueArgs	eargs( ctx.queue, global_range, local_range );
+	cl::EnqueueArgs	eargs( ctx.m_queue, global_range, local_range );
 	smemory			out( sizeof(nbcoord_t)*rsize, ctx );
 
-	cl::Event		ev( ctx.fmaxabs( eargs, a->buffer(), out.buffer() ) );
+	cl::Event		ev( ctx.m_fmaxabs( eargs, a->buffer(), out.buffer() ) );
 	ev.wait();
 
 	std::vector<nbcoord_t> host_buff( rsize );
