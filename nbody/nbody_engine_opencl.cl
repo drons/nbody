@@ -198,7 +198,8 @@ __kernel void fmaxabs( __global const nbcoord_t* a, __global nbcoord_t* result )
 
 	for( int n = i; n != last; ++n )
 	{
-		r = max( r, fabs( a[n] ) );
+		if(n < get_global_size(0))
+			r = max( r, fabs( a[n] ) );
 	}
 
 	result[i/NBODY_DATA_BLOCK_SIZE] = r;
