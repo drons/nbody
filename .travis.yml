@@ -95,7 +95,7 @@ matrix:
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
       - scan-build -maxloop 4 -analyze-headers -analyzer-config stable-report-filename=true -o ./ make -j2
     - os: linux
-      dist: trusty
+      dist: xenial
       sudo: required
       env: NAME="gcc7 + Qt5 + release"
       addons:
@@ -104,11 +104,10 @@ matrix:
           - ubuntu-toolchain-r-test
           packages:
           - g++-7
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
           - libopencv-dev
-      before_script:
-      - sudo add-apt-repository -y ppa:beineri/opt-qt-5.10.1-trusty
-      - sudo apt-get update -q
-      - sudo apt-get install qt510base qt510tools
       script:
       - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
       - gcc --version
@@ -118,7 +117,7 @@ matrix:
       - gcc --version
       - mkdir build-release-gcc7
       - cd build-release-gcc7
-      - /opt/qt510/bin/qmake ../nbody.pro CONFIG+=release
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
