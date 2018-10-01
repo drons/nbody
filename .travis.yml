@@ -97,6 +97,35 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
+      env: NAME="gcc6 + Qt5 + release"
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-6
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - gcc --version
+      - gcc-6 --version
+      - sudo ln -f -s /usr/bin/gcc-6 /usr/bin/gcc
+      - sudo ln -f -s /usr/bin/g++-6 /usr/bin/g++
+      - gcc --version
+      - mkdir build-release-gcc6
+      - cd build-release-gcc6
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: xenial
+      sudo: required
       env: NAME="gcc7 + Qt5 + release"
       addons:
         apt:
@@ -117,6 +146,35 @@ matrix:
       - gcc --version
       - mkdir build-release-gcc7
       - cd build-release-gcc7
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: xenial
+      sudo: required
+      env: NAME="gcc8 + Qt5 + release"
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-8
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - gcc --version
+      - gcc-8 --version
+      - sudo ln -f -s /usr/bin/gcc-8 /usr/bin/gcc
+      - sudo ln -f -s /usr/bin/g++-8 /usr/bin/g++
+      - gcc --version
+      - mkdir build-release-gcc8
+      - cd build-release-gcc8
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
       - make -j2
       - ./test/engine/engine
