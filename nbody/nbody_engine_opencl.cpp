@@ -49,7 +49,7 @@ cl::Program load_programs(const cl::Context& context, const cl::Device& device, 
 	{
 		std::vector<cl::Device>	devices;
 		devices.push_back(device);
-		prog.build(devices, options.toAscii());
+		prog.build(devices, options.toLatin1());
 	}
 	catch(cl::Error& err)
 	{
@@ -123,7 +123,7 @@ public:
 	{
 	}
 
-	size_t size() const
+	size_t size() const override
 	{
 		return m_size;
 	}

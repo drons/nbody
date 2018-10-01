@@ -166,6 +166,8 @@ matrix:
           - qtbase5-dev-tools
           - libqt5opengl5-dev
           - libopencv-dev
+          - ocl-icd-opencl-dev
+          - oclgrind
       script:
       - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
       - gcc --version
@@ -177,7 +179,7 @@ matrix:
       - cd build-release-gcc8
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
       - make -j2
-      - ./test/engine/engine
+      - oclgrind ./test/engine/engine
       - ./test/solver/solver
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
