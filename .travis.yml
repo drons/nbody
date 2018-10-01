@@ -124,6 +124,17 @@ matrix:
       - ./test/solver/solver
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      env: NAME="Astyle check"
+      addons:
+        apt:
+          packages:
+          - astyle
+      script:
+      - astyle --options=.astylerc --recursive *.{h,cpp,cl}
+      - git diff --exit-code
 
 language:
   - cpp
