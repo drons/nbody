@@ -33,20 +33,20 @@ void nbody_engine_block::fcompute(const nbcoord_t& t, const memory* _y, memory* 
 	size_t				count = m_data->get_count();
 	const size_t		block = NBODY_DATA_BLOCK_SIZE;
 
-	const nbcoord_t*	rx = ((const nbcoord_t*)y->data()) + yoff;
+	const nbcoord_t*	rx = reinterpret_cast<const nbcoord_t*>(y->data()) + yoff;
 	const nbcoord_t*	ry = rx + count;
 	const nbcoord_t*	rz = rx + 2 * count;
 	const nbcoord_t*	vx = rx + 3 * count;
 	const nbcoord_t*	vy = rx + 4 * count;
 	const nbcoord_t*	vz = rx + 5 * count;
 
-	nbcoord_t*			frx = ((nbcoord_t*)f->data()) + foff;
+	nbcoord_t*			frx = reinterpret_cast<nbcoord_t*>(f->data()) + foff;
 	nbcoord_t*			fry = frx + count;
 	nbcoord_t*			frz = frx + 2 * count;
 	nbcoord_t*			fvx = frx + 3 * count;
 	nbcoord_t*			fvy = frx + 4 * count;
 	nbcoord_t*			fvz = frx + 5 * count;
-	const nbcoord_t*	mass = (const nbcoord_t*)m_mass->data();
+	const nbcoord_t*	mass = reinterpret_cast<const nbcoord_t*>(m_mass->data());
 
 	#pragma omp parallel for
 	for(size_t n1 = 0; n1 < count; n1 += block)

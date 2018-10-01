@@ -81,7 +81,7 @@ void wgt_nbody_player::on_start_record()
 	QTime				timer;
 	QString				out_dir("/home/sas/Documents/tmp/nbody/video.avi");
 
-	progress.setRange(0, (int)m_stream->get_frame_count());
+	progress.setRange(0, static_cast<int>(m_stream->get_frame_count()));
 	progress.show();
 	timer.start();
 
@@ -126,11 +126,11 @@ void wgt_nbody_player::on_start_record()
 
 		compressor.push_frame(frame, frame_n);
 
-		progress.setValue((int)frame_n);
+		progress.setValue(static_cast<int>(frame_n));
 		progress.setLabelText(QString("Done %1 from %2 ( %3 fps )")
 							  .arg(frame_n)
 							  .arg(m_stream->get_frame_count())
-							  .arg(((double)frame_n) / (timer.elapsed() / 1000.0)));
+							  .arg(static_cast<double>(frame_n) / (timer.elapsed() / 1000.0)));
 		if(progress.wasCanceled())
 		{
 			break;

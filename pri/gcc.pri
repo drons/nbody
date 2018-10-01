@@ -60,5 +60,21 @@ greaterThan(COMPILER_MAJOR_VERSION, 5){
 	QMAKE_CXXFLAGS += -Werror=duplicated-cond
 	QMAKE_CXXFLAGS += -Werror=conversion-null
 }
-#greaterThan(COMPILER_MAJOR_VERSION, 6){}
 
+greaterThan(COMPILER_MAJOR_VERSION, 6){
+	# GCC 7+
+	QMAKE_CXXFLAGS += -Werror=pointer-compare
+	#QMAKE_CXXFLAGS += -Werror=duplicated-branches #Errors in opencv2
+	QMAKE_CXXFLAGS += -Werror=switch-unreachable
+	QMAKE_CXXFLAGS += -Werror=restrict
+	QMAKE_CXXFLAGS += -Werror=shadow=local
+	QMAKE_CXXFLAGS += -Werror=nonnull
+}
+
+greaterThan(COMPILER_MAJOR_VERSION, 7){
+	# GCC 8+
+	QMAKE_CXXFLAGS += -Werror=multistatement-macros
+	QMAKE_CXXFLAGS += -Werror=stringop-truncation
+	QMAKE_CXXFLAGS += -Werror=cast-align=strict
+	QMAKE_CXXFLAGS += -Werror=old-style-cast
+}

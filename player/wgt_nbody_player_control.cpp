@@ -50,7 +50,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	layout->addWidget(m_frame_number);
 	m_frame_number->setFixedWidth(fontMetrics().width("000:000:000"));
 
-	m_timeline->setRange(0, (int)stream->get_frame_count() - 1);
+	m_timeline->setRange(0, static_cast<int>(stream->get_frame_count()) - 1);
 	m_stereo_base->setRange(0, 100);
 
 	m_animation = new QPropertyAnimation(this);
@@ -88,7 +88,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 
 size_t wgt_nbody_player_control::get_current_frame() const
 {
-	return (size_t)m_timeline->value();
+	return static_cast<size_t>(m_timeline->value());
 }
 
 int wgt_nbody_player_control::get_stereo_base() const

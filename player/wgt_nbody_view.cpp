@@ -132,12 +132,12 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(1);
-	glPointSize((GLfloat)m_star_size);
+	glPointSize(static_cast<GLfloat>(m_star_size));
 	glEnable(GL_POINT_SMOOTH);
 	glEnable(GL_BLEND);
 
 	nbvertex_t	center(m_mesh_sx * 0.5, m_mesh_sy * 0.5, m_mesh_sz * 0.5);
-	GLfloat		factor(((GLfloat)m_star_intensity) / 255.0f);
+	GLfloat		factor(static_cast<GLfloat>(m_star_intensity) / 255.0f);
 
 	if(m_stereo_base == 0)
 	{
@@ -151,7 +151,7 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites());
 		glColorPointer(nbtype_info<nbcolor_t>::size(), nbtype_info<nbcolor_t>::gl_type(), 0, m_data->get_color());
-		glDrawArrays(GL_POINTS, 0, (GLsizei)m_data->get_count());
+		glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_data->get_count()));
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
@@ -179,7 +179,7 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 			glColor3f(col[plane].x * factor, col[plane].y * factor, col[plane].z * factor);
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glVertexPointer(nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites());
-			glDrawArrays(GL_POINTS, 0, (GLsizei)m_data->get_count());
+			glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_data->get_count()));
 			glDisableClientState(GL_VERTEX_ARRAY);
 		}
 	}
@@ -195,7 +195,7 @@ void wgt_nbody_view::setup_projection(GLsizei width, GLsizei height, const nbver
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	GLfloat aspect = ((GLfloat)height) / ((GLfloat)width);
+	GLfloat aspect = static_cast<GLfloat>(height) / static_cast<GLfloat>(width);
 	GLfloat	near = 1;
 	GLfloat	far = 1000;
 

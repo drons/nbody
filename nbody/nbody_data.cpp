@@ -183,7 +183,7 @@ size_t nbody_data::get_count() const
 
 nbcoord_t static randcoord(nbcoord_t min, nbcoord_t max)
 {
-	return min + (max - min) * ((nbcoord_t)rand()) / ((nbcoord_t)RAND_MAX);
+	return min + (max - min) * static_cast<nbcoord_t>(rand()) / static_cast<nbcoord_t>(RAND_MAX);
 }
 
 void nbody_data::add_galaxy(nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass,
@@ -195,7 +195,7 @@ void nbody_data::add_galaxy(nbvertex_t center, nbvertex_t velosity, nbcoord_t ra
 	nbvertex_t	right(1, 0, 0);
 	nbcoord_t	black_hole_mass_ratio = 0.999;
 	nbcoord_t	black_hole_mass = total_mass * black_hole_mass_ratio;
-	nbcoord_t	star_mass = (total_mass - black_hole_mass) / ((nbcoord_t)count);
+	nbcoord_t	star_mass = (total_mass - black_hole_mass) / static_cast<nbcoord_t>(count);
 	nbcoord_t	all_stars_mass = static_cast<nbcoord_t>(count) * star_mass;
 
 	add_body(center, velosity, black_hole_mass, 1, nbcolor_t(0, 1, 0, 1));

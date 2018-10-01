@@ -11,11 +11,20 @@ struct vertex3
 	T x, y, z;
 	vertex3(void) {x = y = z = 0;}
 	vertex3(T value) {x = y = z = value;}
-	vertex3(int value) {x = y = z = (T)value;}
+	vertex3(int value) {x = y = z = static_cast<T>(value);}
 	template<class V>
-	vertex3(const V& copy) : x((T)copy.x), y((T)copy.y), z((T)copy.z) {}
+	vertex3(const V& copy) :
+		x(static_cast<T>(copy.x)),
+		y(static_cast<T>(copy.y)),
+		z(static_cast<T>(copy.z)) {}
 	template<class V>
-	vertex3& operator = (const V& copy) { x = (T)copy.x; y = (T)copy.y; z = (T)copy.z; return *this;}
+	vertex3& operator = (const V& copy)
+	{
+		x = static_cast<T>(copy.x);
+		y = static_cast<T>(copy.y);
+		z = static_cast<T>(copy.z);
+		return *this;
+	}
 	vertex3(const T& x_, const  T& y_, const  T& z_) :	x(x_), y(y_), z(z_) {}
 
 	T*	data(void) {return &x;}
@@ -155,7 +164,7 @@ struct vertex3
 	}
 	vertex3<T> mirror(const vertex3<T>& V) const
 	{
-		return (V + ((*this) - V) * ((T)2));
+		return (V + ((*this) - V) * static_cast<T>(2));
 	}
 };
 
@@ -167,12 +176,26 @@ struct vertex4
 	T x, y, z, w;
 	vertex4(void) {x = y = z = w = 0;}
 	vertex4(T value) {x = y = z = w = value;}
-	vertex4(int value) {x = y = z = w = (T)value;}
+	vertex4(int value) {x = y = z = w = static_cast<T>(value);}
 	template<class V>
-	vertex4(const V& copy) : x((T)copy.x), y((T)copy.y), z((T)copy.z), w((T)copy.w) {}
+	vertex4(const V& copy) :
+		x(static_cast<T>(copy.x)),
+		y(static_cast<T>(copy.y)),
+		z(static_cast<T>(copy.z)),
+		w(static_cast<T>(copy.w))
+	{}
 	template<class V>
-	vertex4& operator = (const V& copy) { x = (T)copy.x; y = (T)copy.y; z = (T)copy.z; w = (T)copy.w; return *this;}
-	vertex4(const T& x_, const  T& y_, const  T& z_, const  T& w_) :	x(x_), y(y_), z(z_), w(w_) {}
+	vertex4& operator = (const V& copy)
+	{
+		x = static_cast<T>(copy.x);
+		y = static_cast<T>(copy.y);
+		z = static_cast<T>(copy.z);
+		w = static_cast<T>(copy.w);
+		return *this;
+	}
+	vertex4(const T& x_, const  T& y_, const  T& z_, const  T& w_) :
+		x(x_), y(y_), z(z_), w(w_)
+	{}
 };
 
 #endif//_VERTEX_

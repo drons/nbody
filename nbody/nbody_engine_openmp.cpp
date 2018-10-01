@@ -36,21 +36,21 @@ void nbody_engine_openmp::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	advise_compute_count();
 
 	size_t				count = m_data->get_count();
-	const nbcoord_t*	rx = ((const nbcoord_t*)y->data()) + yoff;
+	const nbcoord_t*	rx = reinterpret_cast<const nbcoord_t*>(y->data()) + yoff;
 	const nbcoord_t*	ry = rx + count;
 	const nbcoord_t*	rz = rx + 2 * count;
 	const nbcoord_t*	vx = rx + 3 * count;
 	const nbcoord_t*	vy = rx + 4 * count;
 	const nbcoord_t*	vz = rx + 5 * count;
 
-	nbcoord_t*			frx = ((nbcoord_t*)f->data()) + foff;
+	nbcoord_t*			frx = reinterpret_cast<nbcoord_t*>(f->data()) + foff;
 	nbcoord_t*			fry = frx + count;
 	nbcoord_t*			frz = frx + 2 * count;
 	nbcoord_t*			fvx = frx + 3 * count;
 	nbcoord_t*			fvy = frx + 4 * count;
 	nbcoord_t*			fvz = frx + 5 * count;
 
-	const nbcoord_t*	mass = (const nbcoord_t*)m_mass->data();
+	const nbcoord_t*	mass = reinterpret_cast<const nbcoord_t*>(m_mass->data());
 
 	#pragma omp parallel for
 	for(size_t body1 = 0; body1 < count; ++body1)
@@ -94,8 +94,8 @@ void nbody_engine_openmp::copy_buffer(nbody_engine::memory* __a, const nbody_eng
 		return;
 	}
 
-	nbcoord_t*			a = (nbcoord_t*)_a->data();
-	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
+	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+	const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
 	size_t				count = problem_size();
 
 	#pragma omp parallel for
@@ -120,8 +120,8 @@ void nbody_engine_openmp::fmadd_inplace(memory* __a, const memory* __b, const nb
 		qDebug() << "b is not smemory";
 		return;
 	}
-	nbcoord_t*			a = (nbcoord_t*)_a->data();
-	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
+	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+	const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
 	size_t				count = problem_size();
 
 	#pragma omp parallel for
@@ -154,9 +154,9 @@ void nbody_engine_openmp::fmadd(memory* __a, const memory* __b, const memory* __
 		return;
 	}
 
-	nbcoord_t*			a = (nbcoord_t*)_a->data();
-	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
-	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
+	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+	const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
+	const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
 	size_t				count = problem_size();
 
 	#pragma omp parallel for
@@ -188,9 +188,9 @@ void nbody_engine_openmp::fmaddn_inplace(nbody_engine::memory* __a, const nbody_
 		qDebug() << "c is not smemory";
 		return;
 	}
-	nbcoord_t*			a = (nbcoord_t*)_a->data();
-	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
-	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
+	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+	const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
+	const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
 	size_t				count = problem_size();
 
 	#pragma omp parallel for
@@ -237,10 +237,10 @@ void nbody_engine_openmp::fmaddn(nbody_engine::memory* __a, const nbody_engine::
 			return;
 		}
 
-		nbcoord_t*			a = (nbcoord_t*)_a->data();
-		const nbcoord_t*	b = (const nbcoord_t*)_b->data();
-		const nbcoord_t*	c = (const nbcoord_t*)_c->data();
-		const nbcoord_t*	d = (const nbcoord_t*)_d->data();
+		nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+		const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
+		const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
+		const nbcoord_t*	d = reinterpret_cast<const nbcoord_t*>(_d->data());
 		size_t				count = problem_size();
 
 		#pragma omp parallel for
@@ -276,9 +276,9 @@ void nbody_engine_openmp::fmaddn(nbody_engine::memory* __a, const nbody_engine::
 			return;
 		}
 
-		nbcoord_t*			a = (nbcoord_t*)_a->data();
-		const nbcoord_t*	c = (const nbcoord_t*)_c->data();
-		const nbcoord_t*	d = (const nbcoord_t*)_d->data();
+		nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+		const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
+		const nbcoord_t*	d = reinterpret_cast<const nbcoord_t*>(_d->data());
 		size_t				count = problem_size();
 
 		#pragma omp parallel for
@@ -304,7 +304,7 @@ void nbody_engine_openmp::fmaxabs(const nbody_engine::memory* __a, nbcoord_t& re
 		return;
 	}
 
-	const nbcoord_t*	a = (nbcoord_t*)_a->data();
+	const nbcoord_t*	a = reinterpret_cast<const nbcoord_t*>(_a->data());
 	size_t				count = problem_size();
 
 	result = fabs(a[0]);

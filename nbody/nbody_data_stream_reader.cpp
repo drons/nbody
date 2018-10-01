@@ -73,10 +73,10 @@ int nbody_data_stream_reader::load(const QString& file_base_name)
 		bool		ok[4] = { false, false, false, false };
 
 		i.frame = d->m_frames.size();
-		i.step = (size_t)parts[0].toULongLong(&ok[0]);
-		i.time = (nbcoord_t)parts[1].toDouble(&ok[1]);
-		i.file_n = (size_t)parts[2].toULongLong(&ok[2]);
-		i.file_pos = (qint64)parts[3].toLongLong(&ok[3]);
+		i.step = static_cast<size_t>(parts[0].toULongLong(&ok[0]));
+		i.time = static_cast<nbcoord_t>(parts[1].toDouble(&ok[1]));
+		i.file_n = static_cast<size_t>(parts[2].toULongLong(&ok[2]));
+		i.file_pos = static_cast<qint64>(parts[3].toLongLong(&ok[3]));
 
 		if(!(ok[0] && ok[1] && ok[2] && ok[3]))
 		{
@@ -197,7 +197,7 @@ int nbody_data_stream_reader::read(nbody_engine* e)
 	QByteArray			ybuf(d->m_file.read(e->get_y()->size()));
 	const data::item&	frame(d->m_frames[ d->m_current_frame ]);
 
-	if(ybuf.size() != (int)e->get_y()->size())
+	if(ybuf.size() != static_cast<int>(e->get_y()->size()))
 	{
 		qDebug() << "Can't read file" << d->m_file.fileName()
 				 << "Need to read" << e->get_y()->size() << "But only" << ybuf.size() << "from pos" << fpos
