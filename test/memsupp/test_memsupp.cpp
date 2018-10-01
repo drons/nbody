@@ -24,7 +24,7 @@ test_memsupp::~test_memsupp()
 
 void test_memsupp::initTestCase()
 {
-	QVERIFY( true );
+	QVERIFY(true);
 }
 
 void test_memsupp::cleanupTestCase()
@@ -36,13 +36,13 @@ void test_memsupp::test1()
 	qDebug() << "Generate Valgrind suppressions origin";
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	int res = 0;
 
 	{
 		test_memsupp tc1;
-		res += QTest::qExec( &tc1, argc, argv );
+		res += QTest::qExec(&tc1, argc, argv);
 	}
 
 	return res;

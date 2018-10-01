@@ -26,12 +26,12 @@ class wgt_nbody_player_control : public QWidget
 	QAction*			m_act_forward;
 	QAction*			m_act_record;
 public:
-	wgt_nbody_player_control( QWidget* parent, const nbody_data_stream_reader* stream );
+	wgt_nbody_player_control(QWidget* parent, const nbody_data_stream_reader* stream);
 	size_t get_current_frame() const;
 	int get_stereo_base() const;
 	int get_star_intensity() const;
 	double get_star_size() const;
-	void set_star_size_range( double, double, double );
+	void set_star_size_range(double, double, double);
 public slots:
 	void on_start();
 	void on_pause();
@@ -39,9 +39,9 @@ public slots:
 	void on_stop();
 	void on_forward();
 	void on_finished();
-	void on_stereo_base_changed( int );
+	void on_stereo_base_changed(int);
 	void on_frame_number_updated();
-	void on_stars_size_range_changed( double, double, double );
+	void on_stars_size_range_changed(double, double, double);
 signals:
 	void frame_number_updated();
 	void frame_state_updated();

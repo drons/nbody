@@ -11,7 +11,7 @@ struct nbody_frame_compressor_opencv::data
 	QString			m_dst_file;
 };
 
-nbody_frame_compressor_opencv::nbody_frame_compressor_opencv() : d( new data() )
+nbody_frame_compressor_opencv::nbody_frame_compressor_opencv() : d(new data())
 {
 }
 
@@ -20,13 +20,13 @@ nbody_frame_compressor_opencv::~nbody_frame_compressor_opencv()
 	delete d;
 }
 
-bool nbody_frame_compressor_opencv::set_destination( const QString& fn )
+bool nbody_frame_compressor_opencv::set_destination(const QString& fn)
 {
 	d->m_dst_file = fn;
 	return true;
 }
 
-void nbody_frame_compressor_opencv::push_frame( const QImage& frame, size_t )
+void nbody_frame_compressor_opencv::push_frame(const QImage& frame, size_t)
 {
 	cv::Size    size(frame.width(), frame.height());
 

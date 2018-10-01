@@ -19,7 +19,7 @@ class wgt_nbody_player : public QWidget
 	nbody_solver*				m_solver;
 	nbody_data*					m_data;
 public:
-	wgt_nbody_player( nbody_solver*, nbody_data*, nbcoord_t box_size );
+	wgt_nbody_player(nbody_solver*, nbody_data*, nbcoord_t box_size);
 	~wgt_nbody_player();
 public slots:
 	void on_update_data();

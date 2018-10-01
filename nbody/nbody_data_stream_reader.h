@@ -10,8 +10,8 @@ class nbody_data_stream_reader
 	struct	data;
 	data*	d;
 
-	nbody_data_stream_reader( const nbody_data_stream_reader& );
-	nbody_data_stream_reader& operator = ( const nbody_data_stream_reader& );
+	nbody_data_stream_reader(const nbody_data_stream_reader&);
+	nbody_data_stream_reader& operator = (const nbody_data_stream_reader&);
 public:
 	nbody_data_stream_reader();
 	virtual ~nbody_data_stream_reader();
@@ -20,7 +20,7 @@ public:
 	   \param file_base_name - stream base name to open
 	   \return 0 on success
 	 */
-	int load( const QString& file_base_name );
+	int load(const QString& file_base_name);
 
 	/*!
 	   \brief close data stream
@@ -46,7 +46,7 @@ public:
 	   \param frame - new frame number to seek
 	   \return 0 on success
 	 */
-	int seek( size_t frame );
+	int seek(size_t frame);
 
 	/*!
 	   \return get current frame position
@@ -58,7 +58,7 @@ public:
 	   \param e - destination engine
 	   \return 0 on success
 	 */
-	int read( nbody_engine* e );
+	int read(nbody_engine* e);
 };
 
 #endif // NBODY_DATA_STREAM_READER_H

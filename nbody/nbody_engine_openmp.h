@@ -11,15 +11,18 @@ public:
 
 	virtual const char* type_name() const override;
 
-	virtual void fcompute( const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff ) override;
+	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
 
-	virtual void copy_buffer( memory* a, const memory* b, size_t aoff, size_t boff ) override;
+	virtual void copy_buffer(memory* a, const memory* b, size_t aoff, size_t boff) override;
 
-	virtual void fmadd_inplace( memory* a, const memory* b, const nbcoord_t& c ) override;
-	virtual void fmadd( memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff ) override;
-	virtual void fmaddn_inplace( memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff, size_t csize ) override;
-	virtual void fmaddn( memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff, size_t boff, size_t coff, size_t dsize ) override;
-	virtual void fmaxabs( const memory* a, nbcoord_t& result ) override;
+	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;
+	virtual void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff,
+					   size_t coff) override;
+	virtual void fmaddn_inplace(memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff,
+								size_t csize) override;
+	virtual void fmaddn(memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff,
+						size_t boff, size_t coff, size_t dsize) override;
+	virtual void fmaxabs(const memory* a, nbcoord_t& result) override;
 };
 
 #endif // NBODY_ENGINE_SIMPLE_H

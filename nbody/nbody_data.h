@@ -37,14 +37,14 @@ class nbody_data
 public:
 	nbody_data();
 
-	nbvertex_t force( const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2 ) const;
-	nbcoord_t potential_energy( const nbvertex_t* vertites, size_t body1, size_t body2 ) const;
-	void add_body( const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a, const nbcolor_t& color );
-	void advise_time( nbcoord_t dt );
+	nbvertex_t force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2) const;
+	nbcoord_t potential_energy(const nbvertex_t* vertites, size_t body1, size_t body2) const;
+	void add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a, const nbcolor_t& color);
+	void advise_time(nbcoord_t dt);
 	nbcoord_t get_time() const;
-	void set_time( nbcoord_t t );
+	void set_time(nbcoord_t t);
 	size_t get_step() const;
-	void set_step( size_t s );
+	void set_step(size_t s);
 	nbvertex_t* get_vertites();
 	const nbvertex_t* get_vertites() const;
 	nbvertex_t* get_velosites();
@@ -52,12 +52,13 @@ public:
 	const nbcoord_t* get_mass() const;
 	const nbcolor_t* get_color() const;
 
-	void print_statistics( nbody_engine* );
-	void dump_body( size_t n );
+	void print_statistics(nbody_engine*);
+	void dump_body(size_t n);
 	size_t get_count() const;
 
-	void add_galaxy( nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count, nbcolor_t& color );
-	void make_universe( size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz );
+	void add_galaxy(nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count,
+					nbcolor_t& color);
+	void make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz);
 
 	nbvertex_t get_total_impulce() const;
 	nbvertex_t get_total_impulce_moment() const;

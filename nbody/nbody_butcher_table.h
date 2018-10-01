@@ -27,10 +27,10 @@ public:
 	nbody_butcher_table_rk4();
 
 	size_t get_steps() const override;
-	const nbcoord_t**get_a() const override;
-	const nbcoord_t*get_b1() const override;
-	const nbcoord_t*get_b2() const override;
-	const nbcoord_t*get_c() const override;
+	const nbcoord_t** get_a() const override;
+	const nbcoord_t* get_b1() const override;
+	const nbcoord_t* get_b2() const override;
+	const nbcoord_t* get_c() const override;
 	bool is_implicit() const override;
 	bool is_embedded() const override;
 };

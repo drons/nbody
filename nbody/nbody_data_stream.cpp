@@ -17,18 +17,18 @@ struct nbody_data_stream::data
 
 	data() :
 		m_file_n(0),
-		m_max_part_size( 1024*1024*1024 )
+		m_max_part_size(1024 * 1024 * 1024)
 	{
 	}
 
 	int open_data_file()
 	{
-		if( m_data.isOpen() )
+		if(m_data.isOpen())
 		{
 			m_data.close();
 		}
-		m_data.setFileName( make_dat_name( m_base_name, m_file_n ) );
-		if( !m_data.open( QFile::WriteOnly ) )
+		m_data.setFileName(make_dat_name(m_base_name, m_file_n));
+		if(!m_data.open(QFile::WriteOnly))
 		{
 			qDebug() << "Can't open file" << m_data.fileName() << m_data.errorString();
 			return -1;
@@ -38,22 +38,22 @@ struct nbody_data_stream::data
 
 	int open_index_file()
 	{
-		if( m_idx.isOpen() )
+		if(m_idx.isOpen())
 		{
 			m_idx.close();
 		}
-		m_idx.setFileName( make_idx_name( m_base_name ) );
-		if( !m_idx.open( QFile::WriteOnly ) )
+		m_idx.setFileName(make_idx_name(m_base_name));
+		if(!m_idx.open(QFile::WriteOnly))
 		{
 			qDebug() << "Can't open file" << m_idx.fileName() << m_idx.errorString();
 			return -1;
 		}
-		m_idx_stream.setDevice( &m_idx );
+		m_idx_stream.setDevice(&m_idx);
 		return 0;
 	}
 };
 
-nbody_data_stream::nbody_data_stream() : d( new data() )
+nbody_data_stream::nbody_data_stream() : d(new data())
 {
 
 }
@@ -63,42 +63,42 @@ nbody_data_stream::~nbody_data_stream()
 	delete d;
 }
 
-int nbody_data_stream::write( nbody_engine* e )
+int nbody_data_stream::write(nbody_engine* e)
 {
-	if( e == NULL )
+	if(e == NULL)
 	{
 		qDebug() << "e == NULL";
 		return -1;
 	}
 
-	if( e->get_y() == NULL )
+	if(e->get_y() == NULL)
 	{
 		qDebug() << "e->y() == NULL";
 		return -1;
 	}
 
-	if( !d->m_idx.isOpen() )
+	if(!d->m_idx.isOpen())
 	{
 		qDebug() << "Index not open yet!";
 		return -1;
 	}
 
-	if( d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size )
+	if(d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size)
 	{
 		++d->m_file_n;
-		if( 0 != d->open_data_file() )
+		if(0 != d->open_data_file())
 		{
 			qDebug() << "Can't d->open_data_file()";
 			return -1;
 		}
 	}
 
-	qint64		fpos( d->m_data.pos() );
+	qint64		fpos(d->m_data.pos());
 	QByteArray	ybuf;
-	ybuf.resize( static_cast<int>(e->get_y()->size()) );
-	e->read_buffer( ybuf.data(), e->get_y() );
+	ybuf.resize(static_cast<int>(e->get_y()->size()));
+	e->read_buffer(ybuf.data(), e->get_y());
 
-	if( ybuf.size() != d->m_data.write( ybuf ) )
+	if(ybuf.size() != d->m_data.write(ybuf))
 	{
 		qDebug() << "Can't write file" << d->m_data.fileName()
 				 << d->m_data.errorString();
@@ -117,22 +117,22 @@ int nbody_data_stream::write( nbody_engine* e )
 	return 0;
 }
 
-int nbody_data_stream::open( const QString& name, qint64 max_part_size )
+int nbody_data_stream::open(const QString& name, qint64 max_part_size)
 {
-	QFileInfo	finfo( name );
+	QFileInfo	finfo(name);
 	finfo.dir().mkpath(".");
 
 	d->m_base_name = name;
 	d->m_file_n = 0;
 	d->m_max_part_size = max_part_size;
 
-	if( 0 != d->open_data_file() )
+	if(0 != d->open_data_file())
 	{
 		qDebug() << "Can't d->open_data_file()";
 		return -1;
 	}
 
-	if( 0 != d->open_index_file() )
+	if(0 != d->open_index_file())
 	{
 		qDebug() << "Can't d->open_index_file()";
 		return -1;
@@ -149,14 +149,14 @@ void nbody_data_stream::close()
 	d->m_data.close();
 }
 
-QString nbody_data_stream::make_idx_name( const QString& file_base_name )
+QString nbody_data_stream::make_idx_name(const QString& file_base_name)
 {
 	return file_base_name + ".idx";
 }
 
-QString nbody_data_stream::make_dat_name( const QString& file_base_name, size_t file_n )
+QString nbody_data_stream::make_dat_name(const QString& file_base_name, size_t file_n)
 {
-	return file_base_name + QString::number( file_n ) + ".dat";
+	return file_base_name + QString::number(file_n) + ".dat";
 }
 
 QChar nbody_data_stream::get_idx_separator()

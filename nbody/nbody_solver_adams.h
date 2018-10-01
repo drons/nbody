@@ -13,7 +13,7 @@ class nbody_solver_adams : public nbody_solver
 	nbody_engine::memory*	m_coeff;
 	size_t					m_rank;
 public:
-	nbody_solver_adams( size_t rank = 5 );
+	nbody_solver_adams(size_t rank = 5);
 	~nbody_solver_adams();
 	const char* type_name() const override;
 	void advise(double dt) override;

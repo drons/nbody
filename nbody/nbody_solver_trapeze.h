@@ -13,8 +13,8 @@ public:
 	nbody_solver_trapeze();
 	~nbody_solver_trapeze();
 	const char* type_name() const override;
-	void set_refine_steps_count( size_t );
-	virtual void advise( nbcoord_t dt ) override;
+	void set_refine_steps_count(size_t);
+	virtual void advise(nbcoord_t dt) override;
 };
 
 #endif // NBODY_SOLVER_TRAPEZE_H

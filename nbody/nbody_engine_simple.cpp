@@ -10,8 +10,8 @@ nbody_engine_simple::nbody_engine_simple()
 
 nbody_engine_simple::~nbody_engine_simple()
 {
-	free_buffer( m_mass );
-	free_buffer( m_y );
+	free_buffer(m_mass);
+	free_buffer(m_y);
 }
 
 const char* nbody_engine_simple::type_name() const
@@ -19,25 +19,25 @@ const char* nbody_engine_simple::type_name() const
 	return "nbody_engine_simple";
 }
 
-void nbody_engine_simple::init( nbody_data* data )
+void nbody_engine_simple::init(nbody_data* data)
 {
 	m_data = data;
-	m_mass = create_buffer( sizeof(nbcoord_t)*m_data->get_count() );
-	m_y = create_buffer( sizeof( nbcoord_t )*problem_size() );
+	m_mass = create_buffer(sizeof(nbcoord_t) * m_data->get_count());
+	m_y = create_buffer(sizeof(nbcoord_t) * problem_size());
 
 	size_t		count = m_data->get_count();
 	nbcoord_t*	m = (nbcoord_t*)m_mass->data();
 	nbcoord_t*	rx = (nbcoord_t*)m_y->data();
 	nbcoord_t*	ry = rx + count;
-	nbcoord_t*	rz = rx + 2*count;
-	nbcoord_t*	vx = rx + 3*count;
-	nbcoord_t*	vy = rx + 4*count;
-	nbcoord_t*	vz = rx + 5*count;
+	nbcoord_t*	rz = rx + 2 * count;
+	nbcoord_t*	vx = rx + 3 * count;
+	nbcoord_t*	vy = rx + 4 * count;
+	nbcoord_t*	vz = rx + 5 * count;
 	const nbvertex_t*	vrt = data->get_vertites();
 	const nbvertex_t*	vel = data->get_velosites();
-	const nbcoord_t	*	mass = data->get_mass();
+	const nbcoord_t*		mass = data->get_mass();
 
-	for( size_t i = 0; i != count; ++i )
+	for(size_t i = 0; i != count; ++i)
 	{
 		rx[i] = vrt[i].x;
 		ry[i] = vrt[i].y;
@@ -54,14 +54,14 @@ void nbody_engine_simple::get_data(nbody_data* data)
 	size_t				count = m_data->get_count();
 	const nbcoord_t*	rx = (const nbcoord_t*)m_y->data();
 	const nbcoord_t*	ry = rx + count;
-	const nbcoord_t*	rz = rx + 2*count;
-	const nbcoord_t*	vx = rx + 3*count;
-	const nbcoord_t*	vy = rx + 4*count;
-	const nbcoord_t*	vz = rx + 5*count;
+	const nbcoord_t*	rz = rx + 2 * count;
+	const nbcoord_t*	vx = rx + 3 * count;
+	const nbcoord_t*	vy = rx + 4 * count;
+	const nbcoord_t*	vz = rx + 5 * count;
 	nbvertex_t*			vrt = data->get_vertites();
 	nbvertex_t*			vel = data->get_velosites();
 
-	for( size_t i = 0; i != count; ++i )
+	for(size_t i = 0; i != count; ++i)
 	{
 		vrt[i].x = rx[i];
 		vrt[i].y = ry[i];
@@ -74,17 +74,17 @@ void nbody_engine_simple::get_data(nbody_data* data)
 
 size_t nbody_engine_simple::problem_size() const
 {
-	return 6*m_data->get_count();
+	return 6 * m_data->get_count();
 }
 
-nbody_engine::memory*nbody_engine_simple::get_y()
+nbody_engine::memory* nbody_engine_simple::get_y()
 {
 	return m_y;
 }
 
-void nbody_engine_simple::advise_time( const nbcoord_t& dt )
+void nbody_engine_simple::advise_time(const nbcoord_t& dt)
 {
-	m_data->advise_time( dt );
+	m_data->advise_time(dt);
 }
 
 nbcoord_t nbody_engine_simple::get_time() const
@@ -92,9 +92,9 @@ nbcoord_t nbody_engine_simple::get_time() const
 	return m_data->get_time();
 }
 
-void nbody_engine_simple::set_time( nbcoord_t t )
+void nbody_engine_simple::set_time(nbcoord_t t)
 {
-	m_data->set_time( t );
+	m_data->set_time(t);
 }
 
 size_t nbody_engine_simple::get_step() const
@@ -102,23 +102,23 @@ size_t nbody_engine_simple::get_step() const
 	return m_data->get_step();
 }
 
-void nbody_engine_simple::set_step( size_t s )
+void nbody_engine_simple::set_step(size_t s)
 {
-	m_data->set_step( s );
+	m_data->set_step(s);
 }
 
-void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff )
+void nbody_engine_simple::fcompute(const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff)
 {
 	Q_UNUSED(t);
-	const smemory*	y = dynamic_cast<const  smemory*>( _y );
-	smemory*		f = dynamic_cast<smemory*>( _f );
+	const smemory*	y = dynamic_cast<const  smemory*>(_y);
+	smemory*		f = dynamic_cast<smemory*>(_f);
 
-	if( y == NULL )
+	if(y == NULL)
 	{
 		qDebug() << "y is not smemory";
 		return;
 	}
-	if( f == NULL )
+	if(f == NULL)
 	{
 		qDebug() << "f is not smemory";
 		return;
@@ -129,88 +129,91 @@ void nbody_engine_simple::fcompute( const nbcoord_t& t, const memory* _y, memory
 	size_t				count = m_data->get_count();
 	const nbcoord_t*	rx = ((const nbcoord_t*)y->data()) + yoff;
 	const nbcoord_t*	ry = rx + count;
-	const nbcoord_t*	rz = rx + 2*count;
-	const nbcoord_t*	vx = rx + 3*count;
-	const nbcoord_t*	vy = rx + 4*count;
-	const nbcoord_t*	vz = rx + 5*count;
+	const nbcoord_t*	rz = rx + 2 * count;
+	const nbcoord_t*	vx = rx + 3 * count;
+	const nbcoord_t*	vy = rx + 4 * count;
+	const nbcoord_t*	vz = rx + 5 * count;
 
 	nbcoord_t*			frx = ((nbcoord_t*)f->data()) + foff;
 	nbcoord_t*			fry = frx + count;
-	nbcoord_t*			frz = frx + 2*count;
-	nbcoord_t*			fvx = frx + 3*count;
-	nbcoord_t*			fvy = frx + 4*count;
-	nbcoord_t*			fvz = frx + 5*count;
+	nbcoord_t*			frz = frx + 2 * count;
+	nbcoord_t*			fvx = frx + 3 * count;
+	nbcoord_t*			fvy = frx + 4 * count;
+	nbcoord_t*			fvz = frx + 5 * count;
 
 	const nbcoord_t*	mass = (const nbcoord_t*)m_mass->data();
 
-	for( size_t body1 = 0; body1 < count; ++body1 )
+	for(size_t body1 = 0; body1 < count; ++body1)
 	{
-		const nbvertex_t	v1( rx[ body1 ], ry[ body1 ], rz[ body1 ] );
+		const nbvertex_t	v1(rx[ body1 ], ry[ body1 ], rz[ body1 ]);
 		nbvertex_t			total_force;
-		for( size_t body2 = 0; body2 != count; ++body2 )
+		for(size_t body2 = 0; body2 != count; ++body2)
 		{
-			if( body1 == body2 )
+			if(body1 == body2)
+			{
 				continue;
-			const nbvertex_t	v2( rx[ body2 ], ry[ body2 ], rz[ body2 ] );
-			const nbvertex_t	force( m_data->force( v1, v2, mass[body1], mass[body2] ) );
+			}
+			const nbvertex_t	v2(rx[ body2 ], ry[ body2 ], rz[ body2 ]);
+			const nbvertex_t	force(m_data->force(v1, v2, mass[body1], mass[body2]));
 			total_force += force;
 		}
 		frx[body1] = vx[body1];
 		fry[body1] = vy[body1];
 		frz[body1] = vz[body1];
-		fvx[body1] = total_force.x/mass[body1];
-		fvy[body1] = total_force.y/mass[body1];
-		fvz[body1] = total_force.z/mass[body1];
+		fvx[body1] = total_force.x / mass[body1];
+		fvy[body1] = total_force.y / mass[body1];
+		fvz[body1] = total_force.z / mass[body1];
 	}
 }
 
-nbody_engine_simple::smemory* nbody_engine_simple::create_buffer( size_t s )
+nbody_engine_simple::smemory* nbody_engine_simple::create_buffer(size_t s)
 {
-	return new smemory( s );
+	return new smemory(s);
 }
 
-void nbody_engine_simple::free_buffer( memory* m )
+void nbody_engine_simple::free_buffer(memory* m)
 {
 	delete m;
 }
 
-void nbody_engine_simple::read_buffer( void* dst, memory* _src )
+void nbody_engine_simple::read_buffer(void* dst, memory* _src)
 {
-	smemory*		src = dynamic_cast<smemory*>( _src );
+	smemory*		src = dynamic_cast<smemory*>(_src);
 
-	if( src == NULL )
+	if(src == NULL)
 	{
 		qDebug() << "src is not smemory";
 		return;
 	}
 
-	::memcpy( dst, src->data(), src->size() );
+	::memcpy(dst, src->data(), src->size());
 }
 
-void nbody_engine_simple::write_buffer( memory* _dst, void* src )
+void nbody_engine_simple::write_buffer(memory* _dst, void* src)
 {
-	smemory*		dst = dynamic_cast<smemory*>( _dst );
+	smemory*		dst = dynamic_cast<smemory*>(_dst);
 
-	if( dst == NULL )
+	if(dst == NULL)
 	{
 		qDebug() << "dst is not smemory";
 		return;
 	}
 
-	::memcpy( dst->data(), src, dst->size() );
+	::memcpy(dst->data(), src, dst->size());
 }
 
-void nbody_engine_simple::copy_buffer( nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff, size_t boff )
+void nbody_engine_simple::copy_buffer(nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff,
+									  size_t boff)
 {
-	smemory*			_a = dynamic_cast<smemory*>( __a );
-	const smemory*		_b = dynamic_cast<const smemory*>( __b );
+	smemory*			_a = dynamic_cast<smemory*>(__a);
+	const smemory*		_b = dynamic_cast<const smemory*>(__b);
 
-	if( _a == NULL )
+	if(_a == NULL)
 	{
 		qDebug() << "a is not smemory";
 		return;
 	}
-	if( _b == NULL )
+	if(_b == NULL)
 	{
 		qDebug() << "b is not smemory";
 		return;
@@ -220,23 +223,23 @@ void nbody_engine_simple::copy_buffer( nbody_engine::memory* __a, const nbody_en
 	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 	size_t				count = problem_size();
 
-	for( size_t i = 0; i < count; ++i )
+	for(size_t i = 0; i < count; ++i)
 	{
 		a[i + aoff] = b[i + boff];
 	}
 }
 
-void nbody_engine_simple::fmadd_inplace( memory* __a, const memory* __b, const nbcoord_t& c )
+void nbody_engine_simple::fmadd_inplace(memory* __a, const memory* __b, const nbcoord_t& c)
 {
-	smemory*			_a = dynamic_cast<smemory*>( __a );
-	const smemory*		_b = dynamic_cast<const smemory*>( __b );
+	smemory*			_a = dynamic_cast<smemory*>(__a);
+	const smemory*		_b = dynamic_cast<const smemory*>(__b);
 
-	if( _a == NULL )
+	if(_a == NULL)
 	{
 		qDebug() << "a is not smemory";
 		return;
 	}
-	if( _b == NULL )
+	if(_b == NULL)
 	{
 		qDebug() << "b is not smemory";
 		return;
@@ -246,29 +249,30 @@ void nbody_engine_simple::fmadd_inplace( memory* __a, const memory* __b, const n
 	const nbcoord_t*	b = (const nbcoord_t*)_b->data();
 	size_t				count = problem_size();
 
-	for( size_t i = 0; i < count; ++i )
+	for(size_t i = 0; i < count; ++i)
 	{
-		a[i] += b[i]*c;
+		a[i] += b[i] * c;
 	}
 }
 
-void nbody_engine_simple::fmadd( memory* __a, const memory* __b, const memory* __c, const nbcoord_t& d, size_t aoff, size_t boff, size_t coff )
+void nbody_engine_simple::fmadd(memory* __a, const memory* __b, const memory* __c, const nbcoord_t& d, size_t aoff,
+								size_t boff, size_t coff)
 {
-	smemory*			_a = dynamic_cast<smemory*>( __a );
-	const smemory*		_b = dynamic_cast<const smemory*>( __b );
-	const smemory*		_c = dynamic_cast<const smemory*>( __c );
+	smemory*			_a = dynamic_cast<smemory*>(__a);
+	const smemory*		_b = dynamic_cast<const smemory*>(__b);
+	const smemory*		_c = dynamic_cast<const smemory*>(__c);
 
-	if( _a == NULL )
+	if(_a == NULL)
 	{
 		qDebug() << "a is not smemory";
 		return;
 	}
-	if( _b == NULL )
+	if(_b == NULL)
 	{
 		qDebug() << "b is not smemory";
 		return;
 	}
-	if( _c == NULL )
+	if(_c == NULL)
 	{
 		qDebug() << "c is not smemory";
 		return;
@@ -279,29 +283,30 @@ void nbody_engine_simple::fmadd( memory* __a, const memory* __b, const memory* _
 	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
 	size_t				count = problem_size();
 
-	for( size_t i = 0; i < count; ++i )
+	for(size_t i = 0; i < count; ++i)
 	{
-		a[i + aoff] = b[i + boff] + c[i + coff]*d;
+		a[i + aoff] = b[i + boff] + c[i + coff] * d;
 	}
 }
 
-void nbody_engine_simple::fmaddn_inplace(nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
+void nbody_engine_simple::fmaddn_inplace(nbody_engine::memory* __a, const nbody_engine::memory* __b,
+										 const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
 {
-	smemory*			_a = dynamic_cast<smemory*>( __a );
-	const smemory*		_b = dynamic_cast<const smemory*>( __b );
-	const smemory*		_c = dynamic_cast<const smemory*>( __c );
+	smemory*			_a = dynamic_cast<smemory*>(__a);
+	const smemory*		_b = dynamic_cast<const smemory*>(__b);
+	const smemory*		_c = dynamic_cast<const smemory*>(__c);
 
-	if( _a == NULL )
+	if(_a == NULL)
 	{
 		qDebug() << "a is not smemory";
 		return;
 	}
-	if( _b == NULL )
+	if(_b == NULL)
 	{
 		qDebug() << "b is not smemory";
 		return;
 	}
-	if( _c == NULL )
+	if(_c == NULL)
 	{
 		qDebug() << "c is not smemory";
 		return;
@@ -312,42 +317,44 @@ void nbody_engine_simple::fmaddn_inplace(nbody_engine::memory* __a, const nbody_
 	const nbcoord_t*	c = (const nbcoord_t*)_c->data();
 	size_t				count = problem_size();
 
-	for( size_t i = 0; i < count; ++i )
+	for(size_t i = 0; i < count; ++i)
 	{
-		nbcoord_t	sum = b[i+boff]*c[0];
-		for( size_t k = 1; k < csize; ++k )
+		nbcoord_t	sum = b[i + boff] * c[0];
+		for(size_t k = 1; k < csize; ++k)
 		{
-			sum += b[ i + boff + k*bstride ]*c[k];
+			sum += b[ i + boff + k * bstride ] * c[k];
 		}
-		a[i+aoff] += sum;
+		a[i + aoff] += sum;
 	}
 }
 
-void nbody_engine_simple::fmaddn( nbody_engine::memory* __a, const nbody_engine::memory* __b, const nbody_engine::memory* __c, const nbody_engine::memory* __d, size_t cstride, size_t aoff, size_t boff, size_t coff, size_t dsize )
+void nbody_engine_simple::fmaddn(nbody_engine::memory* __a, const nbody_engine::memory* __b,
+								 const nbody_engine::memory* __c, const nbody_engine::memory* __d, size_t cstride, size_t aoff, size_t boff, size_t coff,
+								 size_t dsize)
 {
-	if( __b != NULL )
+	if(__b != NULL)
 	{
-		smemory*			_a = dynamic_cast<smemory*>( __a );
-		const smemory*		_b = dynamic_cast<const smemory*>( __b );
-		const smemory*		_c = dynamic_cast<const smemory*>( __c );
-		const smemory*		_d = dynamic_cast<const smemory*>( __d );
+		smemory*			_a = dynamic_cast<smemory*>(__a);
+		const smemory*		_b = dynamic_cast<const smemory*>(__b);
+		const smemory*		_c = dynamic_cast<const smemory*>(__c);
+		const smemory*		_d = dynamic_cast<const smemory*>(__d);
 
-		if( _a == NULL )
+		if(_a == NULL)
 		{
 			qDebug() << "a is not smemory";
 			return;
 		}
-		if( _b == NULL )
+		if(_b == NULL)
 		{
 			qDebug() << "b is not smemory";
 			return;
 		}
-		if( _c == NULL )
+		if(_c == NULL)
 		{
 			qDebug() << "c is not smemory";
 			return;
 		}
-		if( _d == NULL )
+		if(_d == NULL)
 		{
 			qDebug() << "d is not smemory";
 			return;
@@ -359,33 +366,33 @@ void nbody_engine_simple::fmaddn( nbody_engine::memory* __a, const nbody_engine:
 		const nbcoord_t*	d = (const nbcoord_t*)_d->data();
 		size_t				count = problem_size();
 
-		for( size_t i = 0; i < count; ++i )
+		for(size_t i = 0; i < count; ++i)
 		{
-			nbcoord_t	sum = c[i + coff]*d[0];
-			for( size_t k = 1; k < dsize; ++k )
+			nbcoord_t	sum = c[i + coff] * d[0];
+			for(size_t k = 1; k < dsize; ++k)
 			{
-				sum += c[ i + coff + k*cstride ]*d[k];
+				sum += c[ i + coff + k * cstride ] * d[k];
 			}
-			a[i+aoff] = b[i + boff] + sum;
+			a[i + aoff] = b[i + boff] + sum;
 		}
 	}
 	else
 	{
-		smemory*			_a = dynamic_cast<smemory*>( __a );
-		const smemory*		_c = dynamic_cast<const smemory*>( __c );
-		const smemory*		_d = dynamic_cast<const smemory*>( __d );
+		smemory*			_a = dynamic_cast<smemory*>(__a);
+		const smemory*		_c = dynamic_cast<const smemory*>(__c);
+		const smemory*		_d = dynamic_cast<const smemory*>(__d);
 
-		if( _a == NULL )
+		if(_a == NULL)
 		{
 			qDebug() << "a is not smemory";
 			return;
 		}
-		if( _c == NULL )
+		if(_c == NULL)
 		{
 			qDebug() << "c is not smemory";
 			return;
 		}
-		if( _d == NULL )
+		if(_d == NULL)
 		{
 			qDebug() << "d is not smemory";
 			return;
@@ -396,23 +403,23 @@ void nbody_engine_simple::fmaddn( nbody_engine::memory* __a, const nbody_engine:
 		const nbcoord_t*	d = (const nbcoord_t*)_d->data();
 		size_t				count = problem_size();
 
-		for( size_t i = 0; i < count; ++i )
+		for(size_t i = 0; i < count; ++i)
 		{
-			nbcoord_t	sum = c[i + coff]*d[0];
-			for( size_t k = 1; k < dsize; ++k )
+			nbcoord_t	sum = c[i + coff] * d[0];
+			for(size_t k = 1; k < dsize; ++k)
 			{
-				sum += c[ i + coff + k*cstride ]*d[k];
+				sum += c[ i + coff + k * cstride ] * d[k];
 			}
-			a[i+aoff] = sum;
+			a[i + aoff] = sum;
 		}
 	}
 }
 
-void nbody_engine_simple::fmaxabs( const nbody_engine::memory* __a, nbcoord_t& result )
+void nbody_engine_simple::fmaxabs(const nbody_engine::memory* __a, nbcoord_t& result)
 {
-	const smemory*		_a = dynamic_cast<const smemory*>( __a );
+	const smemory*		_a = dynamic_cast<const smemory*>(__a);
 
-	if( _a == NULL )
+	if(_a == NULL)
 	{
 		qDebug() << "a is not smemory";
 		return;
@@ -423,25 +430,25 @@ void nbody_engine_simple::fmaxabs( const nbody_engine::memory* __a, nbcoord_t& r
 
 	result = fabs(a[0]);
 
-	for( size_t n = 0; n < count; ++n )
+	for(size_t n = 0; n < count; ++n)
 	{
-		nbcoord_t	v( fabs( a[n] ) );
-		if( v > result )
+		nbcoord_t	v(fabs(a[n]));
+		if(v > result)
 		{
 			result = v;
 		}
 	}
 }
 
-nbody_engine_simple::smemory::smemory( size_t s )
+nbody_engine_simple::smemory::smemory(size_t s)
 {
-	m_data = ::malloc( s );
+	m_data = ::malloc(s);
 	m_size = s;
 }
 
 nbody_engine_simple::smemory::~smemory()
 {
-	::free( m_data );
+	::free(m_data);
 }
 
 void* nbody_engine_simple::smemory::data() const

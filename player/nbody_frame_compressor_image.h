@@ -14,10 +14,10 @@ class nbody_frame_compressor_image : public nbody_frame_compressor
 public:
 	nbody_frame_compressor_image();
 	~nbody_frame_compressor_image();
-	bool set_destination( const QString& ) override;
-	void push_frame( const QImage& f, size_t frame_n ) override;
+	bool set_destination(const QString&) override;
+	void push_frame(const QImage& f, size_t frame_n) override;
 private:
-	void wait_results( int max_queue_size );
+	void wait_results(int max_queue_size);
 };
 
 #endif // NBODY_FRAME_COMPRESSOR_IMAGE_H
