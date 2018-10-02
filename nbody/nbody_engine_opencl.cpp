@@ -686,8 +686,8 @@ void nbody_engine_opencl::fmaxabs(const memory* _a, nbcoord_t& result)
 	}
 
 	data::devctx&	ctx(d->m_devices.front());
-	cl::NDRange		global_range(problem_size());
-	cl::NDRange		local_range(NBODY_DATA_BLOCK_SIZE);
+	cl::NDRange		global_range(rsize);
+	cl::NDRange		local_range(4);
 	cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
 	smemory			out(sizeof(nbcoord_t)*rsize, ctx);
 

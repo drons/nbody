@@ -198,17 +198,14 @@ __kernel void fmaddn3(__global nbcoord_t* a, __global const nbcoord_t* c, consta
 __kernel void fmaxabs(__global const nbcoord_t* a, __global nbcoord_t* result)
 {
 	int			i = get_global_id(0);
-	int			last = i + NBODY_DATA_BLOCK_SIZE;
-	nbcoord_t	r = fabs(a[i]);
+	int			first = i * NBODY_DATA_BLOCK_SIZE;
+	nbcoord_t	r = fabs(a[first]);
 
-	for(int n = i; n != last; ++n)
+	for(int n = 0; n != NBODY_DATA_BLOCK_SIZE; ++n)
 	{
-		if(n < get_global_size(0))
-		{
-			r = max(r, fabs(a[n]));
-		}
+		r = max(r, fabs(a[first + n]));
 	}
 
-	result[i / NBODY_DATA_BLOCK_SIZE] = r;
+	result[i] = r;
 }
 
