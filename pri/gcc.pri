@@ -20,6 +20,10 @@ QMAKE_CXXFLAGS += -fpermissive
 QMAKE_CXXFLAGS += -Werror=maybe-uninitialized
 #QMAKE_CXXFLAGS += -Werror=switch-enum
 
+release:equals(QT_MAJOR_VERSION,4){
+	QMAKE_CXXFLAGS += -Wno-unused-variable
+}
+
 greaterThan(QT_MAJOR_VERSION,4){
 #	QMAKE_CXXFLAGS += -Weffc++
 #	QMAKE_CXXFLAGS += -Werror=conversion
