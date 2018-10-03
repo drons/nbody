@@ -4,6 +4,29 @@ matrix:
       dist: xenial
       sudo: required
       compiler: gcc
+      env: NAME="gcc5 + Qt4 + release"
+      addons:
+        apt:
+          packages:
+          - libqt4-dev
+          - libqt4-opengl-dev
+          - libopencv-dev
+          - ocl-icd-opencl-dev
+          - oclgrind
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - mkdir build-release
+      - cd build-release
+      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release
+      - make -j2
+      - oclgrind ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: xenial
+      sudo: required
+      compiler: gcc
       env: NAME="gcc5 + Qt4 + gcov + debug"
       addons:
         apt:
