@@ -9,7 +9,7 @@ class nbody_space_tree
 {
 	class node
 	{
-		static constexpr		size_t MIN_NODE_BODIES = 16;
+		static constexpr		size_t MIN_NODE_BODIES = 4;
 		static constexpr		size_t SPACE_DIMENSIONS = 3;
 		size_t					m_dimension;
 		node*					m_left;
@@ -19,7 +19,7 @@ class nbody_space_tree
 		nbvertex_t				m_min;
 		nbvertex_t				m_max;
 		nbcoord_t				m_mass;
-		nbcoord_t				m_radius;
+		nbcoord_t				m_radius_sqr;
 		size_t					m_count;
 	public:
 		node(size_t dim = 0) :
@@ -33,7 +33,7 @@ class nbody_space_tree
 				  -std::numeric_limits<nbcoord_t>::max(),
 				  -std::numeric_limits<nbcoord_t>::max()),
 			m_mass(0),
-			m_radius(0),
+			m_radius_sqr(0),
 			m_count(0)
 		{
 		}
@@ -134,7 +134,7 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 		}
 	}
 
-	m_radius = sqrt(max_rad_sqr);
+	m_radius_sqr = max_rad_sqr;
 	m_count = count;
 
 	if(count <= MIN_NODE_BODIES)
@@ -178,23 +178,34 @@ nbvertex_t nbody_space_tree::node::traverse(size_t body1, const nbody_data* data
 											const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 											const nbcoord_t* mass) const
 {
+	const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
+	const nbcoord_t		distance2((v1 - m_mass_center).norm());
+	constexpr nbcoord_t	ratio = 50;
+
 	if(m_bodies_indites.empty())
 	{
-		nbvertex_t	total_force;
-		if(m_left != NULL)
+		if(distance2 / m_radius_sqr > ratio)
 		{
-			total_force += m_left->traverse(body1, data, rx, ry, rz, mass);
+			//qDebug() << body1;
+			return data->force(v1, m_mass_center, mass[body1], m_mass);
 		}
-		if(m_right != NULL)
+		else
 		{
-			total_force += m_right->traverse(body1, data, rx, ry, rz, mass);
+			nbvertex_t	total_force;
+			if(m_left != NULL)
+			{
+				total_force += m_left->traverse(body1, data, rx, ry, rz, mass);
+			}
+			if(m_right != NULL)
+			{
+				total_force += m_right->traverse(body1, data, rx, ry, rz, mass);
+			}
+			return total_force;
 		}
-		return total_force;
 	}
 	else
 	{
 		nbvertex_t			total_force;
-		const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
 		const nbcoord_t		mass1(mass[body1]);
 
 		for(size_t n = 0; n != m_bodies_indites.size(); ++n)
