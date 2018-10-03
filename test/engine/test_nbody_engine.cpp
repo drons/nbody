@@ -409,23 +409,28 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 
 	bool		ret = true;
 	nbcoord_t	total_err = 0;
+	nbcoord_t	total_relative_err = 0;
+	nbcoord_t	err_smooth = 1e-30;
 	size_t		outliers_count = 0;
 	for(size_t i = 0; i != f.size(); ++i)
 	{
 		total_err += fabs(f[i] - f0[i]);
+		total_relative_err += 2.0 * (fabs(f[i] - f0[i]) + err_smooth) /
+							  (fabs(f[i]) + fabs(f0[i]) + err_smooth);
 		if(fabs(f[i] - f0[i]) > eps)
 		{
 			++outliers_count;
 			ret = false;
-//			qDebug() << i << fabs(f[i] - f0[i]);
 		}
 	}
 
 	if(!ret)
 	{
-		qDebug() << "Total count:   " << f.size();
-		qDebug() << "Total error:   " << total_err;
-		qDebug() << "Outliers count:" << outliers_count;
+		qDebug() << "Total count:         " << f.size();
+		qDebug() << "Total error:         " << total_err;
+		qDebug() << "Mean error:          " << total_err / f.size();
+		qDebug() << "Total relative error:" << total_relative_err;
+		qDebug() << "Outliers count:      " << outliers_count;
 	}
 
 	return ret;
@@ -739,7 +744,7 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(), 128, 1e-4);
+		test_nbody_engine tc3(new nbody_engine_simple_bh(), 128, 1e-2);
 		res += QTest::qExec(&tc3, argc, argv);
 	}
 

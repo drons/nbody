@@ -9,12 +9,10 @@ class nbody_space_tree
 {
 	class node
 	{
-		static constexpr		size_t MIN_NODE_BODIES = 4;
 		static constexpr		size_t SPACE_DIMENSIONS = 3;
 		size_t					m_dimension;
 		node*					m_left;
 		node*					m_right;
-		std::vector<size_t>		m_bodies_indites;
 		nbvertex_t				m_mass_center;
 		nbvertex_t				m_min;
 		nbvertex_t				m_max;
@@ -104,6 +102,15 @@ public:
 void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
 								   const nbcoord_t* rz, const nbcoord_t* mass)
 {
+	m_count = count;
+
+	if(count == 1) // It is a leaf
+	{
+		m_mass_center = nbvertex_t(rx[*indites], ry[*indites], rz[*indites]);
+		m_mass = mass[*indites];
+		return;
+	}
+
 	vertex4<nbcoord_t>	mass_center_mass(summation<vertex4<nbcoord_t>, mass_center_mass_proxy>(
 											 mass_center_mass_proxy(indites, rx, ry, rz, mass), count));
 
@@ -135,43 +142,31 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 	}
 
 	m_radius_sqr = max_rad_sqr;
-	m_count = count;
 
-	if(count <= MIN_NODE_BODIES)
+	std::vector<size_t>	left, right;
+	left.reserve(count / 2);
+	right.reserve(count / 2);
+
+	for(size_t n = 0; n != count; ++n)
 	{
-		m_bodies_indites.resize(count);
-		for(size_t n = 0; n != count; ++n)
+		size_t				i(indites[n]);
+		const nbvertex_t	v(rx[i], ry[i], rz[i]);
+		if(v[m_dimension] < m_mass_center[m_dimension])
 		{
-			m_bodies_indites[n] = indites[n];
+			left.push_back(i);
+		}
+		else
+		{
+			right.push_back(i);
 		}
 	}
-	else
-	{
-		std::vector<size_t>	left, right;
-		left.reserve(count / 2);
-		right.reserve(count / 2);
 
-		for(size_t n = 0; n != count; ++n)
-		{
-			size_t				i(indites[n]);
-			const nbvertex_t	v(rx[i], ry[i], rz[i]);
-			if(v[m_dimension] < m_mass_center[m_dimension])
-			{
-				left.push_back(i);
-			}
-			else
-			{
-				right.push_back(i);
-			}
-		}
+	size_t next_dimension((m_dimension + 1) % SPACE_DIMENSIONS);
+	m_left = new node(next_dimension);
+	m_right = new node(next_dimension);
 
-		size_t next_dimension((m_dimension + 1) % SPACE_DIMENSIONS);
-		m_left = new node(next_dimension);
-		m_right = new node(next_dimension);
-
-		m_left->build(left.size(), left.data(), rx, ry, rz, mass);
-		m_right->build(right.size(), right.data(), rx, ry, rz, mass);
-	}
+	m_left->build(left.size(), left.data(), rx, ry, rz, mass);
+	m_right->build(right.size(), right.data(), rx, ry, rz, mass);
 }
 
 nbvertex_t nbody_space_tree::node::traverse(size_t body1, const nbody_data* data,
@@ -180,46 +175,23 @@ nbvertex_t nbody_space_tree::node::traverse(size_t body1, const nbody_data* data
 {
 	const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
 	const nbcoord_t		distance2((v1 - m_mass_center).norm());
-	constexpr nbcoord_t	ratio = 50;
+	constexpr nbcoord_t	ratio = 10;
 
-	if(m_bodies_indites.empty())
+	if(distance2 / m_radius_sqr > ratio)
 	{
-		if(distance2 / m_radius_sqr > ratio)
-		{
-			//qDebug() << body1;
-			return data->force(v1, m_mass_center, mass[body1], m_mass);
-		}
-		else
-		{
-			nbvertex_t	total_force;
-			if(m_left != NULL)
-			{
-				total_force += m_left->traverse(body1, data, rx, ry, rz, mass);
-			}
-			if(m_right != NULL)
-			{
-				total_force += m_right->traverse(body1, data, rx, ry, rz, mass);
-			}
-			return total_force;
-		}
+		//qDebug() << body1;
+		return data->force(v1, m_mass_center, mass[body1], m_mass);
 	}
 	else
 	{
-		nbvertex_t			total_force;
-		const nbcoord_t		mass1(mass[body1]);
-
-		for(size_t n = 0; n != m_bodies_indites.size(); ++n)
+		nbvertex_t	total_force;
+		if(m_left != NULL)
 		{
-			size_t body2(m_bodies_indites[n]);
-
-			if(body1 == body2)
-			{
-				continue;
-			}
-
-			const nbvertex_t	v2(rx[ body2 ], ry[ body2 ], rz[ body2 ]);
-			const nbvertex_t	f(data->force(v1, v2, mass1, mass[body2]));
-			total_force += f;
+			total_force += m_left->traverse(body1, data, rx, ry, rz, mass);
+		}
+		if(m_right != NULL)
+		{
+			total_force += m_right->traverse(body1, data, rx, ry, rz, mass);
 		}
 		return total_force;
 	}
