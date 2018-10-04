@@ -9,8 +9,9 @@
  */
 class nbody_engine_simple_bh : public nbody_engine_simple
 {
+	nbcoord_t	m_distance_to_node_radius_ratio;
 public:
-	nbody_engine_simple_bh();
+	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0);
 	virtual const char* type_name() const override;
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
 };

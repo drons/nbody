@@ -744,7 +744,12 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(), 128, 1e-2);
+		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16), 128, 1e13);
+		res += QTest::qExec(&tc3, argc, argv);
+	}
+
+	{
+		test_nbody_engine tc3(new nbody_engine_simple_bh(10), 128, 1e-2);
 		res += QTest::qExec(&tc3, argc, argv);
 	}
 

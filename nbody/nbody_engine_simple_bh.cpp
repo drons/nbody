@@ -42,7 +42,7 @@ class nbody_space_tree
 		}
 		void build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 				   const nbcoord_t* mass);
-		nbvertex_t traverse(size_t body1, const nbody_data* data,
+		nbvertex_t traverse(size_t body1, const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
 							const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass) const;
 	};
 
@@ -72,10 +72,10 @@ public:
 		m_root->build(count, bodies_indites.data(), rx, ry, rz, mass);
 	}
 
-	nbvertex_t traverse(size_t body1, const nbody_data* data,
+	nbvertex_t traverse(size_t body1, const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
 						const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass) const
 	{
-		return m_root->traverse(body1, data, rx, ry, rz, mass);
+		return m_root->traverse(body1, data, distance_to_node_radius_ratio, rx, ry, rz, mass);
 	}
 };
 
@@ -178,14 +178,14 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 }
 
 nbvertex_t nbody_space_tree::node::traverse(size_t body1, const nbody_data* data,
+											nbcoord_t distance_to_node_radius_ratio,
 											const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 											const nbcoord_t* mass) const
 {
 	const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
 	const nbcoord_t		distance2((v1 - m_mass_center).norm());
-	constexpr nbcoord_t	ratio = 10;
 
-	if(distance2 / m_radius_sqr > ratio)
+	if(distance2 > distance_to_node_radius_ratio * m_radius_sqr)
 	{
 		//qDebug() << body1;
 		return data->force(v1, m_mass_center, mass[body1], m_mass);
@@ -195,17 +195,18 @@ nbvertex_t nbody_space_tree::node::traverse(size_t body1, const nbody_data* data
 		nbvertex_t	total_force;
 		if(m_left != NULL)
 		{
-			total_force += m_left->traverse(body1, data, rx, ry, rz, mass);
+			total_force += m_left->traverse(body1, data, distance_to_node_radius_ratio, rx, ry, rz, mass);
 		}
 		if(m_right != NULL)
 		{
-			total_force += m_right->traverse(body1, data, rx, ry, rz, mass);
+			total_force += m_right->traverse(body1, data, distance_to_node_radius_ratio, rx, ry, rz, mass);
 		}
 		return total_force;
 	}
 }
 
-nbody_engine_simple_bh::nbody_engine_simple_bh()
+nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio) :
+	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio)
 {
 }
 
@@ -256,7 +257,7 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 
 	for(size_t body1 = 0; body1 < count; ++body1)
 	{
-		nbvertex_t			total_force(tree.traverse(body1, m_data, rx, ry, rz, mass));
+		nbvertex_t			total_force(tree.traverse(body1, m_data, m_distance_to_node_radius_ratio, rx, ry, rz, mass));
 
 		frx[body1] = vx[body1];
 		fry[body1] = vy[body1];
