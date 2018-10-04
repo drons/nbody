@@ -9,6 +9,7 @@ class nbody_space_tree
 {
 	class node
 	{
+		friend class			nbody_space_tree;
 		static constexpr		size_t SPACE_DIMENSIONS = 3;
 		size_t					m_dimension;
 		node*					m_left;
@@ -42,8 +43,6 @@ class nbody_space_tree
 		}
 		void build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 				   const nbcoord_t* mass);
-		nbvertex_t traverse(size_t body1, const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
-							const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass) const;
 	};
 
 	node*	m_root;
@@ -75,7 +74,38 @@ public:
 	nbvertex_t traverse(size_t body1, const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
 						const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass) const
 	{
-		return m_root->traverse(body1, data, distance_to_node_radius_ratio, rx, ry, rz, mass);
+		const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
+		const nbcoord_t		mass1(mass[body1]);
+		nbvertex_t			total_force;
+
+		node*	stack_data[64] = {};
+		node**	stack = stack_data;
+		node**	stack_head = stack;
+
+		*stack++ = m_root;
+		while(stack != stack_head)
+		{
+			node*				curr = *--stack;
+			const nbcoord_t		distance_sqr((v1 - curr->m_mass_center).norm());
+
+			if(distance_sqr > distance_to_node_radius_ratio * curr->m_radius_sqr)
+			{
+				//qDebug() << body1;
+				total_force += data->force(v1, curr->m_mass_center, mass1, curr->m_mass);
+			}
+			else
+			{
+				if(curr->m_left != NULL)
+				{
+					*stack++ = curr->m_left;
+				}
+				if(curr->m_right != NULL)
+				{
+					*stack++ = curr->m_right;
+				}
+			}
+		}
+		return total_force;
 	}
 };
 
@@ -177,33 +207,6 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 	m_right->build(right.size(), right.data(), rx, ry, rz, mass);
 }
 
-nbvertex_t nbody_space_tree::node::traverse(size_t body1, const nbody_data* data,
-											nbcoord_t distance_to_node_radius_ratio,
-											const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
-											const nbcoord_t* mass) const
-{
-	const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
-	const nbcoord_t		distance2((v1 - m_mass_center).norm());
-
-	if(distance2 > distance_to_node_radius_ratio * m_radius_sqr)
-	{
-		//qDebug() << body1;
-		return data->force(v1, m_mass_center, mass[body1], m_mass);
-	}
-	else
-	{
-		nbvertex_t	total_force;
-		if(m_left != NULL)
-		{
-			total_force += m_left->traverse(body1, data, distance_to_node_radius_ratio, rx, ry, rz, mass);
-		}
-		if(m_right != NULL)
-		{
-			total_force += m_right->traverse(body1, data, distance_to_node_radius_ratio, rx, ry, rz, mass);
-		}
-		return total_force;
-	}
-}
 
 nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio) :
 	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio)
