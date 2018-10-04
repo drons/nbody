@@ -49,6 +49,14 @@ class nbody_space_tree
 	node*	m_root;
 
 public:
+	nbody_space_tree() :
+		m_root(nullptr)
+	{
+	}
+	~nbody_space_tree()
+	{
+		delete m_root;
+	}
 
 	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass)
 	{
