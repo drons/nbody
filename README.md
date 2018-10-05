@@ -52,6 +52,9 @@ Argument | Description
 `--engine` | Compute engine [type](#compute-engines).
 `--distance_to_node_radius_ratio` | Simulation accuracy control for Burnes-Hut engine.
 `--traverse_type` | Space tree traverse type for Burnes-Hut engine. Possible values are `cycle` or `nested_tree`.
+`--full_recompute_rate` | Full force recompute rate in cucles (Ahmad-Cohen engine).
+`--max_dist` | The maximum distance at which the force is calculated completely at each step  (Ahmad-Cohen engine).
+`--min_force` | The minimum force of attraction at which it is calculated completely at each step (Ahmad-Cohen engine).
 
 ##### Solver control arguments are:
 

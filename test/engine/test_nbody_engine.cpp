@@ -775,6 +775,14 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "ah"},
+			{"full_recompute_rate", 5}, {"max_dist", 7}, {"min_force", 1e-6}
+		}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+
 	return res;
 }
 

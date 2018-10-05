@@ -5,7 +5,15 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 {
 	const QString type(param.value("engine").toString());
 
-	if(type == "block")
+	if(type == "ah")
+	{
+		size_t		full_recompute_rate = param.value("full_recompute_rate", 1000).toUInt();
+		nbcoord_t	max_dist = param.value("max_dist", 10).toDouble();
+		nbcoord_t	min_force = param.value("min_force", 1e-4).toDouble();
+
+		return new nbody_engine_ah(full_recompute_rate, max_dist, min_force);
+	}
+	else if(type == "block")
 	{
 		return new nbody_engine_block();
 	}
