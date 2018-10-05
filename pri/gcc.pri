@@ -119,4 +119,6 @@ contains( CONFIG, build-asan ){
 
 	# With ASAN we must turnoff OpenMP
 	DEFINES -= HAVE_OPEN_MP
+	# https://stackoverflow.com/questions/50024731/ld-unrecognized-option-push-state-no-as-needed
+	QMAKE_LFLAGS += -fuse-ld=gold
 }
