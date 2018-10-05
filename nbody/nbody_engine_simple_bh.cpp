@@ -5,12 +5,14 @@
 
 #include "summation.h"
 
+static constexpr	size_t SPACE_DIMENSIONS = 3;
+static constexpr	size_t MAX_STACK_SIZE = 64;
+
 class nbody_space_tree
 {
 	class node
 	{
 		friend class			nbody_space_tree;
-		static constexpr		size_t SPACE_DIMENSIONS = 3;
 		size_t					m_dimension;
 		node*					m_left;
 		node*					m_right;
@@ -20,6 +22,7 @@ class nbody_space_tree
 		nbcoord_t				m_mass;
 		nbcoord_t				m_radius_sqr;
 		size_t					m_count;
+		size_t					m_body_n;
 	public:
 		node(size_t dim = 0) :
 			m_dimension(dim),
@@ -33,7 +36,8 @@ class nbody_space_tree
 				  -std::numeric_limits<nbcoord_t>::max()),
 			m_mass(0),
 			m_radius_sqr(0),
-			m_count(0)
+			m_count(0),
+			m_body_n(std::numeric_limits<size_t>::max())
 		{
 		}
 		~node()
@@ -44,7 +48,6 @@ class nbody_space_tree
 		void build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 				   const nbcoord_t* mass);
 	};
-
 	node*	m_root;
 
 public:
@@ -71,14 +74,41 @@ public:
 		m_root->build(count, bodies_indites.data(), rx, ry, rz, mass);
 	}
 
-	nbvertex_t traverse(size_t body1, const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
-						const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass) const
+	template<class Visitor>
+	void traverse(Visitor visit) const
 	{
-		const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
-		const nbcoord_t		mass1(mass[body1]);
+		node*	stack_data[MAX_STACK_SIZE] = {};
+		node**	stack = stack_data;
+		node**	stack_head = stack;
+
+		*stack++ = m_root;
+		while(stack != stack_head)
+		{
+			node*				curr = *--stack;
+			if(curr->m_radius_sqr > 0)
+			{
+				if(curr->m_left != NULL)
+				{
+					*stack++ = curr->m_left;
+				}
+				if(curr->m_right != NULL)
+				{
+					*stack++ = curr->m_right;
+				}
+			}
+			else
+			{
+				visit(curr->m_body_n, curr->m_mass_center, curr->m_mass);
+			}
+		}
+	}
+
+	nbvertex_t traverse(const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
+						const nbvertex_t& v1, const nbcoord_t mass1) const
+	{
 		nbvertex_t			total_force;
 
-		node*	stack_data[64] = {};
+		node*	stack_data[MAX_STACK_SIZE] = {};
 		node**	stack = stack_data;
 		node**	stack_head = stack;
 
@@ -90,7 +120,6 @@ public:
 
 			if(distance_sqr > distance_to_node_radius_ratio * curr->m_radius_sqr)
 			{
-				//qDebug() << body1;
 				total_force += data->force(v1, curr->m_mass_center, mass1, curr->m_mass);
 			}
 			else
@@ -146,6 +175,7 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 	{
 		m_mass_center = nbvertex_t(rx[*indites], ry[*indites], rz[*indites]);
 		m_mass = mass[*indites];
+		m_body_n = *indites;
 		return;
 	}
 
@@ -208,8 +238,8 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 }
 
 
-nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio) :
-	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio)
+nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio, e_traverse_type tt) :
+	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio), m_traverce_type(tt)
 {
 }
 
@@ -258,16 +288,39 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 
 	tree.build(count, rx, ry, rz, mass);
 
-	for(size_t body1 = 0; body1 < count; ++body1)
+	auto update_f = [ = ](size_t body1, const nbvertex_t& total_force, nbcoord_t mass1)
 	{
-		nbvertex_t			total_force(tree.traverse(body1, m_data, m_distance_to_node_radius_ratio, rx, ry, rz, mass));
-
 		frx[body1] = vx[body1];
 		fry[body1] = vy[body1];
 		frz[body1] = vz[body1];
-		fvx[body1] = total_force.x / mass[body1];
-		fvy[body1] = total_force.y / mass[body1];
-		fvz[body1] = total_force.z / mass[body1];
+		fvx[body1] = total_force.x / mass1;
+		fvy[body1] = total_force.y / mass1;
+		fvz[body1] = total_force.z / mass1;
+
+	};
+
+	auto node_visitor = [&](size_t body1, const nbvertex_t& v1, const nbcoord_t mass1)
+	{
+		nbvertex_t			total_force(tree.traverse(m_data, m_distance_to_node_radius_ratio, v1, mass1));
+		update_f(body1, total_force, mass[body1]);
+	};
+
+	switch(m_traverce_type)
+	{
+	case ett_cycle:
+		for(size_t body1 = 0; body1 != count; ++body1)
+		{
+			const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
+			const nbcoord_t		mass1(mass[body1]);
+			const nbvertex_t	total_force(tree.traverse(m_data, m_distance_to_node_radius_ratio, v1, mass1));
+			update_f(body1, total_force, mass1);
+		}
+		break;
+	case ett_nested_tree:
+		tree.traverse(node_visitor);
+		break;
+	default:
+		break;
 	}
 }
 

@@ -9,9 +9,17 @@
  */
 class nbody_engine_simple_bh : public nbody_engine_simple
 {
-	nbcoord_t	m_distance_to_node_radius_ratio;
 public:
-	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0);
+	enum e_traverse_type
+	{
+		ett_cycle,
+		ett_nested_tree
+	};
+private:
+	nbcoord_t			m_distance_to_node_radius_ratio;
+	e_traverse_type		m_traverce_type;
+public:
+	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0, e_traverse_type tt = ett_cycle);
 	virtual const char* type_name() const override;
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
 };
