@@ -1,3 +1,5 @@
+DEFINES += HAVE_OPENMP
+
 QMAKE_CXXFLAGS += -std=c++11
 QMAKE_CXXFLAGS += -Werror=all
 QMAKE_CXXFLAGS += -Werror=extra
@@ -81,4 +83,40 @@ greaterThan(COMPILER_MAJOR_VERSION, 7){
 	QMAKE_CXXFLAGS += -Werror=stringop-truncation
 	QMAKE_CXXFLAGS += -Werror=cast-align=strict
 	QMAKE_CXXFLAGS += -Werror=old-style-cast
+}
+
+contains( CONFIG, build-gcov ){
+	QMAKE_CFLAGS += -fprofile-arcs -ftest-coverage
+	QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage
+	QMAKE_LFLAGS += -lgcov --coverage
+}
+
+contains( CONFIG, build-asan ){
+	#-fcheck-pointer-bounds
+	greaterThan(COMPILER_MAJOR_VERSION, 4){
+		ASAN_FLAGS += -fsanitize=float-divide-by-zero
+		ASAN_FLAGS += -fsanitize=float-cast-overflow
+		ASAN_FLAGS += -fsanitize=bounds
+		ASAN_FLAGS += -fsanitize=alignment
+		ASAN_FLAGS += -fsanitize=object-size
+		ASAN_FLAGS += -fsanitize=vptr
+#		ASAN_FLAGS += -fsanitize=thread
+		ASAN_FLAGS += -fsanitize=address
+	}
+	greaterThan(COMPILER_MAJOR_VERSION, 6){
+		ASAN_FLAGS += -fsanitize=bounds-strict
+	}
+	greaterThan(COMPILER_MAJOR_VERSION, 6){
+		ASAN_FLAGS += -fsanitize=pointer-compare
+		ASAN_FLAGS += -fsanitize=pointer-subtract
+		ASAN_FLAGS += -fsanitize=undefined
+		ASAN_FLAGS += -fsanitize=builtin
+		ASAN_FLAGS += -fsanitize=pointer-overflow
+	}
+
+	QMAKE_CXXFLAGS += $$ASAN_FLAGS
+	QMAKE_LFLAGS += $$ASAN_FLAGS
+
+	# With ASAN we must turnoff OpenMP
+	DEFINES -= HAVE_OPEN_MP
 }

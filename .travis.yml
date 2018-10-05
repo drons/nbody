@@ -208,6 +208,36 @@ matrix:
       - ./test/stream/stream
     - os: linux
       dist: xenial
+      sudo: required
+      env: NAME="gcc8 + Qt5 + ASAN"
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-8
+          - gdb
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - gcc --version
+      - gcc-8 --version
+      - sudo ln -f -s /usr/bin/gcc-8 /usr/bin/gcc
+      - sudo ln -f -s /usr/bin/g++-8 /usr/bin/g++
+      - gcc --version
+      - mkdir build-asan-gcc8
+      - cd build-asan-gcc8
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=build-asan
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: xenial
       compiler: gcc
       env: NAME="Astyle check"
       addons:
