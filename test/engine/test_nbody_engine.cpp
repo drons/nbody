@@ -744,12 +744,12 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_cycle), 128, 1e13);
+		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_cycle), 128, 1e-11);
 		res += QTest::qExec(&tc3, argc, argv);
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_nested_tree), 128, 1e13);
+		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_nested_tree), 128, 1e-11);
 		res += QTest::qExec(&tc3, argc, argv);
 	}
 
