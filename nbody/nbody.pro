@@ -17,6 +17,7 @@ SOURCES	+= \
 	nbody_engine_block.cpp \
 	nbody_engine_openmp.cpp \
 	nbody_engine_simple.cpp \
+	nbody_engine_simple_bh.cpp \
 #	nbody_engine_sparse.cpp \
 	nbody_solver.cpp \
 	nbody_solver_adams.cpp \
@@ -42,6 +43,7 @@ HEADERS	+= \
 	nbody_engine_block.h \
 	nbody_engine_openmp.h \
 	nbody_engine_simple.h \
+	nbody_engine_simple_bh.h \
 #	nbody_engine_sparse.h \
 	nbody_engines.h \
 	nbody_solver.h \

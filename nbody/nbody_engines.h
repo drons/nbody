@@ -5,6 +5,7 @@
 #include "nbody_engine_opencl.h"
 #include "nbody_engine_openmp.h"
 #include "nbody_engine_simple.h"
+#include "nbody_engine_simple_bh.h"
 #include "nbody_engine_sparse.h"
 
 #endif //NBODY_ENGINES_H

@@ -2,6 +2,7 @@
 #include <QtTest>
 #include <QDebug>
 #include <limits>
+#include <omp.h>
 
 #include "nbody_engines.h"
 
@@ -374,43 +375,62 @@ bool test_fmaxabs(nbody_engine* e)
 	return ret;
 }
 
-bool test_fcompute(nbody_engine* e, nbody_data* data)
+bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 {
-	const nbcoord_t			eps = 1e-13;
 	nbody_engine_simple		e0;
 	e0.init(data);
 
 	std::vector<nbcoord_t>	f0(e0.problem_size());
 
 	{
+		double					tbegin = omp_get_wtime();
 		nbody_engine::memory*	fbuff;
 		fbuff = e0.create_buffer(sizeof(nbcoord_t) * e0.problem_size());
 		e0.fcompute(0, e0.get_y(), fbuff, 0, 0);
 
 		e0.read_buffer(f0.data(), fbuff);
 		e0.free_buffer(fbuff);
+		qDebug() << "Time" << e0.type_name() << omp_get_wtime() - tbegin;
 	}
 
 
 	std::vector<nbcoord_t>	f(e->problem_size());
 
 	{
+		double					tbegin = omp_get_wtime();
 		nbody_engine::memory*	fbuff;
 		fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
 		e->fcompute(0, e->get_y(), fbuff, 0, 0);
 
 		e->read_buffer(f.data(), fbuff);
 		e->free_buffer(fbuff);
+		qDebug() << "Time" << e->type_name() << omp_get_wtime() - tbegin;
 	}
 
-	bool	ret = true;
+	bool		ret = true;
+	nbcoord_t	total_err = 0;
+	nbcoord_t	total_relative_err = 0;
+	nbcoord_t	err_smooth = 1e-30;
+	size_t		outliers_count = 0;
 	for(size_t i = 0; i != f.size(); ++i)
 	{
+		total_err += fabs(f[i] - f0[i]);
+		total_relative_err += 2.0 * (fabs(f[i] - f0[i]) + err_smooth) /
+							  (fabs(f[i]) + fabs(f0[i]) + err_smooth);
 		if(fabs(f[i] - f0[i]) > eps)
 		{
+			++outliers_count;
 			ret = false;
-			qDebug() << i << fabs(f[i] - f0[i]);
 		}
+	}
+
+	if(!ret)
+	{
+		qDebug() << "Total count:         " << f.size();
+		qDebug() << "Total error:         " << total_err;
+		qDebug() << "Mean error:          " << total_err / f.size();
+		qDebug() << "Total relative error:" << total_relative_err;
+		qDebug() << "Outliers count:      " << outliers_count;
 	}
 
 	return ret;
@@ -420,10 +440,12 @@ class test_nbody_engine : public QObject
 {
 	Q_OBJECT
 
-	nbody_data		data;
-	nbody_engine*	e;
+	nbody_data		m_data;
+	nbody_engine*	m_e;
+	size_t			m_problem_size;
+	nbcoord_t		m_eps;
 public:
-	test_nbody_engine(nbody_engine* e);
+	test_nbody_engine(nbody_engine* e, size_t problen_size = 64, nbcoord_t eps = 1e-13);
 	~test_nbody_engine();
 
 private slots:
@@ -442,24 +464,24 @@ private slots:
 	void test_negative_branches();
 };
 
-test_nbody_engine::test_nbody_engine(nbody_engine* _e) :
-	e(_e)
+test_nbody_engine::test_nbody_engine(nbody_engine* e, size_t problen_size, nbcoord_t eps) :
+	m_e(e), m_problem_size(problen_size), m_eps(eps)
 {
 }
 
 test_nbody_engine::~test_nbody_engine()
 {
-	delete e;
+	delete m_e;
 }
 
 void test_nbody_engine::initTestCase()
 {
 	nbcoord_t				box_size = 100;
 
-	qDebug() << "Engine" << e->type_name();
+	qDebug() << "Engine" << m_e->type_name() << "Problem size" << m_problem_size;
 
-	data.make_universe(64, box_size, box_size, box_size);
-	e->init(&data);
+	m_data.make_universe(m_problem_size, box_size, box_size, box_size);
+	m_e->init(&m_data);
 }
 
 void test_nbody_engine::cleanupTestCase()
@@ -469,58 +491,58 @@ void test_nbody_engine::cleanupTestCase()
 
 void test_nbody_engine::test_mem()
 {
-	QVERIFY(::test_mem(e));
+	QVERIFY(::test_mem(m_e));
 }
 
 void test_nbody_engine::test_memcpy()
 {
-	QVERIFY(::test_memcpy(e));
+	QVERIFY(::test_memcpy(m_e));
 }
 
 void test_nbody_engine::test_copy_buffer()
 {
-	QVERIFY(::test_copy_buffer(e));
+	QVERIFY(::test_copy_buffer(m_e));
 }
 
 void test_nbody_engine::test_fmadd1()
 {
-	QVERIFY(::test_fmadd1(e));
+	QVERIFY(::test_fmadd1(m_e));
 }
 
 void test_nbody_engine::test_fmadd2()
 {
-	QVERIFY(::test_fmadd2(e));
+	QVERIFY(::test_fmadd2(m_e));
 }
 
 void test_nbody_engine::test_fmaddn1()
 {
-	QVERIFY(::test_fmaddn1(e, 1));
-	QVERIFY(::test_fmaddn1(e, 3));
-	QVERIFY(::test_fmaddn1(e, 7));
+	QVERIFY(::test_fmaddn1(m_e, 1));
+	QVERIFY(::test_fmaddn1(m_e, 3));
+	QVERIFY(::test_fmaddn1(m_e, 7));
 }
 
 void test_nbody_engine::test_fmaddn2()
 {
-	QVERIFY(::test_fmaddn2(e, 1));
-	QVERIFY(::test_fmaddn2(e, 3));
-	QVERIFY(::test_fmaddn2(e, 7));
+	QVERIFY(::test_fmaddn2(m_e, 1));
+	QVERIFY(::test_fmaddn2(m_e, 3));
+	QVERIFY(::test_fmaddn2(m_e, 7));
 }
 
 void test_nbody_engine::test_fmaddn3()
 {
-	QVERIFY(::test_fmaddn3(e, 1));
-	QVERIFY(::test_fmaddn3(e, 3));
-	QVERIFY(::test_fmaddn3(e, 7));
+	QVERIFY(::test_fmaddn3(m_e, 1));
+	QVERIFY(::test_fmaddn3(m_e, 3));
+	QVERIFY(::test_fmaddn3(m_e, 7));
 }
 
 void test_nbody_engine::test_fmaxabs()
 {
-	QVERIFY(::test_fmaxabs(e));
+	QVERIFY(::test_fmaxabs(m_e));
 }
 
 void test_nbody_engine::test_fcompute()
 {
-	QVERIFY(::test_fcompute(e, &data));
+	QVERIFY(::test_fcompute(m_e, &m_data, m_eps));
 }
 
 class nbody_engine_memory_fake : public nbody_engine::memory
@@ -541,158 +563,158 @@ void test_nbody_engine::test_negative_branches()
 	qDebug() << "fcompute";
 	{
 		nbody_engine_memory_fake	y(0);
-		nbody_engine::memory*		f = e->create_buffer(e->problem_size());
-		e->fcompute(0, &y, f, 0, 0);
-		e->free_buffer(f);
+		nbody_engine::memory*		f = m_e->create_buffer(m_e->problem_size());
+		m_e->fcompute(0, &y, f, 0, 0);
+		m_e->free_buffer(f);
 	}
 	{
 		nbody_engine_memory_fake	f(0);
-		nbody_engine::memory*		y = e->create_buffer(e->problem_size());
-		e->fcompute(0, y, &f, 0, 0);
-		e->free_buffer(y);
+		nbody_engine::memory*		y = m_e->create_buffer(m_e->problem_size());
+		m_e->fcompute(0, y, &f, 0, 0);
+		m_e->free_buffer(y);
 	}
 
 	qDebug() << "read_buffer";
 	{
 		nbody_engine_memory_fake	src(0);
-		e->read_buffer(NULL, &src);
+		m_e->read_buffer(NULL, &src);
 	}
 
 	qDebug() << "write_buffer";
 	{
 		nbody_engine_memory_fake	dst(0);
-		e->write_buffer(&dst, NULL);
+		m_e->write_buffer(&dst, NULL);
 	}
 
 	qDebug() << "copy_buffer";
 	{
 		nbody_engine_memory_fake	a(0);
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		e->copy_buffer(&a, b, 0, 0);
-		e->free_buffer(b);
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		m_e->copy_buffer(&a, b, 0, 0);
+		m_e->free_buffer(b);
 	}
 	{
 		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		e->copy_buffer(a, &b, 0, 0);
-		e->free_buffer(a);
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		m_e->copy_buffer(a, &b, 0, 0);
+		m_e->free_buffer(a);
 	}
 
 	qDebug() << "fmadd_inplace";
 	{
 		nbody_engine_memory_fake	a(0);
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		e->fmadd_inplace(&a, b, 1);
-		e->free_buffer(b);
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		m_e->fmadd_inplace(&a, b, 1);
+		m_e->free_buffer(b);
 	}
 	{
 		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		e->fmadd_inplace(a, &b, 1);
-		e->free_buffer(a);
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		m_e->fmadd_inplace(a, &b, 1);
+		m_e->free_buffer(a);
 	}
 	qDebug() << "fmadd";
 	{
 		nbody_engine_memory_fake	a(0);
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		e->fmadd(&a, b, c, 0, 0, 0, 0);
-		e->free_buffer(b);
-		e->free_buffer(c);
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		m_e->fmadd(&a, b, c, 0, 0, 0, 0);
+		m_e->free_buffer(b);
+		m_e->free_buffer(c);
 	}
 	{
 		nbody_engine_memory_fake	c(0);
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		e->fmadd(a, b, &c, 0, 0, 0, 0);
-		e->free_buffer(a);
-		e->free_buffer(b);
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		m_e->fmadd(a, b, &c, 0, 0, 0, 0);
+		m_e->free_buffer(a);
+		m_e->free_buffer(b);
 	}
 	{
 		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		e->fmadd(a, &b, c, 0, 0, 0, 0);
-		e->free_buffer(c);
-		e->free_buffer(a);
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		m_e->fmadd(a, &b, c, 0, 0, 0, 0);
+		m_e->free_buffer(c);
+		m_e->free_buffer(a);
 	}
 
 	qDebug() << "fmaddn_inplace";
 	{
 		nbody_engine_memory_fake	a(0);
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		e->fmaddn_inplace(&a, b, c, 0, 0, 0, 0);
-		e->free_buffer(b);
-		e->free_buffer(c);
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn_inplace(&a, b, c, 0, 0, 0, 0);
+		m_e->free_buffer(b);
+		m_e->free_buffer(c);
 	}
 	{
 		nbody_engine_memory_fake	c(0);
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		e->fmaddn_inplace(a, b, &c, 0, 0, 0, 0);
-		e->free_buffer(a);
-		e->free_buffer(b);
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn_inplace(a, b, &c, 0, 0, 0, 0);
+		m_e->free_buffer(a);
+		m_e->free_buffer(b);
 	}
 	{
 		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		e->fmaddn_inplace(a, &b, c, 0, 0, 0, 0);
-		e->free_buffer(c);
-		e->free_buffer(a);
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn_inplace(a, &b, c, 0, 0, 0, 0);
+		m_e->free_buffer(c);
+		m_e->free_buffer(a);
 	}
 
 	qDebug() << "fmaddn";
 	{
 		nbody_engine_memory_fake	a(0);
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		d = e->create_buffer(e->problem_size());
-		e->fmaddn(&a, b, c, d, 0, 0, 0, 0, 0);
-		e->fmaddn(&a, NULL, c, d, 0, 0, 0, 0, 0);
-		e->free_buffer(b);
-		e->free_buffer(c);
-		e->free_buffer(d);
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		d = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn(&a, b, c, d, 0, 0, 0, 0, 0);
+		m_e->fmaddn(&a, NULL, c, d, 0, 0, 0, 0, 0);
+		m_e->free_buffer(b);
+		m_e->free_buffer(c);
+		m_e->free_buffer(d);
 	}
 	{
 		nbody_engine_memory_fake	d(0);
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		e->fmaddn(a, b, c, &d, 0, 0, 0, 0, 0);
-		e->fmaddn(a, NULL, c, &d, 0, 0, 0, 0, 0);
-		e->free_buffer(a);
-		e->free_buffer(b);
-		e->free_buffer(c);
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn(a, b, c, &d, 0, 0, 0, 0, 0);
+		m_e->fmaddn(a, NULL, c, &d, 0, 0, 0, 0, 0);
+		m_e->free_buffer(a);
+		m_e->free_buffer(b);
+		m_e->free_buffer(c);
 	}
 	{
 		nbody_engine_memory_fake	c(0);
-		nbody_engine::memory*		d = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		b = e->create_buffer(e->problem_size());
-		e->fmaddn(a, b, &c, d, 0, 0, 0, 0, 0);
-		e->fmaddn(a, NULL, &c, d, 0, 0, 0, 0, 0);
-		e->free_buffer(d);
-		e->free_buffer(a);
-		e->free_buffer(b);
+		nbody_engine::memory*		d = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn(a, b, &c, d, 0, 0, 0, 0, 0);
+		m_e->fmaddn(a, NULL, &c, d, 0, 0, 0, 0, 0);
+		m_e->free_buffer(d);
+		m_e->free_buffer(a);
+		m_e->free_buffer(b);
 	}
 	{
 		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		c = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		d = e->create_buffer(e->problem_size());
-		nbody_engine::memory*		a = e->create_buffer(e->problem_size());
-		e->fmaddn(a, &b, c, d, 0, 0, 0, 0, 0);
-		e->free_buffer(c);
-		e->free_buffer(d);
-		e->free_buffer(a);
+		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		d = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		m_e->fmaddn(a, &b, c, d, 0, 0, 0, 0, 0);
+		m_e->free_buffer(c);
+		m_e->free_buffer(d);
+		m_e->free_buffer(a);
 	}
 
 	qDebug() << "fmaxabs";
 	{
 		nbody_engine_memory_fake	a(0);
 		nbcoord_t					res = 0;
-		e->fmaxabs(&a, res);
+		m_e->fmaxabs(&a, res);
 	}
 }
 
@@ -718,6 +740,21 @@ int main(int argc, char* argv[])
 
 	{
 		test_nbody_engine tc3(new nbody_engine_simple());
+		res += QTest::qExec(&tc3, argc, argv);
+	}
+
+	{
+		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_cycle), 128, 1e13);
+		res += QTest::qExec(&tc3, argc, argv);
+	}
+
+	{
+		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_nested_tree), 128, 1e13);
+		res += QTest::qExec(&tc3, argc, argv);
+	}
+
+	{
+		test_nbody_engine tc3(new nbody_engine_simple_bh(10), 128, 1e-2);
 		res += QTest::qExec(&tc3, argc, argv);
 	}
 
