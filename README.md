@@ -1,4 +1,41 @@
-# nbody
+# [N-body simulation program](https://en.wikipedia.org/wiki/N-body_simulation)
 [![Build Status](https://travis-ci.org/drons/nbody.svg?branch=master)](https://travis-ci.org/drons/nbody)
 [![codecov](https://codecov.io/gh/drons/nbody/branch/master/graph/badge.svg)](https://codecov.io/gh/drons/nbody)
 [![Coverity](https://scan.coverity.com/projects/9436/badge.svg)](https://scan.coverity.com/projects/drons-nbody)
+
+
+## Features
+### Integration methods
+Method alias | Order | Description | Implicit | Embedded
+-------------|-------|-------------|----------|----------
+adams | up to 5 | [Adams–Bashforth method](https://en.wikipedia.org/wiki/Linear_multistep_method#Adams%E2%80%93Bashforth_methods) |  :small_orange_diamond: |  :small_orange_diamond:
+euler | 1 | [Classic Euler method](https://en.wikipedia.org/wiki/Euler_method) |  :small_orange_diamond: |  :small_orange_diamond:
+rk4 | 4 | [Classic Runge-Kutta 4-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Classic_fourth-order_method) |  :small_orange_diamond: |  :small_orange_diamond:
+rk_butcher | - | [Runge-Kutta method with arbitrary Butcher tableu](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) |  :small_orange_diamond: |  :small_orange_diamond:
+rkck | 5 | [Runge-Kutta-Cash–Karp 5-order method](https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) |  :small_orange_diamond: |  :star:
+rkdp | 5 | [Runge-Kutta-Dormand–Prince 5-order method](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) |  :small_orange_diamond: |  :star:
+rkf | 7 | Runge-Kutta-Fehlberg 7-order method. See [1)](README.md#refs) p. 180 |  :small_orange_diamond: |  :star:
+rkgl | 6 | [Gauss–Legendre 6-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Gauss%E2%80%93Legendre_methods) |  :star: |  :small_orange_diamond:
+rklc | 4 | [Runge-Kutta-Lobatto IIIC 4-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Lobatto_IIIC_methods) |  :star: |  :small_orange_diamond:
+trapeze | 2 | [Trapeze method](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) |  :star: |  :small_orange_diamond:
+
+
+### Compute engines
+Engine alias | Approximate | Description
+-------------|-------------|-------------
+ah | :star:  | Single threaded engine with [Ahmad-Cohen](https://www.astronomyclub.xyz/time-steps/ahmadcohen-method.html) universe force simulation. See [2)](README.md#refs)
+block |  :small_orange_diamond: | Multi-threaded (OpenMP) engine with block-by-block force computation
+opencl |  :small_orange_diamond:  | Parallel OpenCL engine
+openmp |  :small_orange_diamond:  | Multi-threaded (OpenMP) engine
+simple |  :small_orange_diamond:  | Simple single threaded engine
+simple_bh |  :star:  | Single threaded engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation
+
+
+### Gallery
+
+[![Galaxy crash simulation](http://img.youtube.com/vi/AYzgTC0qqV0/0.jpg)](https://www.youtube.com/watch?v=AYzgTC0qqV0 "Galaxy crash simulation")
+
+
+## Refs
+1) [Hairer, Ernst; Nørsett, Syvert Paul; Wanner, Gerhard (1993), Solving ordinary differential equations I: Nonstiff problems, Berlin, New York](http://www.hds.bme.hu/~fhegedus/00%20-%20Numerics/B1993%20Solving%20Ordinary%20Differential%20Equations%20I%20-%20Nonstiff%20Problems.pdf)
+2) [A Numerical Integration Scheme  for the N-Body Gravitational Problem	A. AHMAD AND L. COHEN 1973](https://courses.physics.ucsd.edu/2016/Winter/physics141/Lectures/Lecture8/AhmadCohen.pdf)
