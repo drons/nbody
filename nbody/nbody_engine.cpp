@@ -20,6 +20,10 @@ nbody_engine::~nbody_engine()
 
 }
 
+void nbody_engine::print_info() const
+{
+}
+
 void nbody_engine::advise_compute_count()
 {
 	m_compute_count++;

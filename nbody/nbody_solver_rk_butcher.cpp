@@ -61,6 +61,15 @@ void nbody_solver_rk_butcher::advise(double dt)
 	engine()->advise_time(dt);
 }
 
+void nbody_solver_rk_butcher::print_info() const
+{
+	nbody_solver::print_info();
+	qDebug() << "\tmax_recursion" << m_max_recursion;
+	qDebug() << "\tsubstep_subdivisions" << m_substep_subdivisions;
+	qDebug() << "\terror_threshold" << m_error_threshold;
+	qDebug() << "\trefine_steps_count" << m_refine_steps_count;
+}
+
 void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt, nbody_engine::memory* y,
 									   size_t yoff, size_t recursion_level)
 {

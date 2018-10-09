@@ -60,3 +60,9 @@ void nbody_solver_trapeze::advise(nbcoord_t dt)
 	}
 	engine()->advise_time(dt);
 }
+
+void nbody_solver_trapeze::print_info() const
+{
+	nbody_solver::print_info();
+	qDebug() << "\trefine_steps_count" << m_refine_steps_count;
+}

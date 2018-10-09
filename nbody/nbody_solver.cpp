@@ -80,3 +80,9 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 	return 0;
 }
 
+void nbody_solver::print_info() const
+{
+	qDebug() << "\tmin_step" << m_min_step;
+	qDebug() << "\tmax_step" << m_max_step;
+}
+

@@ -23,6 +23,7 @@ public:
 
 	virtual const char* type_name() const = 0;
 	virtual void advise(nbcoord_t dt) = 0;
+	virtual void print_info() const;
 };
 
 #endif // NBODY_SOLVER_H

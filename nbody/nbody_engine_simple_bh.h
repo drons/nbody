@@ -17,11 +17,12 @@ public:
 	};
 private:
 	nbcoord_t			m_distance_to_node_radius_ratio;
-	e_traverse_type		m_traverce_type;
+	e_traverse_type		m_traverse_type;
 public:
 	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0, e_traverse_type tt = ett_cycle);
 	virtual const char* type_name() const override;
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
+	virtual void print_info() const override;
 };
 
 #endif // NBODY_ENGINE_SIMPLE_BH_H

@@ -23,7 +23,7 @@ private Q_SLOTS:
 test_nbody_solver::test_nbody_solver(nbody_engine* _e, nbody_solver* _s) :
 	e(_e), s(_s)
 {
-
+	s->print_info();
 }
 
 test_nbody_solver::~test_nbody_solver()

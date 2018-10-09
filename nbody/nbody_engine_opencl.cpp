@@ -218,7 +218,6 @@ void nbody_engine_opencl::data::find_devices()
 nbody_engine_opencl::nbody_engine_opencl() :
 	d(new data())
 {
-	info();
 	d->find_devices();
 }
 
@@ -701,8 +700,7 @@ void nbody_engine_opencl::fmaxabs(const memory* _a, nbcoord_t& result)
 	result = *std::max_element(host_buff.begin(), host_buff.end());
 }
 
-
-int nbody_engine_opencl::info()
+void nbody_engine_opencl::print_info() const
 {
 	std::vector<cl::Platform>		platforms;
 	try

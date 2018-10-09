@@ -26,6 +26,7 @@ public:
 	void set_refine_steps_count(size_t);
 	virtual const char* type_name() const override;
 	virtual void advise(double dt) override;
+	virtual void print_info() const override;
 private:
 	void sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt, nbody_engine::memory* y, size_t yoff,
 				  size_t recursion_level);

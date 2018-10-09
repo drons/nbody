@@ -467,6 +467,7 @@ private slots:
 test_nbody_engine::test_nbody_engine(nbody_engine* e, size_t problen_size, nbcoord_t eps) :
 	m_e(e), m_problem_size(problen_size), m_eps(eps)
 {
+	e->print_info();
 }
 
 test_nbody_engine::~test_nbody_engine()
@@ -750,7 +751,7 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 1e16},
-			{"traverce_type", "cycle"}
+			{"traverse_type", "cycle"}
 		}));
 		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
 		res += QTest::qExec(&tc1, argc, argv);
@@ -759,7 +760,7 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 1e16},
-			{"traverce_type", "nested_tree"}
+			{"traverse_type", "nested_tree"}
 		}));
 		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
 		res += QTest::qExec(&tc1, argc, argv);
@@ -768,7 +769,7 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 10},
-			{"traverce_type", "cycle"}
+			{"traverse_type", "cycle"}
 		}));
 		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
 		res += QTest::qExec(&tc1, argc, argv);

@@ -39,7 +39,7 @@ public:
 						size_t boff, size_t coff, size_t dsize) override;
 	virtual void fmaxabs(const memory* a, nbcoord_t& result) override;
 
-	static int info();
+	virtual void print_info() const override;
 };
 
 #endif // NBODY_ENGINE_OPENCL_H

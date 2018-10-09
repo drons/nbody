@@ -15,6 +15,7 @@ public:
 	const char* type_name() const override;
 	void set_refine_steps_count(size_t);
 	virtual void advise(nbcoord_t dt) override;
+	virtual void print_info() const override;
 };
 
 #endif // NBODY_SOLVER_TRAPEZE_H

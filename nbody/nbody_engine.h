@@ -64,7 +64,8 @@ public:
 						size_t boff, size_t coff, size_t dsize) = 0;
 	//! @result = max( fabs(a[k]), k=[0...asize) )
 	virtual void fmaxabs(const memory* a, nbcoord_t& result) = 0;
-
+	//! Print engine info
+	virtual void print_info() const;
 
 	void advise_compute_count();
 	size_t get_compute_count() const;

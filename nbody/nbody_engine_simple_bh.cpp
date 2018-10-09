@@ -239,7 +239,7 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 
 
 nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio, e_traverse_type tt) :
-	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio), m_traverce_type(tt)
+	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio), m_traverse_type(tt)
 {
 }
 
@@ -305,7 +305,7 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 		update_f(body1, total_force, mass[body1]);
 	};
 
-	switch(m_traverce_type)
+	switch(m_traverse_type)
 	{
 	case ett_cycle:
 		for(size_t body1 = 0; body1 != count; ++body1)
@@ -322,5 +322,12 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 	default:
 		break;
 	}
+}
+
+void nbody_engine_simple_bh::print_info() const
+{
+	nbody_engine_simple::print_info();
+	qDebug() << "\tdistance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
+	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
 }
 

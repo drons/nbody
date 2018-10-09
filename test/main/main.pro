@@ -3,7 +3,7 @@ include( ../../pri/opencl.pri )
 include( ../../pri/vectorize.pri )
 
 TEMPLATE	= app
-TARGET		= main
+TARGET		= nbody-simulation
 MOC_DIR = ./.tmp/moc
 
 CONFIG		+= qt

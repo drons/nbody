@@ -23,6 +23,8 @@ public:
 	virtual void fmaddn(memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff,
 						size_t boff, size_t coff, size_t dsize) override;
 	virtual void fmaxabs(const memory* a, nbcoord_t& result) override;
+
+	virtual void print_info() const override;
 };
 
 #endif // NBODY_ENGINE_SIMPLE_H

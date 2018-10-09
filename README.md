@@ -30,6 +30,41 @@ openmp |  :small_orange_diamond:  | Multi-threaded (OpenMP) engine
 simple |  :small_orange_diamond:  | Simple single threaded engine
 simple_bh |  :star:  | Single threaded engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation
 
+### How to run
+#### Simulation
+To run n-body problem simulation use 'nbody-simulation' programm.
+
+##### Simulation control
+Argument | Description
+---------|-------------
+`--box_size` | 'Universe' box size.
+`--output` | Output stream name.
+`--max_part_size` | Max stream file size (splits a stream into multiple files).
+`--max_time` | Max simulation time.
+`--dump_step` | Time step to dump simulation state to stream.
+`--check_step` | Time step to verify the fundamental laws of physics. Conservation of impulse, angular momentum, energy.
+`--verbose` | Print detailed simulation information.
+
+##### Engine control arguments are:
+
+Argument | Description
+---------|-------------
+`--engine` | Compute engine [type](#compute-engines).
+`--distance_to_node_radius_ratio` | Simulation accuracy control for Burnes-Hut engine.
+`--traverse_type` | Space tree traverse type for Burnes-Hut engine. Possible values are `cycle` or `nested_tree`.
+
+##### Solver control arguments are:
+
+Argument | Description
+---------|-------------
+`--solver` | Solver [type](#integration-methods).
+`--max_step`| Solvers max time step
+`--min_step`| Embeded solvers min time step
+`--rank`   | Adams–Bashforth solver rank (1...5).
+`--refine_steps_count` | Refine step count for __implicit__ solvers.
+`--error_threshold` | Step error threshold for __embeded__ solvers. If the error at the current step is greater than the threshold, then we decrease the time step and repeat the step.
+`--max_recursion`   | Max recursion level for __embeded__ solvers.
+`--substep_subdivisions` | Number of __embeded__ solver substeps into which the current step is divided at the next level of recursion when the error greater than `error_threshold`.
 
 ### Gallery
 

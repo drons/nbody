@@ -4,7 +4,6 @@
 
 nbody_engine_openmp::nbody_engine_openmp()
 {
-	qDebug() << "OpenMP max threads" << omp_get_max_threads();
 }
 
 nbody_engine_openmp::~nbody_engine_openmp()
@@ -320,4 +319,9 @@ void nbody_engine_openmp::fmaxabs(const nbody_engine::memory* __a, nbcoord_t& re
 			result = v;
 		}
 	}
+}
+
+void nbody_engine_openmp::print_info() const
+{
+	qDebug() << "\tOpenMP max threads:" << omp_get_max_threads();
 }
