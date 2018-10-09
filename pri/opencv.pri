@@ -6,8 +6,6 @@ win32{
 
 OPEN_CV_VERSION=
 
-INCLUDEPATH += /home/bot/local/opencv3/include
-LIBS += -L/home/bot/local/opencv3/lib
 LIBS += -lopencv_flann$${OPEN_CV_VERSION}$${OPEN_CV_LIB_SUFFIX}
 LIBS += -lopencv_imgproc$${OPEN_CV_VERSION}$${OPEN_CV_LIB_SUFFIX}
 LIBS += -lopencv_features2d$${OPEN_CV_VERSION}$${OPEN_CV_LIB_SUFFIX}
