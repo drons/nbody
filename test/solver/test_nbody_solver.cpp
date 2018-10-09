@@ -71,47 +71,47 @@ int main(int argc, char* argv[])
 	int res = 0;
 
 	{
-		QVariantMap			param{{"solver", "adams"}, {"rank", 5}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "adams"}, {"rank", 5}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "euler"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "euler"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "rk4"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rk4"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "rkck"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkck"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "rkdp"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkdp"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "rkf"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkf"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "rkgl"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkgl"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "rklc"}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rklc"}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param{{"solver", "trapeze"}, {"refine_steps_count", 2}};
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "trapeze"}, {"refine_steps_count", 2}}));
 		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
