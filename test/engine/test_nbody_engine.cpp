@@ -723,39 +723,52 @@ int main(int argc, char* argv[])
 	int res = 0;
 
 	{
-		test_nbody_engine tc1(new nbody_engine_block());
+		QVariantMap			param{{"engine", "block"}};
+		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #ifdef HAVE_OPENCL
 	{
-		test_nbody_engine tc1(new nbody_engine_opencl());
+		QVariantMap			param{{"engine", "opencl"}};
+		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #endif
 
 	{
-		test_nbody_engine tc1(new nbody_engine_openmp());
+		QVariantMap			param{{"engine", "openmp"}};
+		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple());
-		res += QTest::qExec(&tc3, argc, argv);
+		QVariantMap			param{{"engine", "simple"}};
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_cycle), 128, 1e-11);
-		res += QTest::qExec(&tc3, argc, argv);
+		QVariantMap param{{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverce_type", "cycle"}};
+		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
+		res += QTest::qExec(&tc1, argc, argv);
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(1e16, nbody_engine_simple_bh::ett_nested_tree), 128, 1e-11);
-		res += QTest::qExec(&tc3, argc, argv);
+		QVariantMap param{{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverce_type", "nested_tree"}};
+		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
+		res += QTest::qExec(&tc1, argc, argv);
 	}
 
 	{
-		test_nbody_engine tc3(new nbody_engine_simple_bh(10), 128, 1e-2);
-		res += QTest::qExec(&tc3, argc, argv);
+		QVariantMap param{{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverce_type", "cycle"}};
+		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
+		res += QTest::qExec(&tc1, argc, argv);
 	}
 
 	return res;

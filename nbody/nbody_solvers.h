@@ -12,4 +12,11 @@
 #include "nbody_solver_stormer.h"
 #include "nbody_solver_trapeze.h"
 
+/*!
+   \brief Create solver from parameters
+   \param param - solver type and parameters
+   \return configured solver
+ */
+nbody_solver* nbody_create_solver(const QVariantMap& param);
+
 #endif //NBODY_SOLVERS_H

@@ -19,6 +19,7 @@ SOURCES	+= \
 	nbody_engine_simple.cpp \
 	nbody_engine_simple_bh.cpp \
 #	nbody_engine_sparse.cpp \
+	nbody_engines.cpp \
 	nbody_solver.cpp \
 	nbody_solver_adams.cpp \
 	nbody_solver_euler.cpp \
@@ -31,6 +32,7 @@ SOURCES	+= \
     nbody_solver_rklc.cpp \
 	nbody_solver_stormer.cpp \
 	nbody_solver_trapeze.cpp \
+	nbody_solvers.cpp \
     nbody_data_stream.cpp \
     nbody_data_stream_reader.cpp
 

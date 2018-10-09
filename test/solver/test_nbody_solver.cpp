@@ -71,41 +71,48 @@ int main(int argc, char* argv[])
 	int res = 0;
 
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_adams());
+		QVariantMap			param{{"solver", "adams"}, {"rank", 5}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_euler());
+		QVariantMap			param{{"solver", "euler"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_rk4());
+		QVariantMap			param{{"solver", "rk4"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_rkck());
+		QVariantMap			param{{"solver", "rkck"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_rkdp());
+		QVariantMap			param{{"solver", "rkdp"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_rkf());
+		QVariantMap			param{{"solver", "rkf"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_rkgl());
+		QVariantMap			param{{"solver", "rkgl"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		test_nbody_solver tc1(new nbody_engine_active(), new nbody_solver_rklc());
+		QVariantMap			param{{"solver", "rklc"}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		nbody_solver_trapeze*	e = new nbody_solver_trapeze();
-		e->set_refine_steps_count(1);
-		test_nbody_solver tc1(new nbody_engine_active(), e);
+		QVariantMap			param{{"solver", "trapeze"}, {"refine_steps_count", 2}};
+		test_nbody_solver	tc1(new nbody_engine_active(), nbody_create_solver(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	return res;
