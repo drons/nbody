@@ -248,6 +248,16 @@ matrix:
       script:
       - astyle --options=.astylerc --recursive *.{h,cpp,cl}
       - git diff --exit-code
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      env: NAME="cppcheck"
+      addons:
+        apt:
+          packages:
+          - cppcheck
+      script:
+      - cppcheck --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
 
 language:
   - cpp

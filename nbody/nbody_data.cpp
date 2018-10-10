@@ -80,11 +80,9 @@ void nbody_data::print_statistics(nbody_engine* engine)
 	m_last_total_kinetic_energy = total_kinetic_energy;
 	m_last_total_potential_energy = total_potential_energy;
 
-	nbcoord_t	total_energy = total_potential_energy + total_kinetic_energy;
 	total_impulce -= m_total_impulce;
 	total_impulce_moment -= m_total_impulce_moment;
 	nbvertex_t	mass_center_vel((get_last_mass_center() - get_mass_center()) / m_time);
-	total_energy -=	(m_total_potential_energy + m_total_kinetic_energy);
 
 	qDebug() << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
 			 << "t" << QString("%1").arg(m_time, 6, 'f', 6, QChar(' '))
