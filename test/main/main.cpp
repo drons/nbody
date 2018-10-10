@@ -41,19 +41,26 @@ int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, cons
 	QCoreApplication	a(argc, argv);
 	nbody_data_stream	stream;
 
+	if(!param.value("verbose").isNull())
+	{
+		qDebug() << "General:";
+		qDebug() << "\toutput:" << output;
+		qDebug() << "\tmax_part_size:" << max_part_size;
+		qDebug() << "\tmax_time:" << max_time;
+		qDebug() << "\tdump_step:" << dump_step;
+		qDebug() << "\tcheck_step:" << check_step;
+		qDebug() << "Solver:" << solver->type_name();
+		solver->print_info();
+		qDebug() << "Engine:" << solver->engine()->type_name();
+		solver->engine()->print_info();
+	}
+
 	if(0 != stream.open(output, max_part_size))
 	{
 		qDebug() << "Fail to open stream";
 		return -1;
 	}
 
-	if(!param.value("verbose").isNull())
-	{
-		qDebug() << "Solver:" << solver->type_name();
-		solver->print_info();
-		qDebug() << "Engine:" << solver->engine()->type_name();
-		solver->engine()->print_info();
-	}
 	solver->run(data, &stream, max_time, dump_step, check_step);
 	return 0;
 }
