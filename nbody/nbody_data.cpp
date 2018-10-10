@@ -83,7 +83,7 @@ void nbody_data::print_statistics(nbody_engine* engine)
 	nbcoord_t	total_energy = total_potential_energy + total_kinetic_energy;
 	total_impulce -= m_total_impulce;
 	total_impulce_moment -= m_total_impulce_moment;
-	mass_center -= m_mass_center;
+	nbvertex_t	mass_center_vel((get_last_mass_center() - get_mass_center()) / m_time);
 	total_energy -=	(m_total_potential_energy + m_total_kinetic_energy);
 
 	qDebug() << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
@@ -91,7 +91,7 @@ void nbody_data::print_statistics(nbody_engine* engine)
 			 << "CC" << QString("%1").arg(engine->get_compute_count(), 8, 10,  QChar('0'))
 			 << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3)
 			 << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3)
-//			<< "Vcm" << (mass_center/m_time).length()
+			 << "Vcm" << (mass_center_vel).length()
 			 << "dE" << QString("%1").arg(get_energy_err(), 4, 'e', 3)
 //			<< "St" << ( timer_end - m_timer_start )/( m_step - m_timer_step )
 //			<< "Wt" << ( omp_get_wtime() - m_timer_start )/( m_step - m_timer_step )
@@ -286,16 +286,17 @@ nbcoord_t nbody_data::get_last_total_energy() const
 
 nbcoord_t nbody_data::get_impulce_err() const
 {
-	return fabs(100.0 * (m_last_total_impulce - m_total_impulce).length() / m_total_impulce.length());
+	return fabs(100.0 * (get_last_total_impulce() - get_total_impulce()).length() /
+				get_total_impulce().length());
 }
 
 nbcoord_t nbody_data::get_impulce_moment_err() const
 {
-	return fabs(100.0 * (m_last_total_impulce_moment - m_total_impulce_moment).length() / m_total_impulce_moment.length());
+	return fabs(100.0 * (get_last_total_impulce_moment() - get_total_impulce_moment()).length() /
+				get_total_impulce_moment().length());
 }
 
 nbcoord_t nbody_data::get_energy_err() const
 {
 	return fabs(100.0 * (get_last_total_energy() - get_total_energy()) / get_total_energy());
 }
-
