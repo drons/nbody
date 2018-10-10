@@ -24,7 +24,7 @@ class nbody_space_tree
 		size_t					m_count;
 		size_t					m_body_n;
 	public:
-		node(size_t dim = 0) :
+		explicit node(size_t dim = 0) :
 			m_dimension(dim),
 			m_left(nullptr),
 			m_right(nullptr),

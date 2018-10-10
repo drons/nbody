@@ -550,7 +550,7 @@ class nbody_engine_memory_fake : public nbody_engine::memory
 {
 	size_t m_size;
 public:
-	nbody_engine_memory_fake(size_t sz) : m_size(sz)
+	explicit nbody_engine_memory_fake(size_t sz) : m_size(sz)
 	{
 	}
 	size_t size() const override

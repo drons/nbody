@@ -18,7 +18,7 @@ public:
 	test_nbody_solvers_equality(nbody_engine* _e1, nbody_solver* _s1, nbody_engine* _e2, nbody_solver* _s2);
 	~test_nbody_solvers_equality();
 private:
-	bool check_y(nbcoord_t max_mean, nbcoord_t max_max);
+	bool check_y(nbcoord_t max_max, nbcoord_t max_mean);
 private Q_SLOTS:
 	void initTestCase();
 	void cleanupTestCase();

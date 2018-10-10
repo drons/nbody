@@ -11,6 +11,8 @@ class nbody_solver
 	nbody_engine*						m_engine;
 	nbcoord_t							m_min_step;
 	nbcoord_t							m_max_step;
+	nbody_solver(const nbody_solver&) = delete;
+	nbody_solver& operator = (const nbody_solver&) = delete;
 public:
 	nbody_solver();
 	virtual ~nbody_solver();

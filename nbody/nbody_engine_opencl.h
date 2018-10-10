@@ -8,6 +8,8 @@ class nbody_engine_opencl : public nbody_engine
 	class	smemory;
 	struct	data;
 	data*	d;
+	nbody_engine_opencl(const nbody_engine_opencl&) = delete;
+	nbody_engine_opencl& operator = (const nbody_engine_opencl&) = delete;
 public:
 	nbody_engine_opencl();
 	~nbody_engine_opencl();

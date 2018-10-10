@@ -56,8 +56,9 @@ public:
 	void dump_body(size_t n);
 	size_t get_count() const;
 
-	void add_galaxy(nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass, size_t count,
-					nbcolor_t& color);
+	void add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity,
+					nbcoord_t radius, nbcoord_t total_mass, size_t count,
+					const nbcolor_t& color);
 	void make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz);
 
 	nbvertex_t get_total_impulce() const;

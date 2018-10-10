@@ -9,6 +9,8 @@
 class nbody_engine
 {
 	size_t	m_compute_count;
+	nbody_engine(const nbody_engine&) = delete;
+	nbody_engine& operator = (const nbody_engine&) = delete;
 public:
 	class memory
 	{

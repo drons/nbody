@@ -186,8 +186,9 @@ nbcoord_t static randcoord(nbcoord_t min, nbcoord_t max)
 	return min + (max - min) * static_cast<nbcoord_t>(rand()) / static_cast<nbcoord_t>(RAND_MAX);
 }
 
-void nbody_data::add_galaxy(nbvertex_t center, nbvertex_t velosity, nbcoord_t radius, nbcoord_t total_mass,
-							size_t count, nbcolor_t& color)
+void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity,
+							nbcoord_t radius, nbcoord_t total_mass,
+							size_t count, const nbcolor_t& color)
 {
 	count = (count / NBODY_DATA_BLOCK_SIZE + 1) * NBODY_DATA_BLOCK_SIZE - 1;
 

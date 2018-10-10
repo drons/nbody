@@ -18,7 +18,7 @@ class nbody_solver_rk_butcher : public nbody_solver
 	nbcoord_t					m_error_threshold;
 	size_t						m_refine_steps_count;
 public:
-	nbody_solver_rk_butcher(nbody_butcher_table*);
+	explicit nbody_solver_rk_butcher(nbody_butcher_table*);
 	~nbody_solver_rk_butcher();
 	void set_max_recursion(size_t);
 	void set_substep_subdivisions(size_t);

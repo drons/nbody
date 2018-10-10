@@ -7,7 +7,7 @@ struct impulce_proxy
 {
 	const nbvertex_t*	vel;
 	const nbcoord_t*	m;
-	impulce_proxy(nbody_data* d) :
+	explicit impulce_proxy(nbody_data* d) :
 		vel(d->get_velosites()),
 		m(d->get_mass())
 	{
@@ -22,7 +22,7 @@ struct mass_center_proxy
 {
 	const nbvertex_t*	pos;
 	const nbcoord_t*	m;
-	mass_center_proxy(nbody_data* d) :
+	explicit mass_center_proxy(nbody_data* d) :
 		pos(d->get_vertites()),
 		m(d->get_mass())
 	{
@@ -38,7 +38,7 @@ struct impulce_moment_proxy
 	const nbvertex_t*	pos;
 	const nbvertex_t*	vel;
 	const nbcoord_t*	m;
-	impulce_moment_proxy(nbody_data* d) :
+	explicit impulce_moment_proxy(nbody_data* d) :
 		pos(d->get_vertites()),
 		vel(d->get_velosites()),
 		m(d->get_mass())
@@ -54,7 +54,7 @@ struct kinetic_energy_proxy
 {
 	const nbvertex_t*	vel;
 	const nbcoord_t*	m;
-	kinetic_energy_proxy(nbody_data* d) :
+	explicit kinetic_energy_proxy(nbody_data* d) :
 		vel(d->get_velosites()),
 		m(d->get_mass())
 	{
@@ -69,7 +69,7 @@ struct potential_energy_proxy
 {
 	const nbvertex_t*	vertites;
 	const nbody_data*	data;
-	potential_energy_proxy(nbody_data* d) :
+	explicit potential_energy_proxy(nbody_data* d) :
 		vertites(d->get_vertites()),
 		data(d)
 	{
