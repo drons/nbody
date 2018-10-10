@@ -710,7 +710,7 @@ void nbody_engine_opencl::print_info() const
 	catch(cl::Error& e)
 	{
 		qDebug() << e.err() << e.what();
-		return -1;
+		return;
 	}
 	qDebug() << "Available platforms & devices:";
 	for(size_t i = 0; i != platforms.size(); ++i)
@@ -759,5 +759,5 @@ void nbody_engine_opencl::print_info() const
 			}
 		}
 	}
-	return 0;
+	return;
 }
