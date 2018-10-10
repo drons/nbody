@@ -19,6 +19,10 @@ WORK_TYPE summation_k(WORK_TYPE a, WORK_TYPE b, WORK_TYPE* correction)
 template< class WORK_TYPE, class A >
 WORK_TYPE summation_k(A container, size_t begin, size_t end, WORK_TYPE* correction)
 {
+	if(begin == end)
+	{
+		return WORK_TYPE(0);
+	}
 	WORK_TYPE sum;
 
 	sum = container[begin];
