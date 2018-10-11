@@ -37,6 +37,7 @@ To run n-body problem simulation use 'nbody-simulation' programm.
 ##### Simulation control
 Argument | Description
 ---------|-------------
+`stars_count` | Stars count
 `--box_size` | 'Universe' box size.
 `--output` | Output stream name.
 `--max_part_size` | Max stream file size (splits a stream into multiple files).
