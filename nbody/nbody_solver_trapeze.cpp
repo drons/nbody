@@ -46,7 +46,7 @@ void nbody_solver_trapeze::advise(nbcoord_t dt)
 	{
 		engine()->fcompute(t, m_predictor, m_f01, 0, ps);
 
-		nbcoord_t	coeff[] = { dt * 0.5, dt * 0.5 };
+		nbcoord_t	coeff[] = { dt / 2, dt / 2 };
 		engine()->write_buffer(m_coeff, coeff);
 
 		if(s == m_refine_steps_count)

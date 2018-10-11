@@ -51,7 +51,7 @@ void nbody_solver_rk_butcher::set_refine_steps_count(size_t v)
 	m_refine_steps_count = v;
 }
 
-void nbody_solver_rk_butcher::advise(double dt)
+void nbody_solver_rk_butcher::advise(nbcoord_t dt)
 {
 	nbody_engine::memory*	y = engine()->get_y();
 	nbcoord_t				t = engine()->get_time();

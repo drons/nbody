@@ -19,7 +19,7 @@ const char* nbody_solver_rk4::type_name() const
 	return "nbody_solver_rk4";
 }
 
-void nbody_solver_rk4::advise(double dt)
+void nbody_solver_rk4::advise(nbcoord_t dt)
 {
 	nbody_engine::memory*	y = engine()->get_y();
 	nbcoord_t				t = engine()->get_time();
@@ -44,7 +44,7 @@ void nbody_solver_rk4::advise(double dt)
 	engine()->fcompute(t + dt, m_tmp, m_k, 0, 3 * ps); // k4 = f( t + dt, y + k3*dt )
 
 	//y += 	dt( k1/6 + k2/3 + k3/3 + k4/8 )
-	nbcoord_t	coeff[] = { dt / 6.0, dt / 3.0, dt / 3.0, dt / 6.0 };
+	nbcoord_t	coeff[] = { dt / 6, dt / 3, dt / 3, dt / 6 };
 
 	engine()->write_buffer(m_coeff, coeff);
 	engine()->fmaddn_inplace(y, m_k, m_coeff, ps, 0, 0, 4);

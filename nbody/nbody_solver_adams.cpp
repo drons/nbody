@@ -23,7 +23,7 @@ const char* nbody_solver_adams::type_name() const
 	return "nbody_solver_adams";
 }
 
-void nbody_solver_adams::advise(double dt)
+void nbody_solver_adams::advise(nbcoord_t dt)
 {
 	const nbcoord_t		a1[1] = { 1.0 };
 	const nbcoord_t		a2[2] = { 3.0 / 2.0, -1.0 / 2.0 };
