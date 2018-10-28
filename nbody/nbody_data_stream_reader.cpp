@@ -26,11 +26,42 @@ struct nbody_data_stream_reader::data
 	QFile						m_file;
 	size_t						m_file_n;
 	size_t						m_current_frame;
+	size_t						m_coord_size;
+	size_t						m_body_count;
 
 	data() :
 		m_file_n(std::numeric_limits<size_t>::max()),
-		m_current_frame(std::numeric_limits<size_t>::max())
+		m_current_frame(std::numeric_limits<size_t>::max()),
+		m_coord_size(0),
+		m_body_count(0)
 	{
+	}
+
+	void parse_header_line(const QString& line)
+	{
+		//		m_idx_stream << "#coord_size" << sizeof(nbcoord_t);
+		//		m_idx_stream << "#body_count" << bdata->get_count();
+		QStringList	list(line.split(" "));
+		if(list.size() != 2)
+		{
+			qDebug() << "Invalid header line" << line;
+			return;
+		}
+		bool	ok = false;
+		size_t	value = static_cast<size_t>(list[1].toULongLong(&ok));
+		if(!ok)
+		{
+			qDebug() << "Invalid header line" << line;
+			return;
+		}
+		if(list[0] == "#coord_size")
+		{
+			m_coord_size = value;
+		}
+		else if(list[0] == "#body_count")
+		{
+			m_body_count = value;
+		}
 	}
 };
 
@@ -63,6 +94,11 @@ int nbody_data_stream_reader::load(const QString& file_base_name)
 		QString			line(stream.readLine());
 		QStringList		parts(line.split(nbody_data_stream::get_idx_separator()));
 
+		if(line.startsWith("#"))
+		{
+			d->parse_header_line(line);
+			continue;
+		}
 		if(parts.size() != 4)
 		{
 			qDebug() << "Incomplete data line " << line;
@@ -89,6 +125,13 @@ int nbody_data_stream_reader::load(const QString& file_base_name)
 		d->m_time2frame[i.time] = i.frame;
 	}
 
+	if(d->m_body_count == 0 || d->m_coord_size == 0)
+	{
+		qDebug() << "Invalid file header "
+				 << "'coord_size' == " << d->m_coord_size
+				 << "'body_count' == " << d->m_body_count;
+		return -1;
+	}
 	d->m_file_base_name = file_base_name;
 
 	return seek(0);
@@ -173,17 +216,21 @@ size_t nbody_data_stream_reader::get_current_frame() const
 	return d->m_current_frame;
 }
 
-int nbody_data_stream_reader::read(nbody_engine* e)
+size_t nbody_data_stream_reader::get_body_count() const
 {
-	if(e == NULL)
+	return d->m_body_count;
+}
+
+int nbody_data_stream_reader::read(nbody_data* bdata)
+{
+	if(bdata == NULL)
 	{
-		qDebug() << "e == NULL";
+		qDebug() << "bdata == NULL";
 		return -1;
 	}
-
-	if(e->get_y() == NULL)
+	if(bdata->get_count() != d->m_body_count)
 	{
-		qDebug() << "e->y() == NULL";
+		qDebug() << "Invalid body count in destination buffer" << bdata->get_count() << "must be" << d->m_body_count;
 		return -1;
 	}
 
@@ -194,20 +241,24 @@ int nbody_data_stream_reader::read(nbody_engine* e)
 	}
 
 	qint64				fpos(d->m_file.pos());
-	QByteArray			ybuf(d->m_file.read(e->get_y()->size()));
+	qint64				sz(sizeof(nbvertex_t)*bdata->get_count());
 	const data::item&	frame(d->m_frames[ d->m_current_frame ]);
 
-	if(ybuf.size() != static_cast<int>(e->get_y()->size()))
+	if(sz != d->m_file.read(reinterpret_cast<char*>(bdata->get_vertites()), sz))
 	{
 		qDebug() << "Can't read file" << d->m_file.fileName()
-				 << "Need to read" << e->get_y()->size() << "But only" << ybuf.size() << "from pos" << fpos
-				 << d->m_file.errorString();
+				 << d->m_file.errorString() << "from pos" << fpos;
+		return -1;
+	}
+	if(sz != d->m_file.read(reinterpret_cast<char*>(bdata->get_velosites()), sz))
+	{
+		qDebug() << "Can't read file" << d->m_file.fileName()
+				 << d->m_file.errorString() << "from pos" << fpos + sz;
 		return -1;
 	}
 
-	e->write_buffer(e->get_y(), ybuf.data());
-	e->set_time(frame.time);
-	e->set_step(frame.step);
+	bdata->set_time(frame.time);
+	bdata->set_step(frame.step);
 	if(d->m_current_frame < d->m_frames.size() - 1)
 	{
 		seek(d->m_current_frame + 1);

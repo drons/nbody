@@ -47,7 +47,8 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 
 	if(stream != NULL)
 	{
-		if(0 != stream->write(m_engine))
+		m_engine->get_data(data);
+		if(0 != stream->write(data))
 		{
 			qDebug() << "Can't stream->write";
 			return -1;
@@ -69,7 +70,8 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 
 		if(stream != NULL && dump_dt > 0 && t >= last_dump + dump_dt - dt * 0.1)
 		{
-			if(0 != stream->write(m_engine))
+			m_engine->get_data(data);
+			if(0 != stream->write(data))
 			{
 				qDebug() << "Can't stream->write";
 				return -1;

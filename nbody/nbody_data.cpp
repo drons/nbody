@@ -50,7 +50,12 @@ nbcoord_t nbody_data::potential_energy(const nbvertex_t* vertites, size_t body1,
 
 void nbody_data::print_statistics(nbody_engine* engine)
 {
-	engine->get_data(this);
+	size_t	compute_count = 0;
+	if(engine != NULL)
+	{
+		engine->get_data(this);
+		compute_count = engine->get_compute_count();
+	}
 
 //	double		timer_end = omp_get_wtime();
 	nbvertex_t	total_impulce(summation<nbvertex_t, impulce_proxy>(impulce_proxy(this), m_count));
@@ -86,7 +91,7 @@ void nbody_data::print_statistics(nbody_engine* engine)
 
 	qDebug() << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
 			 << "t" << QString("%1").arg(m_time, 6, 'f', 6, QChar(' '))
-			 << "CC" << QString("%1").arg(engine->get_compute_count(), 8, 10,  QChar('0'))
+			 << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'))
 			 << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3)
 			 << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3)
 			 << "Vcm" << (mass_center_vel).length()
@@ -307,4 +312,10 @@ nbcoord_t nbody_data::get_impulce_moment_err() const
 nbcoord_t nbody_data::get_energy_err() const
 {
 	return fabs(100.0 * (get_last_total_energy() - get_total_energy()) / get_total_energy());
+}
+
+bool nbody_data::is_equal(const nbody_data& other) const
+{
+	return m_vertites == other.m_vertites &&
+		   m_velosites == other.m_velosites;
 }

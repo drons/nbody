@@ -25,6 +25,7 @@ wgt_nbody_player::wgt_nbody_player(nbody_solver* solver, nbody_data* _data, nbco
 	m_view = new wgt_nbody_view(solver, _data, box_size);
 	m_stream = new nbody_data_stream_reader();
 	m_stream->load("/home/sas/Documents/tmp/nbody/main-stream");
+	m_data->resize(m_stream->get_body_count());
 	qDebug() << "Load stream" << m_stream->get_max_time();
 	m_control = new wgt_nbody_player_control(this, m_stream);
 	layout->addWidget(m_view, 1000);
@@ -56,14 +57,11 @@ void wgt_nbody_player::on_update_data()
 		return;
 	}
 
-	if(0 != m_stream->read(m_solver->engine()))
+	if(0 != m_stream->read(m_data))
 	{
 		return;
 	}
 
-//	m_data->print_statistics( m_solver->engine() );
-
-	m_solver->engine()->get_data(m_data);
 	on_update_view();
 }
 
@@ -103,7 +101,7 @@ void wgt_nbody_player::on_start_record()
 			break;
 		}
 
-		if(0 != m_stream->read(m_solver->engine()))
+		if(0 != m_stream->read(m_data))
 		{
 			qDebug() << "Fail to read stream frame #" << frame_n;
 			break;
@@ -111,10 +109,8 @@ void wgt_nbody_player::on_start_record()
 
 		if(frame_n % 100 == 0)
 		{
-			m_data->print_statistics(m_solver->engine());
+			m_data->print_statistics(NULL);
 		}
-
-		m_solver->engine()->get_data(m_data);
 
 		QImage	frame(m_view->render_to_image());
 

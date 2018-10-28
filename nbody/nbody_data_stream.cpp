@@ -14,10 +14,12 @@ struct nbody_data_stream::data
 	QFile			m_data;
 	QFile			m_idx;
 	QString			m_base_name;
+	bool			m_header_written;
 
 	data() :
 		m_file_n(0),
-		m_max_part_size(1024 * 1024 * 1024)
+		m_max_part_size(1024 * 1024 * 1024),
+		m_header_written(false)
 	{
 	}
 
@@ -51,6 +53,14 @@ struct nbody_data_stream::data
 		m_idx_stream.setDevice(&m_idx);
 		return 0;
 	}
+
+	int write_header(const nbody_data* bdata)
+	{
+		m_idx_stream << "#coord_size " << sizeof(nbcoord_t) << "\n";
+		m_idx_stream << "#body_count " << bdata->get_count() << "\n";
+		m_header_written = true;
+		return 0;
+	}
 };
 
 nbody_data_stream::nbody_data_stream() : d(new data())
@@ -63,17 +73,11 @@ nbody_data_stream::~nbody_data_stream()
 	delete d;
 }
 
-int nbody_data_stream::write(nbody_engine* e)
+int nbody_data_stream::write(const nbody_data* bdata)
 {
-	if(e == NULL)
+	if(bdata == NULL)
 	{
-		qDebug() << "e == NULL";
-		return -1;
-	}
-
-	if(e->get_y() == NULL)
-	{
-		qDebug() << "e->y() == NULL";
+		qDebug() << "data == NULL";
 		return -1;
 	}
 
@@ -81,6 +85,11 @@ int nbody_data_stream::write(nbody_engine* e)
 	{
 		qDebug() << "Index not open yet!";
 		return -1;
+	}
+
+	if(!d->m_header_written)
+	{
+		d->write_header(bdata);
 	}
 
 	if(d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size)
@@ -94,11 +103,14 @@ int nbody_data_stream::write(nbody_engine* e)
 	}
 
 	qint64		fpos(d->m_data.pos());
-	QByteArray	ybuf;
-	ybuf.resize(static_cast<int>(e->get_y()->size()));
-	e->read_buffer(ybuf.data(), e->get_y());
-
-	if(ybuf.size() != d->m_data.write(ybuf))
+	qint64		sz(sizeof(nbvertex_t)*bdata->get_count());
+	if(sz != d->m_data.write(reinterpret_cast<const char*>(bdata->get_vertites()), sz))
+	{
+		qDebug() << "Can't write file" << d->m_data.fileName()
+				 << d->m_data.errorString();
+		return -1;
+	}
+	if(sz != d->m_data.write(reinterpret_cast<const char*>(bdata->get_velosites()), sz))
 	{
 		qDebug() << "Can't write file" << d->m_data.fileName()
 				 << d->m_data.errorString();
@@ -107,8 +119,8 @@ int nbody_data_stream::write(nbody_engine* e)
 
 	d->m_data.flush();
 
-	d->m_idx_stream << e->get_step() << get_idx_separator()
-					<< e->get_time() << get_idx_separator()
+	d->m_idx_stream << bdata->get_step() << get_idx_separator()
+					<< bdata->get_time() << get_idx_separator()
 					<< d->m_file_n << get_idx_separator()
 					<< fpos << "\n";
 

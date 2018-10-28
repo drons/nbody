@@ -3,7 +3,7 @@
 
 #include "nbtype.h"
 
-class nbody_engine;
+class nbody_data;
 
 class nbody_data_stream_reader
 {
@@ -54,11 +54,16 @@ public:
 	size_t get_current_frame() const;
 
 	/*!
+	   \return get body count
+	*/
+	size_t get_body_count() const;
+
+	/*!
 	   \brief read stream data to nbody_engine
 	   \param e - destination engine
 	   \return 0 on success
 	 */
-	int read(nbody_engine* e);
+	int read(nbody_data* bdata);
 };
 
 #endif // NBODY_DATA_STREAM_READER_H

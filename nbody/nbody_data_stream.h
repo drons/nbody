@@ -3,7 +3,7 @@
 
 #include <qglobal.h>
 
-class nbody_engine;
+class nbody_data;
 class QString;
 class QChar;
 
@@ -17,7 +17,7 @@ class nbody_data_stream
 public:
 	nbody_data_stream();
 	virtual ~nbody_data_stream();
-	virtual int write(nbody_engine*);
+	virtual int write(const nbody_data* bdata);
 	int open(const QString& file_base_name, qint64 max_part_size);
 	void close();
 

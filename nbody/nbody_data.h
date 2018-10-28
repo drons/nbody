@@ -73,6 +73,8 @@ public:
 	nbcoord_t get_impulce_err() const;
 	nbcoord_t get_impulce_moment_err() const;
 	nbcoord_t get_energy_err() const;
+
+	bool is_equal(const nbody_data& other) const;
 };
 
 #endif // NBODY_DATA_H
