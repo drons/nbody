@@ -104,7 +104,7 @@ void nbody_data::dump_body(size_t n)
 	qDebug() << "#" << n
 			 << "M" << m_mass[n]
 			 << "R" << m_vertites[n].x << m_vertites[n].y << m_vertites[n].z
-	<< "V" << m_velosites[n].x << m_velosites[n].y << m_velosites[n].z;
+			 << "V" << m_velosites[n].x << m_velosites[n].y << m_velosites[n].z;
 }
 
 bool nbody_data::resize(size_t s)
@@ -113,19 +113,17 @@ bool nbody_data::resize(size_t s)
 	m_velosites.resize(s);
 	m_mass.resize(s);
 	m_color.resize(s);
-	m_a.resize(s);
 	m_count = s;
 	return true;
 }
 
-void nbody_data::add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a,
+void nbody_data::add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m,
 						  const nbcolor_t& color)
 {
 	m_vertites.push_back(r);
 	m_velosites.push_back(v);
 	m_mass.push_back(m);
 	m_color.push_back(color);
-	m_a.push_back(a);
 	++m_count;
 }
 
@@ -208,7 +206,7 @@ void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity
 	nbcoord_t	star_mass = (total_mass - black_hole_mass) / static_cast<nbcoord_t>(count);
 	nbcoord_t	all_stars_mass = static_cast<nbcoord_t>(count) * star_mass;
 
-	add_body(center, velosity, black_hole_mass, 1, nbcolor_t(0, 1, 0, 1));
+	add_body(center, velosity, black_hole_mass, nbcolor_t(0, 1, 0, 1));
 
 	for(size_t n = 0; n != count; ++n)
 	{
@@ -231,7 +229,7 @@ void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity
 		v.normalize();
 		nbcoord_t effective_mass = pow(rlen / radius, 3.0) * all_stars_mass + black_hole_mass;
 		v *=  sqrt(force(r, center, star_mass, effective_mass).length() * (r - center).length() / star_mass);
-		add_body(r, v + velosity, star_mass, 1, color);
+		add_body(r, v + velosity, star_mass, color);
 	}
 }
 
