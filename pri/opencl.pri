@@ -22,9 +22,9 @@ exists( /usr/include/CL/cl2.hpp ){
 
 # Try to detect Nvidia SDK
 !contains( DEFINES, HAVE_OPENCL ){
-	exists( /home/sas/prg/opencl/nvidia ){
-		LIBS += -L/home/sas/prg/opencl/nvidia/lib
-		INCLUDEPATH += /home/sas/prg/opencl/nvidia
+	exists( /usr/local/cuda/ ){
+		LIBS += -L/usr/local/cuda/libs64
+		INCLUDEPATH += /usr/local/cuda/include
 		DEFINES += HAVE_OPENCL
 	}
 }
