@@ -54,6 +54,7 @@ public:
 
 	void print_statistics(nbody_engine*);
 	void dump_body(size_t n);
+	bool resize(size_t);
 	size_t get_count() const;
 
 	void add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity,

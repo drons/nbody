@@ -104,7 +104,18 @@ void nbody_data::dump_body(size_t n)
 	qDebug() << "#" << n
 			 << "M" << m_mass[n]
 			 << "R" << m_vertites[n].x << m_vertites[n].y << m_vertites[n].z
-			 << "V" << m_velosites[n].x << m_velosites[n].y << m_velosites[n].z;
+	<< "V" << m_velosites[n].x << m_velosites[n].y << m_velosites[n].z;
+}
+
+bool nbody_data::resize(size_t s)
+{
+	m_vertites.resize(s);
+	m_velosites.resize(s);
+	m_mass.resize(s);
+	m_color.resize(s);
+	m_a.resize(s);
+	m_count = s;
+	return true;
 }
 
 void nbody_data::add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcoord_t& a,
