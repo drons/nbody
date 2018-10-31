@@ -87,11 +87,12 @@ void test_nbody_stream::run()
 		QVERIFY(5 == reader.get_frame_count());
 		QVERIFY(4 == reader.get_steps_count());
 		QVERIFY(0.4 == reader.get_max_time());
+		QVERIFY(m_data.get_count() == reader.get_body_count());
+		QVERIFY(sizeof(nbcoord_t) == reader.get_coord_size());
 
 		m_e->get_data(&expected);
 
 		QVERIFY(0 == reader.seek(0));
-		QVERIFY(256 == reader.get_body_count());
 		QVERIFY(0 != reader.seek(77));
 
 		QVERIFY(0 == reader.seek(0));
@@ -268,14 +269,40 @@ void test_nbody_stream::negative_branch()
 			f.write(QByteArray("1\t1\t1\t-1\n"));  //Negative file offset
 			f.write(QByteArray("1\t1\t2\t-1\n"));  //Negative file offset
 		}
-
-		nbody_data_stream_reader	stream;
-		nbody_data					data;
-		data.resize(m_data.get_count());
-		QVERIFY(0 == stream.load("/tmp/nbody_test/7/stream"));
-		QVERIFY(0 == stream.read(&data));
-		QVERIFY(0 != stream.read(&data));
-		QVERIFY(0 != stream.read(&data));
+		{
+			nbody_data_stream_reader	stream;
+			nbody_data					data;
+			data.resize(m_data.get_count());
+			QVERIFY(0 == stream.load("/tmp/nbody_test/7/stream"));
+			QVERIFY(0 == stream.read(&data));
+			QVERIFY(0 != stream.read(&data));
+			QVERIFY(0 != stream.read(&data));
+		}
+		{
+			QFile	f("/tmp/nbody_test/7/stream.idx");
+			f.open(QFile::WriteOnly);
+			f.write(QByteArray("#coord_size 6\n"));	// Invalid coord size
+			f.write(QByteArray("#body_count 256\n"));
+			f.write(QByteArray("1\t1\t0\t0\n"));
+		}
+		{
+			nbody_data_stream_reader	stream;
+			nbody_data					data;
+			data.resize(m_data.get_count());
+			QVERIFY(0 != stream.load("/tmp/nbody_test/7/stream"));
+		}
+		{
+			QFile	f("/tmp/nbody_test/7/stream.idx");
+			f.open(QFile::WriteOnly);
+			f.write(QByteArray("#body_count 256\n")); // Missing coord size
+			f.write(QByteArray("1\t1\t0\t0\n"));
+		}
+		{
+			nbody_data_stream_reader	stream;
+			nbody_data					data;
+			data.resize(m_data.get_count());
+			QVERIFY(0 != stream.load("/tmp/nbody_test/7/stream"));
+		}
 	}
 
 

@@ -59,6 +59,11 @@ public:
 	size_t get_body_count() const;
 
 	/*!
+	   \return get bytes count per coord value
+	*/
+	size_t get_coord_size() const;
+
+	/*!
 	   \brief read stream data to nbody_engine
 	   \param e - destination engine
 	   \return 0 on success

@@ -132,6 +132,13 @@ int nbody_data_stream_reader::load(const QString& file_base_name)
 				 << "'body_count' == " << d->m_body_count;
 		return -1;
 	}
+	if(d->m_coord_size != sizeof(nbcoord_t))
+	{
+		qDebug() << "Invalid file header "
+				 << "'coord_size' == " << d->m_coord_size
+				 << "must be " << sizeof(nbcoord_t);
+		return -1;
+	}
 	d->m_file_base_name = file_base_name;
 
 	return seek(0);
@@ -219,6 +226,11 @@ size_t nbody_data_stream_reader::get_current_frame() const
 size_t nbody_data_stream_reader::get_body_count() const
 {
 	return d->m_body_count;
+}
+
+size_t nbody_data_stream_reader::get_coord_size() const
+{
+	return d->m_coord_size;
 }
 
 int nbody_data_stream_reader::read(nbody_data* bdata)
