@@ -74,7 +74,7 @@ void test_nbody_stream::run()
 
 	QVERIFY(idx.open(QFile::ReadOnly));
 
-	QVERIFY(QString(idx.readAll()).split(QChar('\n'), QString::SkipEmptyParts).size() == 7);
+	QVERIFY(QString(idx.readAll()).split(QChar('\n'), QString::SkipEmptyParts).size() == 8);
 
 	{
 		nbody_data_stream_reader	reader;
@@ -265,6 +265,7 @@ void test_nbody_stream::negative_branch()
 			f.open(QFile::WriteOnly);
 			f.write(QByteArray("#coord_size 8\n"));
 			f.write(QByteArray("#body_count 256\n"));
+			f.write(QByteArray("#box_size 100\n"));
 			f.write(QByteArray("1\t1\t0\t0\n"));
 			f.write(QByteArray("1\t1\t1\t-1\n"));  //Negative file offset
 			f.write(QByteArray("1\t1\t2\t-1\n"));  //Negative file offset

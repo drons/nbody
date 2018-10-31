@@ -14,6 +14,7 @@ class nbody_data
 	size_t						m_count;
 	nbcoord_t					m_time;
 	size_t						m_step;
+	size_t						m_box_size;
 	std::vector< nbvertex_t >	m_vertites;
 	std::vector< nbcolor_t >	m_color;
 	std::vector< nbvertex_t >	m_velosites;
@@ -50,7 +51,7 @@ public:
 	const nbvertex_t* get_velosites() const;
 	const nbcoord_t* get_mass() const;
 	const nbcolor_t* get_color() const;
-
+	size_t get_box_size() const;
 	void print_statistics(nbody_engine*);
 	void dump_body(size_t n);
 	bool resize(size_t);

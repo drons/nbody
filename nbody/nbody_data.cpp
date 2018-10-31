@@ -16,6 +16,7 @@ nbody_data::nbody_data()
 {
 	m_time = 0;
 	m_step = 0;
+	m_box_size = 0;
 	m_count = 0;
 	m_total_kinetic_energy = 0;
 	m_total_potential_energy = 0;
@@ -188,6 +189,11 @@ const nbcolor_t* nbody_data::get_color() const
 	return m_color.data();
 }
 
+size_t nbody_data::get_box_size() const
+{
+	return m_box_size;
+}
+
 size_t nbody_data::get_count() const
 {
 	return m_count;
@@ -255,6 +261,8 @@ void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nb
 	add_galaxy(center - base, velosity / 3, radius, galaxy_mass, star_count, color1);
 	add_galaxy(center + base, -velosity / 3, radius, galaxy_mass, star_count, color2);
 	//add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
+
+	m_box_size = static_cast<size_t>(std::max(std::max(1.0, sx), std::max(sy, sz)));
 }
 
 nbvertex_t nbody_data::get_total_impulce() const

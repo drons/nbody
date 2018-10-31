@@ -64,6 +64,11 @@ public:
 	size_t get_coord_size() const;
 
 	/*!
+	   \return data box size
+	*/
+	nbcoord_t get_box_size() const;
+
+	/*!
 	   \brief read stream data to nbody_engine
 	   \param e - destination engine
 	   \return 0 on success

@@ -28,19 +28,18 @@ struct nbody_data_stream_reader::data
 	size_t						m_current_frame;
 	size_t						m_coord_size;
 	size_t						m_body_count;
-
+	size_t						m_box_size;
 	data() :
 		m_file_n(std::numeric_limits<size_t>::max()),
 		m_current_frame(std::numeric_limits<size_t>::max()),
 		m_coord_size(0),
-		m_body_count(0)
+		m_body_count(0),
+		m_box_size(0)
 	{
 	}
 
 	void parse_header_line(const QString& line)
 	{
-		//		m_idx_stream << "#coord_size" << sizeof(nbcoord_t);
-		//		m_idx_stream << "#body_count" << bdata->get_count();
 		QStringList	list(line.split(" "));
 		if(list.size() != 2)
 		{
@@ -61,6 +60,10 @@ struct nbody_data_stream_reader::data
 		else if(list[0] == "#body_count")
 		{
 			m_body_count = value;
+		}
+		else if(list[0] == "#box_size")
+		{
+			m_box_size = value;
 		}
 	}
 };
@@ -125,11 +128,12 @@ int nbody_data_stream_reader::load(const QString& file_base_name)
 		d->m_time2frame[i.time] = i.frame;
 	}
 
-	if(d->m_body_count == 0 || d->m_coord_size == 0)
+	if(d->m_body_count == 0 || d->m_coord_size == 0 || d->m_box_size == 0)
 	{
 		qDebug() << "Invalid file header "
 				 << "'coord_size' == " << d->m_coord_size
-				 << "'body_count' == " << d->m_body_count;
+				 << "'body_count' == " << d->m_body_count
+				 << "'box_size' == " << d->m_box_size;
 		return -1;
 	}
 	if(d->m_coord_size != sizeof(nbcoord_t))
@@ -231,6 +235,11 @@ size_t nbody_data_stream_reader::get_body_count() const
 size_t nbody_data_stream_reader::get_coord_size() const
 {
 	return d->m_coord_size;
+}
+
+nbcoord_t nbody_data_stream_reader::get_box_size() const
+{
+	return d->m_box_size;
 }
 
 int nbody_data_stream_reader::read(nbody_data* bdata)

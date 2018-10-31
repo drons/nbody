@@ -7,7 +7,7 @@
 #include <QMouseEvent>
 #include <QPropertyAnimation>
 
-wgt_nbody_view::wgt_nbody_view(nbody_solver* solver, nbody_data* _data, nbcoord_t box_size)
+wgt_nbody_view::wgt_nbody_view(nbody_data* _data, nbcoord_t box_size)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -17,7 +17,6 @@ wgt_nbody_view::wgt_nbody_view(nbody_solver* solver, nbody_data* _data, nbcoord_
 	m_mesh_sz = box_size;
 
 	m_data = _data;
-	m_solver = solver;
 	m_renderer = NULL;
 	m_stereo_base = 0;
 	m_star_intensity = 255;
@@ -264,24 +263,7 @@ void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
 
 void wgt_nbody_view::paintGL()
 {
-	m_solver->engine()->get_data(m_data);
 	paintGL(width(), height());
-}
-
-void wgt_nbody_view::step()
-{
-	size_t	i = m_data->get_step();
-
-	size_t	w = 100;
-	if(i % w == 0)
-	{
-		m_data->print_statistics(m_solver->engine());
-		//render_file();
-	}
-
-	nbcoord_t	step_time = omp_get_wtime();
-	m_solver->advise(m_solver->get_max_step());
-	qDebug() << "Step time" << step_time - omp_get_wtime();
 }
 
 void wgt_nbody_view::mouseDoubleClickEvent(QMouseEvent* e)

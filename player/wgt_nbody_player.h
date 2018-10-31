@@ -16,10 +16,9 @@ class wgt_nbody_player : public QWidget
 	wgt_nbody_view*				m_view;
 	wgt_nbody_player_control*	m_control;
 	nbody_data_stream_reader*	m_stream;
-	nbody_solver*				m_solver;
 	nbody_data*					m_data;
 public:
-	wgt_nbody_player(nbody_solver*, nbody_data*, nbcoord_t box_size);
+	wgt_nbody_player();
 	~wgt_nbody_player();
 public slots:
 	void on_update_data();

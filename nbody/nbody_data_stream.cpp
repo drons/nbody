@@ -58,6 +58,7 @@ struct nbody_data_stream::data
 	{
 		m_idx_stream << "#coord_size " << sizeof(nbcoord_t) << "\n";
 		m_idx_stream << "#body_count " << bdata->get_count() << "\n";
+		m_idx_stream << "#box_size " << bdata->get_box_size() << "\n";
 		m_header_written = true;
 		return 0;
 	}
