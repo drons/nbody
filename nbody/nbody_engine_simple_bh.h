@@ -1,13 +1,13 @@
 #ifndef NBODY_ENGINE_SIMPLE_BH_H
 #define NBODY_ENGINE_SIMPLE_BH_H
 
-#include "nbody_engine_simple.h"
+#include "nbody_engine_openmp.h"
 
 /*!
   Barnes–Hut simulation
   https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation
  */
-class nbody_engine_simple_bh : public nbody_engine_simple
+class nbody_engine_simple_bh : public nbody_engine_openmp
 {
 public:
 	enum e_traverse_type

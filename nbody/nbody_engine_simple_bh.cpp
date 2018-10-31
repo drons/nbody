@@ -308,7 +308,8 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 	switch(m_traverse_type)
 	{
 	case ett_cycle:
-		for(size_t body1 = 0; body1 != count; ++body1)
+		#pragma omp parallel for schedule(dynamic, 4)
+		for(size_t body1 = 0; body1 < count; ++body1)
 		{
 			const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
 			const nbcoord_t		mass1(mass[body1]);
@@ -330,4 +331,3 @@ void nbody_engine_simple_bh::print_info() const
 	qDebug() << "\tdistance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
 	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
 }
-
