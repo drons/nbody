@@ -44,6 +44,8 @@ int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, cons
 	if(!param.value("verbose").isNull())
 	{
 		qDebug() << "General:";
+		qDebug() << "\tStars count:" << data->get_count();
+		qDebug() << "\tBox size:" << data->get_box_size();
 		qDebug() << "\toutput:" << output;
 		qDebug() << "\tmax_part_size:" << max_part_size;
 		qDebug() << "\tmax_time:" << max_time;
