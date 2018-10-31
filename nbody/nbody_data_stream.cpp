@@ -59,6 +59,34 @@ struct nbody_data_stream::data
 		m_idx_stream << "#coord_size " << sizeof(nbcoord_t) << "\n";
 		m_idx_stream << "#body_count " << bdata->get_count() << "\n";
 		m_idx_stream << "#box_size " << bdata->get_box_size() << "\n";
+		{
+			QFile	col(make_col_name(m_base_name));
+			if(!col.open(QFile::WriteOnly))
+			{
+				qDebug() << "Can't open file" << col.fileName() << col.errorString();
+				return -1;
+			}
+			qint64		sz(sizeof(nbcolor_t)*bdata->get_count());
+			if(sz != col.write(reinterpret_cast<const char*>(bdata->get_color()), sz))
+			{
+				qDebug() << "Can't write file" << col.fileName() << col.errorString();
+				return -1;
+			}
+		}
+		{
+			QFile	mass(make_mass_name(m_base_name));
+			if(!mass.open(QFile::WriteOnly))
+			{
+				qDebug() << "Can't open file" << mass.fileName() << mass.errorString();
+				return -1;
+			}
+			qint64		sz(sizeof(nbcoord_t)*bdata->get_count());
+			if(sz != mass.write(reinterpret_cast<const char*>(bdata->get_mass()), sz))
+			{
+				qDebug() << "Can't write file" << mass.fileName() << mass.errorString();
+				return -1;
+			}
+		}
 		m_header_written = true;
 		return 0;
 	}
@@ -90,7 +118,11 @@ int nbody_data_stream::write(const nbody_data* bdata)
 
 	if(!d->m_header_written)
 	{
-		d->write_header(bdata);
+		if(0 != d->write_header(bdata))
+		{
+			qDebug() << "Write header failed";
+			return -1;
+		}
 	}
 
 	if(d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size)
@@ -170,6 +202,16 @@ QString nbody_data_stream::make_idx_name(const QString& file_base_name)
 QString nbody_data_stream::make_dat_name(const QString& file_base_name, size_t file_n)
 {
 	return file_base_name + QString::number(file_n) + ".dat";
+}
+
+QString nbody_data_stream::make_col_name(const QString& file_base_name)
+{
+	return file_base_name + ".col";
+}
+
+QString nbody_data_stream::make_mass_name(const QString& file_base_name)
+{
+	return file_base_name + ".mass";
 }
 
 QChar nbody_data_stream::get_idx_separator()

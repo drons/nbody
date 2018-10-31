@@ -179,9 +179,19 @@ const nbvertex_t* nbody_data::get_velosites() const
 	return m_velosites.data();
 }
 
+nbcoord_t* nbody_data::get_mass()
+{
+	return m_mass.data();
+}
+
 const nbcoord_t* nbody_data::get_mass() const
 {
 	return m_mass.data();
+}
+
+nbcolor_t* nbody_data::get_color()
+{
+	return m_color.data();
 }
 
 const nbcolor_t* nbody_data::get_color() const
@@ -325,5 +335,7 @@ nbcoord_t nbody_data::get_energy_err() const
 bool nbody_data::is_equal(const nbody_data& other) const
 {
 	return m_vertites == other.m_vertites &&
-		   m_velosites == other.m_velosites;
+		   m_velosites == other.m_velosites &&
+		   m_color == other.m_color &&
+		   m_mass == other.m_mass;
 }

@@ -90,6 +90,7 @@ void test_nbody_stream::run()
 		QVERIFY(m_data.get_count() == reader.get_body_count());
 		QVERIFY(sizeof(nbcoord_t) == reader.get_coord_size());
 
+		expected = m_data;
 		m_e->get_data(&expected);
 
 		QVERIFY(0 == reader.seek(0));

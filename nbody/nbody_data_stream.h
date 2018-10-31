@@ -23,6 +23,8 @@ public:
 
 	static QString make_idx_name(const QString& file_base_name);
 	static QString make_dat_name(const QString& file_base_name, size_t part_n);
+	static QString make_col_name(const QString& file_base_name);
+	static QString make_mass_name(const QString& file_base_name);
 	static QChar get_idx_separator();
 };
 

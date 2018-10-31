@@ -284,6 +284,34 @@ int nbody_data_stream_reader::read(nbody_data* bdata)
 	{
 		seek(d->m_current_frame + 1);
 	}
+	{
+		QFile	col(nbody_data_stream::make_col_name(d->m_file_base_name));
+		if(!col.open(QFile::ReadOnly))
+		{
+			qDebug() << "Can't open file" << col.fileName() << col.errorString();
+			return -1;
+		}
+		qint64		col_sz(sizeof(nbcolor_t)*bdata->get_count());
+		if(col_sz != col.read(reinterpret_cast<char*>(bdata->get_color()), col_sz))
+		{
+			qDebug() << "Can't read file" << col.fileName() << col.errorString();
+			return -1;
+		}
+	}
+	{
+		QFile	mass(nbody_data_stream::make_mass_name(d->m_file_base_name));
+		if(!mass.open(QFile::ReadOnly))
+		{
+			qDebug() << "Can't open file" << mass.fileName() << mass.errorString();
+			return -1;
+		}
+		qint64		mass_sz(sizeof(nbcoord_t)*bdata->get_count());
+		if(mass_sz != mass.read(reinterpret_cast<char*>(bdata->get_mass()), mass_sz))
+		{
+			qDebug() << "Can't read file" << mass.fileName() << mass.errorString();
+			return -1;
+		}
+	}
 
 	return 0;
 }

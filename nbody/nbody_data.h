@@ -49,7 +49,9 @@ public:
 	const nbvertex_t* get_vertites() const;
 	nbvertex_t* get_velosites();
 	const nbvertex_t* get_velosites() const;
+	nbcoord_t* get_mass();
 	const nbcoord_t* get_mass() const;
+	nbcolor_t* get_color();
 	const nbcolor_t* get_color() const;
 	size_t get_box_size() const;
 	void print_statistics(nbody_engine*);
