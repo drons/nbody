@@ -25,6 +25,7 @@ class wgt_nbody_player_control : public QWidget
 	QAction*			m_act_stop;
 	QAction*			m_act_forward;
 	QAction*			m_act_record;
+	QAction*			m_color_from_velosity;
 public:
 	wgt_nbody_player_control(QWidget* parent, const nbody_data_stream_reader* stream);
 	size_t get_current_frame() const;
@@ -32,6 +33,7 @@ public:
 	int get_star_intensity() const;
 	double get_star_size() const;
 	void set_star_size_range(double, double, double);
+	bool get_color_from_velosity() const;
 public slots:
 	void on_start();
 	void on_pause();
@@ -48,6 +50,7 @@ signals:
 	void star_intensity_updated();
 	void star_size_updated();
 	void start_record();
+	void color_from_velosity_changed();
 };
 
 #endif // WGT_NBODY_PLAYER_CONTROL_H

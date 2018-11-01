@@ -24,6 +24,9 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_act_stop = bar->addAction(QIcon::fromTheme("media-playback-stop"), tr("Stop"));
 	m_act_forward = bar->addAction(QIcon::fromTheme("media-seek-forward"), tr("Forward>"));
 	m_act_record = bar->addAction(QIcon::fromTheme("media-record"), tr("Record*"));
+	m_color_from_velosity = bar->addAction(QIcon::fromTheme("emblem-generic"), tr("Color from velosity"));
+
+	m_color_from_velosity->setCheckable(true);
 
 	m_timeline = new QSlider(this);
 	m_stereo_base = new QSlider(this);
@@ -82,6 +85,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	connect(m_act_stop, SIGNAL(triggered(bool)), this, SLOT(on_stop()));
 	connect(m_act_forward, SIGNAL(triggered(bool)), this, SLOT(on_forward()));
 	connect(m_act_record, SIGNAL(triggered(bool)), this, SIGNAL(start_record()));
+	connect(m_color_from_velosity, SIGNAL(triggered(bool)), this, SIGNAL(color_from_velosity_changed()));
 
 	on_finished();
 }
@@ -111,6 +115,11 @@ void wgt_nbody_player_control::set_star_size_range(double size_range_min, double
 	m_stars_size->setRange(size_range_min, size_range_max);
 	m_stars_size->setSingleStep(size_step);
 	m_stars_size->setValue(size_range_min);
+}
+
+bool wgt_nbody_player_control::get_color_from_velosity() const
+{
+	return m_color_from_velosity->isChecked();
 }
 
 void wgt_nbody_player_control::on_start()

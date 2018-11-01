@@ -18,6 +18,7 @@ class wgt_nbody_view : public QGLWidget
 	int						m_stereo_base;
 	int						m_star_intensity;
 	double					m_star_size;
+	bool					m_color_from_velosity;
 public:
 	wgt_nbody_view(nbody_data*, nbcoord_t box_size);
 	~wgt_nbody_view();
@@ -36,6 +37,8 @@ public:
 						  const nbvertex_t& up);
 	QImage render_to_image();
 	void mouseDoubleClickEvent(QMouseEvent*) override;
+	bool get_color_from_velosity() const;
+	void set_color_from_velosity(bool color_from_velosity);
 signals:
 	void stars_size_range_changed(double, double, double);
 };

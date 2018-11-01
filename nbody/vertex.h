@@ -184,6 +184,15 @@ struct vertex4
 		w = static_cast<T>(copy.w);
 		return *this;
 	}
+	template<class V>
+	vertex4& operator = (const vertex3<V>& copy)
+	{
+		x = static_cast<T>(copy.x);
+		y = static_cast<T>(copy.y);
+		z = static_cast<T>(copy.z);
+		w = 1;
+		return *this;
+	}
 	vertex4(const T& x_, const  T& y_, const  T& z_, const  T& w_) :
 		x(x_), y(y_), z(z_), w(w_)
 	{}
@@ -223,6 +232,22 @@ struct vertex4
 		w -= V.w;
 		return *this;
 	}
+	//************************************************************************************************
+	//Mul
+	//************************************************************************************************
+	vertex4<T> operator * (const T a) const
+	{
+		return vertex4<T>(x * a, y * a, z * a, w * a);
+	}
+	vertex4<T>& operator *= (const T a)
+	{
+		x *= a;
+		y *= a;
+		z *= a;
+		w *= a;
+		return *this;
+	}
+
 };
 
 #endif//_VERTEX_

@@ -21,6 +21,7 @@ wgt_nbody_view::wgt_nbody_view(nbody_data* _data, nbcoord_t box_size)
 	m_stereo_base = 0;
 	m_star_intensity = 255;
 	m_star_size = 1;
+	m_color_from_velosity = true;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
@@ -115,18 +116,59 @@ void wgt_nbody_view::initializeGL()
 	emit stars_size_range_changed(size_range[0], size_range[1], size_step);
 }
 
+static nbcolor_t get_color(nbcoord_t x)
+{
+	nbcolor_t	lut[] =
+	{
+		nbcolor_t(0.3, 0.3, 1, 1),
+		nbcolor_t(0, 1, 0, 1),
+		nbcolor_t(1, 1, 0, 1),
+		nbcolor_t(1, 0, 0, 1)
+	};
+	size_t	lut_len = sizeof(lut) / sizeof(lut[0]);
+	if(x <= 0)
+	{
+		return lut[0];
+	}
+	if(x >= 1)
+	{
+		return lut[lut_len - 1];
+	}
+	x *= lut_len;
+	for(size_t i = 1; i < lut_len; ++i)
+	{
+		if(x >= i)
+		{
+			continue;
+		}
+		nbcoord_t	w = i - x;
+
+		return lut[i - 1] * w + lut[i] * (1 - w);
+	}
+	return lut[lut_len - 1];
+}
+
+static void compute_color_from_velosity(const nbvertex_t* vel, nbcolor_t* color, size_t count)
+{
+	nbcoord_t	max_velosity = 20;
+	for(size_t i = 0; i != count; ++i)
+	{
+		color[i] = get_color(vel[i].length() / max_velosity);
+	}
+}
+
 void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, const nbvertex_t& camera_position,
 							 const nbvertex_t& up)
 {
 	glViewport(x, y, width, height);
 
 	glColor3f(1, 1, 1);
-	renderText(20 , 20, QString("Step  = %1").arg(m_data->get_step()), QFont("Monospace"));
-	renderText(20 , 40, QString("T     = %1").arg(m_data->get_time()), QFont("Monospace"));
-	renderText(20 , 60, QString("Stars = %1").arg(m_data->get_count()), QFont("Monospace"));
-	renderText(20 , 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2), QFont("Monospace"));
-	renderText(20 , 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2), QFont("Monospace"));
-	renderText(20 , 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2), QFont("Monospace"));
+	renderText(20, 20, QString("Step  = %1").arg(m_data->get_step()), QFont("Monospace"));
+	renderText(20, 40, QString("T     = %1").arg(m_data->get_time()), QFont("Monospace"));
+	renderText(20, 60, QString("Stars = %1").arg(m_data->get_count()), QFont("Monospace"));
+	renderText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2), QFont("Monospace"));
+	renderText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2), QFont("Monospace"));
+	renderText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2), QFont("Monospace"));
 
 
 	glDisable(GL_DEPTH_TEST);
@@ -146,10 +188,19 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 		glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE);
 		glBlendColor(factor, factor, factor, factor);
 
+		nbcolor_t*				color = m_data->get_color();
+		std::vector<nbcolor_t>	cbuf;
+		if(m_color_from_velosity)
+		{
+			cbuf.resize(m_data->get_count());
+			color = cbuf.data();
+			compute_color_from_velosity(m_data->get_velosites(), color, m_data->get_count());
+		}
+
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(nbtype_info<nbvertex_t>::size(), nbtype_info<nbvertex_t>::gl_type(), 0, m_data->get_vertites());
-		glColorPointer(nbtype_info<nbcolor_t>::size(), nbtype_info<nbcolor_t>::gl_type(), 0, m_data->get_color());
+		glColorPointer(nbtype_info<nbcolor_t>::size(), nbtype_info<nbcolor_t>::gl_type(), 0, color);
 		glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_data->get_count()));
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -234,12 +285,12 @@ QImage wgt_nbody_view::render_to_image()
 		p.drawLine(QPointF(0, image.height() / 2.0), QPointF(image.width(), image.height() / 2.0));
 		p.drawLine(QPointF(image.width() / 2.0, 0), QPointF(image.width() / 2.0, image.height()));
 
-		p.drawText(20 , 20, QString("Step  = %1").arg(m_data->get_step()));
-		p.drawText(20 , 40, QString("T     = %1").arg(m_data->get_time()));
-		p.drawText(20 , 60, QString("Stars = %1").arg(m_data->get_count()));
-		p.drawText(20 , 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2));
-		p.drawText(20 , 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2));
-		p.drawText(20 , 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2));
+		p.drawText(20, 20, QString("Step  = %1").arg(m_data->get_step()));
+		p.drawText(20, 40, QString("T     = %1").arg(m_data->get_time()));
+		p.drawText(20, 60, QString("Stars = %1").arg(m_data->get_count()));
+		p.drawText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2));
+		p.drawText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2));
+		p.drawText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2));
 	}
 	return image;
 }
@@ -327,4 +378,14 @@ void wgt_nbody_view::set_star_intensity(int star_intensity)
 void wgt_nbody_view::set_star_size(double star_size)
 {
 	m_star_size = star_size;
+}
+
+bool wgt_nbody_view::get_color_from_velosity() const
+{
+	return m_color_from_velosity;
+}
+
+void wgt_nbody_view::set_color_from_velosity(bool color_from_velosity)
+{
+	m_color_from_velosity = color_from_velosity;
 }
