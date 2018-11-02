@@ -3,7 +3,7 @@
 
 #include "nbody_engine_simple.h"
 
-class nbody_engine_openmp : public nbody_engine_simple
+class NBODY_DLL nbody_engine_openmp : public nbody_engine_simple
 {
 public:
 	nbody_engine_openmp();

@@ -14,7 +14,7 @@ matrix:
           - ocl-icd-opencl-dev
           - oclgrind
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release
       - cd build-release
       - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release
@@ -38,7 +38,7 @@ matrix:
           - ocl-icd-opencl-dev
           - oclgrind
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-debug-gcov
       - cd build-debug-gcov
       - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=build-gcov
@@ -66,7 +66,7 @@ matrix:
           - libqt4-opengl-dev
           - libopencv-dev
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-debug-valgrind
       - cd build-debug-valgrind
       - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=debug
@@ -90,7 +90,7 @@ matrix:
           - libiomp-dev
           - libopencv-dev
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release-clang
       - cd build-release-clang
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release -spec linux-clang
@@ -113,7 +113,7 @@ matrix:
           - libqt5opengl5-dev
           - libopencv-dev
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release-scanbuild
       - cd build-release-scanbuild
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
@@ -133,7 +133,7 @@ matrix:
           - libqt5opengl5-dev
           - libopencv-dev
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - gcc --version
       - gcc-6 --version
       - sudo ln -f -s /usr/bin/gcc-6 /usr/bin/gcc
@@ -162,7 +162,7 @@ matrix:
           - libqt5opengl5-dev
           - libopencv-dev
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - gcc --version
       - gcc-7 --version
       - sudo ln -f -s /usr/bin/gcc-7 /usr/bin/gcc
@@ -193,7 +193,7 @@ matrix:
           - ocl-icd-opencl-dev
           - oclgrind
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - gcc --version
       - gcc-8 --version
       - sudo ln -f -s /usr/bin/gcc-8 /usr/bin/gcc
@@ -223,7 +223,7 @@ matrix:
           - libqt5opengl5-dev
           - libopencv-dev
       script:
-      - export LD_LIBRARY_PATH=./nbody:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - gcc --version
       - gcc-8 --version
       - sudo ln -f -s /usr/bin/gcc-8 /usr/bin/gcc

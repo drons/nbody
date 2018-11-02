@@ -1,4 +1,5 @@
 #include <QString>
+#include <QDir>
 #include <QFile>
 #include <QtTest>
 
@@ -15,6 +16,7 @@ class test_nbody_stream : public QObject
 	nbody_engine*		m_e;
 	nbody_solver*		m_s;
 	nbody_data_stream*	m_stream;
+	QString				m_tmp;
 public:
 	test_nbody_stream();
 	~test_nbody_stream();
@@ -28,7 +30,8 @@ private Q_SLOTS:
 test_nbody_stream::test_nbody_stream() :
 	m_e(new nbody_engine_simple()),
 	m_s(new nbody_solver_euler()),
-	m_stream(new nbody_data_stream())
+	m_stream(new nbody_data_stream()),
+	m_tmp(QDir::tempPath())
 {
 
 }
@@ -60,17 +63,17 @@ void test_nbody_stream::run()
 {
 	m_s->set_time_step(0.01, 0.1);
 	//open stream with 2 frames per data file limit
-	QVERIFY(0 == m_stream->open("/tmp/stream-test/new", 14000));
+	QVERIFY(0 == m_stream->open(m_tmp + "/stream-test/new", 14000));
 	QVERIFY(0 == m_s->run(&m_data, m_stream, 0.31, 0.1, 0.1));
 
 	m_stream->close();
 
-	QVERIFY(QFile::exists("/tmp/stream-test/new.idx"));
-	QVERIFY(QFile::exists("/tmp/stream-test/new0.dat"));
-	QVERIFY(QFile::exists("/tmp/stream-test/new1.dat"));
-	QVERIFY(QFile::exists("/tmp/stream-test/new2.dat"));
+	QVERIFY(QFile::exists(m_tmp + "/stream-test/new.idx"));
+	QVERIFY(QFile::exists(m_tmp + "/stream-test/new0.dat"));
+	QVERIFY(QFile::exists(m_tmp + "/stream-test/new1.dat"));
+	QVERIFY(QFile::exists(m_tmp + "/stream-test/new2.dat"));
 
-	QFile	idx("/tmp/stream-test/new.idx");
+	QFile	idx(m_tmp + "/stream-test/new.idx");
 
 	QVERIFY(idx.open(QFile::ReadOnly));
 
@@ -83,7 +86,7 @@ void test_nbody_stream::run()
 		expected.resize(m_data.get_count());
 		data.resize(m_data.get_count());
 
-		QVERIFY(0 == reader.load("/tmp/stream-test/new"));
+		QVERIFY(0 == reader.load(m_tmp + "/stream-test/new"));
 		QVERIFY(5 == reader.get_frame_count());
 		QVERIFY(4 == reader.get_steps_count());
 		QVERIFY(0.4 == reader.get_max_time());
@@ -136,6 +139,7 @@ void test_nbody_stream::negative_branch()
 		nbody_data_stream	stream;
 		QVERIFY(0 != stream.write(NULL));
 	}
+#ifdef Q_OS_UNIX
 	{
 		nbody_data_stream	stream;
 		nbody_data			data;
@@ -143,7 +147,7 @@ void test_nbody_stream::negative_branch()
 		QVERIFY(0 != stream.open("/nameless/file", 1000));
 		QVERIFY(0 != stream.write(&data));
 	}
-
+#endif //Q_OS_UNIX
 	{
 		nbody_data_stream	stream;
 		nbody_data			data;
@@ -155,8 +159,8 @@ void test_nbody_stream::negative_branch()
 		nbody_data_stream	stream;
 		nbody_data			data;
 		data.make_universe(32, 1, 1, 1);
-		QVERIFY(0 == stream.open("/tmp/nbody_test/00/stream", 1000));
-		QVERIFY(0 == stream.open("/tmp/nbody_test/01/stream", 1000));
+		QVERIFY(0 == stream.open(m_tmp + "/nbody_test/00/stream", 1000));
+		QVERIFY(0 == stream.open(m_tmp + "/nbody_test/01/stream", 1000));
 		QVERIFY(0 == stream.write(&data));
 	}
 
@@ -164,8 +168,8 @@ void test_nbody_stream::negative_branch()
 		nbody_data_stream	stream;
 		nbody_data			data;
 		data.make_universe(32, 1, 1, 1);
-		QDir("/tmp/nbody_test/0/stream0.dat").mkpath(".");
-		QVERIFY(0 != stream.open("/tmp/nbody_test/0/stream", 1));
+		QDir(m_tmp + "/nbody_test/0/stream0.dat").mkpath(".");
+		QVERIFY(0 != stream.open(m_tmp + "/nbody_test/0/stream", 1));
 		QVERIFY(0 != stream.write(&data));
 		QDir("/tmp").rmpath("nbody_test/0");
 	}
@@ -173,8 +177,8 @@ void test_nbody_stream::negative_branch()
 		nbody_data_stream	stream;
 		nbody_data			data;
 		data.make_universe(32, 1, 1, 1);
-		QDir("/tmp/nbody_test/1/stream.idx").mkpath(".");
-		QVERIFY(0 != stream.open("/tmp/nbody_test/1/stream", 1));
+		QDir(m_tmp + "/nbody_test/1/stream.idx").mkpath(".");
+		QVERIFY(0 != stream.open(m_tmp + "/nbody_test/1/stream", 1));
 		QVERIFY(0 != stream.write(&data));
 		QDir("/tmp").rmpath("nbody_test/1");
 	}
@@ -182,8 +186,8 @@ void test_nbody_stream::negative_branch()
 		nbody_data_stream	stream;
 		nbody_data			data;
 		data.make_universe(32, 1, 1, 1);
-		QDir("/tmp/nbody_test/2/stream1.dat").mkpath(".");
-		QVERIFY(0 == stream.open("/tmp/nbody_test/2/stream", 1));
+		QDir(m_tmp + "/nbody_test/2/stream1.dat").mkpath(".");
+		QVERIFY(0 == stream.open(m_tmp + "/nbody_test/2/stream", 1));
 		QVERIFY(0 == stream.write(&data));
 		QVERIFY(0 != stream.write(&data));
 		QDir("/tmp").rmpath("nbody_test/2");
@@ -196,24 +200,24 @@ void test_nbody_stream::negative_branch()
 
 	{
 		nbody_data_stream_reader	stream;
-		QDir("/tmp/nbody_test/3").mkpath(".");
+		QDir(m_tmp + "/nbody_test/3").mkpath(".");
 		{
-			QFile	f("/tmp/nbody_test/3/stream.idx");
+			QFile	f(m_tmp + "/nbody_test/3/stream.idx");
 			f.open(QFile::WriteOnly);
 			f.write(QByteArray("0\t1\t2\n"));
 		}
-		QVERIFY(0 != stream.load("/tmp/nbody_test/3/stream"));
+		QVERIFY(0 != stream.load(m_tmp + "/nbody_test/3/stream"));
 	}
 
 	{
 		nbody_data_stream_reader	stream;
-		QDir("/tmp/nbody_test/4").mkpath(".");
+		QDir(m_tmp + "/nbody_test/4").mkpath(".");
 		{
-			QFile	f("/tmp/nbody_test/4/stream.idx");
+			QFile	f(m_tmp + "/nbody_test/4/stream.idx");
 			f.open(QFile::WriteOnly);
 			f.write(QByteArray("a\tb\tc\td\n"));
 		}
-		QVERIFY(0 != stream.load("/tmp/nbody_test/4/stream"));
+		QVERIFY(0 != stream.load(m_tmp + "/nbody_test/4/stream"));
 	}
 
 	{
@@ -226,29 +230,29 @@ void test_nbody_stream::negative_branch()
 	{
 		{
 			nbody_data_stream	stream;
-			QVERIFY(0 == stream.open("/tmp/nbody_test/5/stream", 1));
+			QVERIFY(0 == stream.open(m_tmp + "/nbody_test/5/stream", 1));
 			QVERIFY(0 == stream.write(&m_data));
 			QVERIFY(0 == stream.write(&m_data));
-			QFile::remove("/tmp/nbody_test/5/stream0.dat");
+			QFile::remove(m_tmp + "/nbody_test/5/stream0.dat");
 		}
 
 		nbody_data_stream_reader	stream;
-		QVERIFY(0 != stream.load("/tmp/nbody_test/5/stream"));
+		QVERIFY(0 != stream.load(m_tmp + "/nbody_test/5/stream"));
 	}
 
 	{
 		{
 			nbody_data_stream	stream;
-			QVERIFY(0 == stream.open("/tmp/nbody_test/6/stream", 1));
+			QVERIFY(0 == stream.open(m_tmp + "/nbody_test/6/stream", 1));
 			QVERIFY(0 == stream.write(&m_data));
 			QVERIFY(0 == stream.write(&m_data));
-			QFile::remove("/tmp/nbody_test/6/stream1.dat");
+			QFile::remove(m_tmp + "/nbody_test/6/stream1.dat");
 		}
 
 		nbody_data_stream_reader	stream;
 		nbody_data					data;
 		data.resize(m_data.get_count());
-		QVERIFY(0 == stream.load("/tmp/nbody_test/6/stream"));
+		QVERIFY(0 == stream.load(m_tmp + "/nbody_test/6/stream"));
 		QVERIFY(0 == stream.read(&data));
 		QVERIFY(0 != stream.read(&data));
 	}
@@ -256,13 +260,13 @@ void test_nbody_stream::negative_branch()
 	{
 		{
 			nbody_data_stream	stream;
-			QVERIFY(0 == stream.open("/tmp/nbody_test/7/stream", 1));
+			QVERIFY(0 == stream.open(m_tmp + "/nbody_test/7/stream", 1));
 			QVERIFY(0 == stream.write(&m_data));
 			QVERIFY(0 == stream.write(&m_data));
 			QVERIFY(0 == stream.write(&m_data));
 		}
 		{
-			QFile	f("/tmp/nbody_test/7/stream.idx");
+			QFile	f(m_tmp + "/nbody_test/7/stream.idx");
 			f.open(QFile::WriteOnly);
 			f.write(QByteArray("#coord_size 8\n"));
 			f.write(QByteArray("#body_count 256\n"));
@@ -275,13 +279,13 @@ void test_nbody_stream::negative_branch()
 			nbody_data_stream_reader	stream;
 			nbody_data					data;
 			data.resize(m_data.get_count());
-			QVERIFY(0 == stream.load("/tmp/nbody_test/7/stream"));
+			QVERIFY(0 == stream.load(m_tmp + "/nbody_test/7/stream"));
 			QVERIFY(0 == stream.read(&data));
 			QVERIFY(0 != stream.read(&data));
 			QVERIFY(0 != stream.read(&data));
 		}
 		{
-			QFile	f("/tmp/nbody_test/7/stream.idx");
+			QFile	f(m_tmp + "/nbody_test/7/stream.idx");
 			f.open(QFile::WriteOnly);
 			f.write(QByteArray("#coord_size 6\n"));	// Invalid coord size
 			f.write(QByteArray("#body_count 256\n"));
@@ -291,10 +295,10 @@ void test_nbody_stream::negative_branch()
 			nbody_data_stream_reader	stream;
 			nbody_data					data;
 			data.resize(m_data.get_count());
-			QVERIFY(0 != stream.load("/tmp/nbody_test/7/stream"));
+			QVERIFY(0 != stream.load(m_tmp + "/nbody_test/7/stream"));
 		}
 		{
-			QFile	f("/tmp/nbody_test/7/stream.idx");
+			QFile	f(m_tmp + "/nbody_test/7/stream.idx");
 			f.open(QFile::WriteOnly);
 			f.write(QByteArray("#body_count 256\n")); // Missing coord size
 			f.write(QByteArray("1\t1\t0\t0\n"));
@@ -303,7 +307,7 @@ void test_nbody_stream::negative_branch()
 			nbody_data_stream_reader	stream;
 			nbody_data					data;
 			data.resize(m_data.get_count());
-			QVERIFY(0 != stream.load("/tmp/nbody_test/7/stream"));
+			QVERIFY(0 != stream.load(m_tmp + "/nbody_test/7/stream"));
 		}
 	}
 
@@ -311,13 +315,13 @@ void test_nbody_stream::negative_branch()
 	{
 		{
 			nbody_data_stream	stream;
-			QVERIFY(0 == stream.open("/tmp/nbody_test/8/stream", 1));
+			QVERIFY(0 == stream.open(m_tmp + "/nbody_test/8/stream", 1));
 			QVERIFY(0 == stream.write(&m_data));
 		}
 
 		nbody_data_stream_reader	stream;
 		nbody_data					data;
-		QVERIFY(0 == stream.load("/tmp/nbody_test/8/stream"));
+		QVERIFY(0 == stream.load(m_tmp + "/nbody_test/8/stream"));
 		QVERIFY(0 != stream.read(NULL));
 		QVERIFY(0 != stream.read(&data));
 	}

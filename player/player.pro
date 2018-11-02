@@ -6,13 +6,15 @@ include( ../pri/vectorize.pri )
 TEMPLATE	= app
 TARGET		= nbodyplayer
 MOC_DIR = ./.tmp/moc
+DESTDIR = ./
 
 CONFIG		+= qt
 QT += opengl concurrent
-LIBS += -lGLU
+win32:LIBS += -lGLU32 -lopengl32
+unix:LIBS += -lGLU
 
 INCLUDEPATH += ../nbody
-LIBS += -L../nbody
+LIBS += -L../lib
 LIBS += -lnbody
 
 SOURCES	+= main.cpp \

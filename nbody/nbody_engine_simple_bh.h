@@ -7,7 +7,7 @@
   Barnes–Hut simulation
   https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation
  */
-class nbody_engine_simple_bh : public nbody_engine_openmp
+class NBODY_DLL nbody_engine_simple_bh : public nbody_engine_openmp
 {
 public:
 	enum e_traverse_type

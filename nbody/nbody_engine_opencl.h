@@ -3,7 +3,7 @@
 
 #include "nbody_engine.h"
 
-class nbody_engine_opencl : public nbody_engine
+class NBODY_DLL nbody_engine_opencl : public nbody_engine
 {
 	class	smemory;
 	struct	data;

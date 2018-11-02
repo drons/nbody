@@ -3,7 +3,7 @@
 
 #include "nbody_solver.h"
 
-class nbody_solver_trapeze : public nbody_solver
+class NBODY_DLL nbody_solver_trapeze : public nbody_solver
 {
 	nbody_engine::memory*	m_f01;
 	nbody_engine::memory*	m_predictor;

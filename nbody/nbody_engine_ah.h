@@ -9,7 +9,7 @@
 
 	https://courses.physics.ucsd.edu/2016/Winter/physics141/Lectures/Lecture8/AhmadCohen.pdf
 */
-class nbody_engine_ah : public nbody_engine_simple
+class NBODY_DLL nbody_engine_ah : public nbody_engine_simple
 {
 	std::vector< std::vector<size_t> >	m_adjacent_body;
 	std::vector< nbvertex_t >			m_univerce_force;

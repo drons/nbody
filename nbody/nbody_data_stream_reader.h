@@ -2,10 +2,11 @@
 #define NBODY_DATA_STREAM_READER_H
 
 #include "nbtype.h"
+#include "nbody_export.h"
 
 class nbody_data;
 
-class nbody_data_stream_reader
+class NBODY_DLL nbody_data_stream_reader
 {
 	struct	data;
 	data*	d;

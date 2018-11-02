@@ -6,7 +6,7 @@
 /*!
    \brief Gauss–Legendre 6-order method
 */
-class nbody_solver_rkgl : public nbody_solver_rk_butcher
+class NBODY_DLL nbody_solver_rkgl : public nbody_solver_rk_butcher
 {
 public:
 	nbody_solver_rkgl();

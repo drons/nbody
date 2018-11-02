@@ -3,7 +3,7 @@
 
 #include "nbody_solver.h"
 
-class nbody_solver_rk4 : public nbody_solver
+class NBODY_DLL nbody_solver_rk4 : public nbody_solver
 {
 	nbody_engine::memory*	m_k;
 	nbody_engine::memory*	m_tmp;

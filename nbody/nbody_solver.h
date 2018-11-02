@@ -6,7 +6,7 @@
 
 class nbody_data_stream;
 
-class nbody_solver
+class NBODY_DLL nbody_solver
 {
 	nbody_engine*						m_engine;
 	nbcoord_t							m_min_step;

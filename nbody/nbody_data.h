@@ -3,13 +3,14 @@
 
 #include <vector>
 #include "nbtype.h"
+#include "nbody_export.h"
 
 #define NBODY_DATA_BLOCK_SIZE	64
 #define NBODY_MIN_R				1e-8
 
 class nbody_engine;
 
-class nbody_data
+class NBODY_DLL nbody_data
 {
 	size_t						m_count;
 	nbcoord_t					m_time;

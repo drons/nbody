@@ -5,13 +5,17 @@ include( ../pri/vectorize.pri )
 TEMPLATE	= lib
 TARGET		= nbody
 MOC_DIR = ./.tmp/moc
+DESTDIR = ./../lib
 
-CONFIG		+= qt
+CONFIG		+= qt dll
 QT += opengl
-LIBS += -lGLU
+win32:LIBS += -lGLU32
+unix:LIBS += -lGLU
+
+DEFINES += NBODY_EXPORT_DLL
 
 SOURCES	+= \
-    nbody_butcher_table.cpp \
+	nbody_butcher_table.cpp \
 	nbody_data.cpp \
 	nbody_engine.cpp \
 	nbody_engine_ah.cpp \
@@ -37,9 +41,10 @@ SOURCES	+= \
     nbody_data_stream_reader.cpp
 
 HEADERS	+= \
+	nbody_export.h \
 	summation.h \
 	summation_proxy.h \
-    nbody_butcher_table.h \
+	nbody_butcher_table.h \
 	nbody_data.h \
 	nbody_engine.h \
 	nbody_engine_ah.h \

@@ -6,13 +6,13 @@
 /*!
 	Compute engine for ODE y' = f(t, y)
 */
-class nbody_engine
+class NBODY_DLL nbody_engine
 {
 	size_t	m_compute_count;
 	nbody_engine(const nbody_engine&) = delete;
 	nbody_engine& operator = (const nbody_engine&) = delete;
 public:
-	class memory
+	class NBODY_DLL memory
 	{
 	public:
 		memory();

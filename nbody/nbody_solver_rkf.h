@@ -3,7 +3,7 @@
 
 #include "nbody_solver_rk_butcher.h"
 
-class nbody_solver_rkf : public nbody_solver_rk_butcher
+class NBODY_DLL nbody_solver_rkf : public nbody_solver_rk_butcher
 {
 public:
 	nbody_solver_rkf();

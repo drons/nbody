@@ -2,12 +2,13 @@
 #define NBODY_DATA_STREAM_H
 
 #include <qglobal.h>
+#include "nbody_export.h"
 
 class nbody_data;
 class QString;
 class QChar;
 
-class nbody_data_stream
+class NBODY_DLL nbody_data_stream
 {
 	struct	data;
 	data*	d;

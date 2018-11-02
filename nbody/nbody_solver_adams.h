@@ -6,7 +6,7 @@
 /*!
    \brief Adams–Bashforth method
  */
-class nbody_solver_adams : public nbody_solver
+class NBODY_DLL nbody_solver_adams : public nbody_solver
 {
 	nbody_solver*			m_starter;
 	nbody_engine::memory*	m_f;

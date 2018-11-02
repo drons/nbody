@@ -120,10 +120,10 @@ static nbcolor_t get_color(nbcoord_t x)
 {
 	nbcolor_t	lut[] =
 	{
-		nbcolor_t(0.3, 0.3, 1, 1),
-		nbcolor_t(0, 1, 0, 1),
-		nbcolor_t(1, 1, 0, 1),
-		nbcolor_t(1, 0, 0, 1)
+		nbcolor_t(0.3f, 0.3f, 1.0f, 1.0f),
+		nbcolor_t(0.0f, 1.0f, 0.0f, 1.0f),
+		nbcolor_t(1.0f, 1.0f, 0.0f, 1.0f),
+		nbcolor_t(1.0f, 0.0f, 0.0f, 1.0f)
 	};
 	size_t	lut_len = sizeof(lut) / sizeof(lut[0]);
 	if(x <= 0)
@@ -186,8 +186,10 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 		paint_color_box();
 
 		glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE);
+#ifdef Q_OS_LINUX
+		//! \todo Made right check of glBlendColor
 		glBlendColor(factor, factor, factor, factor);
-
+#endif //Q_OS_LINUX
 		nbcolor_t*				color = m_data->get_color();
 		std::vector<nbcolor_t>	cbuf;
 		if(m_color_from_velosity)
@@ -246,10 +248,10 @@ void wgt_nbody_view::setup_projection(GLsizei width, GLsizei height, const nbver
 	glLoadIdentity();
 
 	GLfloat aspect = static_cast<GLfloat>(height) / static_cast<GLfloat>(width);
-	GLfloat	near = 1;
-	GLfloat	far = 1000;
+	GLfloat	near_z = 1.0f;
+	GLfloat	far_z = 1000.0f;
 
-	gluPerspective(60, 1.0 / aspect, near, far);
+	gluPerspective(60, 1.0 / aspect, near_z, far_z);
 	gluLookAt(camera_position.x, camera_position.y, camera_position.z,
 			  center.x, center.y, center.z,
 			  up.x, up.y, up.z);

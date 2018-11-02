@@ -2,8 +2,9 @@
 #define NBODY_BUTCHER_TABLE_H
 
 #include "nbtype.h"
+#include "nbody_export.h"
 
-class nbody_butcher_table
+class NBODY_DLL nbody_butcher_table
 {
 public:
 	nbody_butcher_table();
@@ -21,7 +22,7 @@ public:
 /*!
    \brief Butcher table for classic Runge-Kutta order 4 method
 */
-class nbody_butcher_table_rk4 : public nbody_butcher_table
+class NBODY_DLL nbody_butcher_table_rk4 : public nbody_butcher_table
 {
 public:
 	nbody_butcher_table_rk4();

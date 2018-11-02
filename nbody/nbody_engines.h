@@ -13,6 +13,6 @@
    \param param - engine type and parameters
    \return configured engine
  */
-nbody_engine* nbody_create_engine(const QVariantMap& param);
+nbody_engine NBODY_DLL* nbody_create_engine(const QVariantMap& param);
 
 #endif //NBODY_ENGINES_H

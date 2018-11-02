@@ -4,7 +4,7 @@
 #include "nbody_solver.h"
 #include "nbody_butcher_table.h"
 
-class nbody_solver_rk_butcher : public nbody_solver
+class NBODY_DLL nbody_solver_rk_butcher : public nbody_solver
 {
 	nbody_butcher_table*		m_bt;
 	nbody_engine::memory*		m_k;

@@ -3,7 +3,7 @@
 
 #include "nbody_engine.h"
 
-class nbody_engine_simple : public nbody_engine
+class NBODY_DLL nbody_engine_simple : public nbody_engine
 {
 protected:
 	class smemory : public memory

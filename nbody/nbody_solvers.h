@@ -17,6 +17,6 @@
    \param param - solver type and parameters
    \return configured solver
  */
-nbody_solver* nbody_create_solver(const QVariantMap& param);
+nbody_solver NBODY_DLL* nbody_create_solver(const QVariantMap& param);
 
 #endif //NBODY_SOLVERS_H
