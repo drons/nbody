@@ -27,6 +27,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_color_from_velosity = bar->addAction(QIcon::fromTheme("emblem-generic"), tr("Color from velosity"));
 
 	m_color_from_velosity->setCheckable(true);
+	m_color_from_velosity->setChecked(true);
 
 	m_timeline = new QSlider(this);
 	m_stereo_base = new QSlider(this);
