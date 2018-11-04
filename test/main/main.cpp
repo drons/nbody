@@ -5,30 +5,7 @@
 #include "nbody_solvers.h"
 #include "nbody_engines.h"
 #include "nbody_data_stream.h"
-
-QVariantMap	parse_arguments(int argc, char* argv[])
-{
-	QVariantMap		param;
-	const QString	arg_prefix("--");
-
-	for(int arg_n = 1; arg_n < argc; ++arg_n)
-	{
-		QString		arg(argv[arg_n]);
-		if(!arg.startsWith(arg_prefix))
-		{
-			continue;
-		}
-
-		QStringList	p(arg.mid(arg_prefix.length()).split("="));
-		if(p.size() != 2)
-		{
-			qDebug() << "Invalid argument format" << arg;
-		}
-		param[p[0]] = p[1];
-	}
-
-	return param;
-}
+#include "nbody_arg_parser.h"
 
 int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, const QVariantMap& param)
 {
@@ -69,7 +46,7 @@ int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, cons
 
 int main(int argc, char* argv[])
 {
-	QVariantMap		param(parse_arguments(argc, argv));
+	QVariantMap		param(nbody_parse_arguments(argc, argv));
 	nbody_data		data;
 	nbcoord_t		box_size = param.value("box_size", 100).toDouble();
 	size_t			stars_count = param.value("stars_count", "64").toUInt();

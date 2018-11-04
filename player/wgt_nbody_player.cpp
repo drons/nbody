@@ -6,14 +6,16 @@
 #include "nbody_frame_compressor_image.h"
 #include "nbody_frame_compressor_opencv.h"
 
+#include <memory>
 #include <QLayout>
 #include <QDebug>
 #include <QTimerEvent>
 #include <QProgressDialog>
 #include <QCoreApplication>
 #include <QTime>
+#include <QFileDialog>
 
-wgt_nbody_player::wgt_nbody_player()
+wgt_nbody_player::wgt_nbody_player(nbody_data_stream_reader* stream)
 {
 	QVBoxLayout*	layout = new QVBoxLayout(this);
 
@@ -21,11 +23,9 @@ wgt_nbody_player::wgt_nbody_player()
 	setMinimumSize(320, 240);
 
 	m_data = new nbody_data;
-	m_stream = new nbody_data_stream_reader();
-	m_stream->load("/tmp/nbody/main-stream");
+	m_stream = stream;
 	m_view = new wgt_nbody_view(m_data, m_stream->get_box_size());
 	m_data->resize(m_stream->get_body_count());
-	qDebug() << "Load stream" << m_stream->get_max_time();
 	m_control = new wgt_nbody_player_control(this, m_stream);
 	layout->addWidget(m_view, 1000);
 	layout->addWidget(m_control);
@@ -48,7 +48,6 @@ wgt_nbody_player::wgt_nbody_player()
 
 wgt_nbody_player::~wgt_nbody_player()
 {
-	delete m_stream;
 	delete m_data;
 }
 
@@ -78,21 +77,38 @@ void wgt_nbody_player::on_update_view()
 
 void wgt_nbody_player::on_start_record()
 {
-	QProgressDialog		progress(this);
-	QTime				timer;
-	QString				out_dir("/home/sas/Documents/tmp/nbody/video.avi");
+	QStringList		filters{"Avi (*.avi)", "PNG frames (*.png)"};
+	QString			selected;
+	QString			out(QFileDialog::getSaveFileName(this, "Select output video stream",
+													 QDir::homePath(), filters.join("\n"),
+													 &selected));
 
-	progress.setRange(0, static_cast<int>(m_stream->get_frame_count()));
-	progress.show();
-	timer.start();
+	std::shared_ptr<nbody_frame_compressor>	compressor;
+	if(selected == filters[0])
+	{
+		compressor = std::make_shared<nbody_frame_compressor_opencv>();
+		if(!out.endsWith(".avi", Qt::CaseInsensitive))
+		{
+			out += ".avi";
+		}
+	}
+	else if(selected == filters[1])
+	{
+		compressor = std::make_shared<nbody_frame_compressor_image>();
+	}
 
-	nbody_frame_compressor_opencv	compressor;
-
-	if(!compressor.set_destination(out_dir))
+	if(!compressor->set_destination(out))
 	{
 		qDebug() << "can't setup compressor";
 		return;
 	}
+
+	QProgressDialog	progress(this);
+	QTime			timer;
+
+	progress.setRange(0, static_cast<int>(m_stream->get_frame_count()));
+	progress.show();
+	timer.start();
 
 	size_t	frame_count = m_stream->get_frame_count();
 
@@ -123,7 +139,7 @@ void wgt_nbody_player::on_start_record()
 			break;
 		}
 
-		compressor.push_frame(frame, frame_n);
+		compressor->push_frame(frame, frame_n);
 
 		progress.setValue(static_cast<int>(frame_n));
 		progress.setLabelText(QString("Done %1 from %2 ( %3 fps )")

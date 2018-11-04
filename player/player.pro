@@ -4,7 +4,7 @@ include( ../pri/opencv.pri )
 include( ../pri/vectorize.pri )
 
 TEMPLATE	= app
-TARGET		= nbodyplayer
+TARGET		= nbody-player
 MOC_DIR = ./.tmp/moc
 DESTDIR = ./
 

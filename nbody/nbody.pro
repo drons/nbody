@@ -15,6 +15,7 @@ unix:LIBS += -lGLU
 DEFINES += NBODY_EXPORT_DLL
 
 SOURCES	+= \
+	nbody_arg_parser.cpp \
 	nbody_butcher_table.cpp \
 	nbody_data.cpp \
 	nbody_engine.cpp \
@@ -44,6 +45,7 @@ HEADERS	+= \
 	nbody_export.h \
 	summation.h \
 	summation_proxy.h \
+	nbody_arg_parser.h \
 	nbody_butcher_table.h \
 	nbody_data.h \
 	nbody_engine.h \
