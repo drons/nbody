@@ -70,6 +70,11 @@ Argument | Description
 `--max_recursion`   | Max recursion level for __embeded__ solvers.
 `--substep_subdivisions` | Number of __embeded__ solver substeps into which the current step is divided at the next level of recursion when the error greater than `error_threshold`.
 
+#### Player
+To view simulation results run 'nbody-player' programm.
+For now only one argument supported: `--input=<input stream name>`.
+Other parameters controlled via UI.
+
 ### Gallery
 
 [![Galaxy crash simulation](http://img.youtube.com/vi/AYzgTC0qqV0/0.jpg)](https://www.youtube.com/watch?v=AYzgTC0qqV0 "Galaxy crash simulation")
