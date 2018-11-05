@@ -30,9 +30,9 @@ size_t nbody_butcher_table_rkgl::get_steps() const
 
 const nbcoord_t** nbody_butcher_table_rkgl::get_a() const
 {
-	static const nbcoord_t	a1[] = { 15.0 / 36.0, 2.0 / 9.0 - sqrt15 / 15.0, 5.0 / 36.0 - sqrt15 / 30.0 };
-	static const nbcoord_t	a2[] = { 5.0 / 36.0 + sqrt15 / 24.0, 2.0 / 9.0, 5.0 / 36.0 - sqrt15 / 24.0 };
-	static const nbcoord_t	a3[] = { 5.0 / 36.0 + sqrt15 / 30.0, 2.0 / 9.0 + sqrt15 / 15.0, 5.0 / 36.0 };
+	static const nbcoord_t	a1[] = { 15.0 / 36.0, static_cast<nbcoord_t>(2.0 / 9.0 - sqrt15 / 15.0), static_cast<nbcoord_t>(5.0 / 36.0 - sqrt15 / 30.0) };
+	static const nbcoord_t	a2[] = { static_cast<nbcoord_t>(5.0 / 36.0 + sqrt15 / 24.0), 2.0 / 9.0, static_cast<nbcoord_t>(5.0 / 36.0 - sqrt15 / 24.0) };
+	static const nbcoord_t	a3[] = { static_cast<nbcoord_t>(5.0 / 36.0 + sqrt15 / 30.0), static_cast<nbcoord_t>(2.0 / 9.0 + sqrt15 / 15.0), 5.0 / 36.0 };
 	static const nbcoord_t*	a[] = { a1, a2, a3 };
 
 	return a;
@@ -54,7 +54,7 @@ const nbcoord_t* nbody_butcher_table_rkgl::get_b2() const
 
 const nbcoord_t* nbody_butcher_table_rkgl::get_c() const
 {
-	static const nbcoord_t	c[]  = { 1.0 / 2.0 - sqrt15 / 10.0, 0.5, 1.0 / 2.0 + sqrt15 / 10.0 };
+	static const nbcoord_t	c[]  = { static_cast<nbcoord_t>(1.0 / 2.0 - sqrt15 / 10.0), 0.5, static_cast<nbcoord_t>(1.0 / 2.0 + sqrt15 / 10.0) };
 
 	return c;
 }
@@ -79,4 +79,3 @@ const char* nbody_solver_rkgl::type_name() const
 {
 	return "nbody_solver_rkgl";
 }
-

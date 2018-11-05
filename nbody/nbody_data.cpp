@@ -272,7 +272,7 @@ void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nb
 	add_galaxy(center + base, -velosity / 3, radius, galaxy_mass, star_count, color2);
 	//add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
 
-	m_box_size = static_cast<size_t>(std::max(std::max(1.0, sx), std::max(sy, sz)));
+	m_box_size = static_cast<size_t>(std::max(std::max(static_cast<nbcoord_t>(1), sx), std::max(sy, sz)));
 }
 
 nbvertex_t nbody_data::get_total_impulce() const
