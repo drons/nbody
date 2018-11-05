@@ -105,7 +105,7 @@ struct nbody_engine_opencl::data
 	smemory*				m_y;
 	nbody_data*				m_data;
 
-	void find_devices();
+	int select_devices(const QString& devices);
 	void prepare(devctx&, const nbody_data* data, const nbvertex_t* vertites);
 	void compute_block(devctx& ctx, size_t offset_n1, size_t offset_n2, const nbody_data* data);
 };
@@ -178,7 +178,7 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	qDebug() << "\t\t\tKernel local memory" << local_memory_amount / 1024.0 << "Kb";
 }
 
-void nbody_engine_opencl::data::find_devices()
+int nbody_engine_opencl::data::select_devices(const QString& devices)
 {
 	std::vector<cl::Platform>		platforms;
 	try
@@ -188,37 +188,84 @@ void nbody_engine_opencl::data::find_devices()
 	catch(cl::Error& e)
 	{
 		qDebug() << e.err() << e.what();
-		return;
+		return -1;
 	}
-	qDebug() << "Available platforms & devices:";
-	for(size_t i = 0; i != platforms.size(); ++i)
+
+	QStringList	platform_devices_list(devices.split(";"));
+
+	for(int n = 0; n != platform_devices_list.size(); ++n)
 	{
-		const cl::Platform&			platform(platforms[i]);
-		std::vector<cl::Device>		devices;
-
-		qDebug() << i << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
-
-		platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
-
-		cl::Context	context(devices);
-
-		for(size_t j = 0; j != devices.size(); ++j)
+		QStringList	plat_dev(platform_devices_list[n].split(":"));
+		if(plat_dev.size() != 2)
 		{
-			cl::Device&		device(devices[j]);
-			qDebug() << "\t--dev_id=" << QString("%1,%2").arg(i).arg(j);
+			qDebug() << "Can't parse OpenCL platform-device pair";
+			return -1;
+		}
+
+		bool	platform_id_ok = false;
+		size_t	platform_n = static_cast<size_t>(plat_dev[0].toUInt(&platform_id_ok));
+
+		if(!platform_id_ok)
+		{
+			qDebug() << "Can't parse OpenCL platform-device pair";
+			return -1;
+		}
+
+		if(platform_n >= platforms.size())
+		{
+			qDebug() << "Platform #" << platform_n << "not found. Max platform ID is" << platforms.size() - 1;
+			return -1;
+		}
+
+		QStringList					devices_list(plat_dev[1].split(","));
+		const cl::Platform&			platform(platforms[platform_n]);
+		std::vector<cl::Device>		all_devices;
+		std::vector<cl::Device>		active_devices;
+
+		platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+		qDebug() << platform_n << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
+
+		for(int i = 0; i != devices_list.size(); ++i)
+		{
+			bool	device_id_ok = false;
+			size_t	device_n = static_cast<size_t>(devices_list[i].toUInt(&device_id_ok));
+			if(!device_id_ok)
+			{
+				qDebug() << "Can't parse OpenCL device ID" << devices_list[i];
+				return -1;
+			}
+			if(device_n >= all_devices.size())
+			{
+				qDebug() << "Device #" << device_n << "not found. Max device ID is" << all_devices.size() - 1;
+				return -1;
+			}
+			active_devices.push_back(all_devices[device_n]);
+		}
+
+		cl::Context	context(active_devices);
+
+		for(size_t device_n = 0; device_n != active_devices.size(); ++device_n)
+		{
+			cl::Device&		device(active_devices[device_n]);
+			qDebug() << "\tDevice:";
 			qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
 			qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
-
 			m_devices.push_back(devctx(context, device));
 		}
 	}
 
+	if(m_devices.empty())
+	{
+		qDebug() << "No OpenCL device found";
+		return -1;
+	}
+
+	return 0;
 }
 
 nbody_engine_opencl::nbody_engine_opencl() :
 	d(new data())
 {
-	d->find_devices();
 }
 
 nbody_engine_opencl::~nbody_engine_opencl()
@@ -727,7 +774,7 @@ void nbody_engine_opencl::print_info() const
 		for(size_t j = 0; j != devices.size(); ++j)
 		{
 			cl::Device&		device(devices[j]);
-			qDebug() << "\t--dev_id=" << QString("%1,%2").arg(i).arg(j);
+			qDebug() << "\t--device=" << QString("%1:%2").arg(i).arg(j);
 			qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
 			qDebug() << "\t\t CL_DEVICE_TYPE" << device.getInfo<CL_DEVICE_TYPE>();
 			qDebug() << "\t\t CL_DRIVER_VERSION" << device.getInfo<CL_DRIVER_VERSION>().c_str();
@@ -760,4 +807,9 @@ void nbody_engine_opencl::print_info() const
 		}
 	}
 	return;
+}
+
+int nbody_engine_opencl::select_devices(const QString& devices)
+{
+	return d->select_devices(devices);
 }

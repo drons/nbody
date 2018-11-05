@@ -42,6 +42,8 @@ public:
 	virtual void fmaxabs(const memory* a, nbcoord_t& result) override;
 
 	virtual void print_info() const override;
+
+	int select_devices(const QString& devices);
 };
 
 #endif // NBODY_ENGINE_OPENCL_H

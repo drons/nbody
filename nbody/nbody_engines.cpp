@@ -20,8 +20,15 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 #ifdef HAVE_OPENCL
 	else if(type == "opencl")
 	{
-		//!todo compute device selection
-		return new nbody_engine_opencl();
+		QString	devices(param.value("device", "0:0").toString());
+		nbody_engine_opencl* engine = new nbody_engine_opencl();
+		if(0 != engine->select_devices(devices))
+		{
+			qDebug() << "Failed to select devices" << devices;
+			delete engine;
+			return NULL;
+		}
+		return engine;
 	}
 #endif
 	else if(type == "openmp")
