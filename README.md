@@ -1,5 +1,6 @@
 # [N-body simulation program](https://en.wikipedia.org/wiki/N-body_simulation)
 [![Build Status](https://travis-ci.org/drons/nbody.svg?branch=master)](https://travis-ci.org/drons/nbody)
+[![Build Status](https://ci.appveyor.com/api/projects/status/vvttxq12cd39e81g/branch/master?svg=true)](https://ci.appveyor.com/project/drons/nbody/branch/master)
 [![codecov](https://codecov.io/gh/drons/nbody/branch/master/graph/badge.svg)](https://codecov.io/gh/drons/nbody)
 [![Coverity](https://scan.coverity.com/projects/9436/badge.svg)](https://scan.coverity.com/projects/drons-nbody)
 
