@@ -7,7 +7,6 @@ nbody_solver_rk_butcher::nbody_solver_rk_butcher(nbody_butcher_table* t) :
 	m_k = NULL;
 	m_tmpy = NULL;
 	m_tmpk = NULL;
-	m_y_stack = NULL;
 	m_coeff = NULL;
 	m_bt = t;
 	m_max_recursion = 8;
@@ -22,7 +21,10 @@ nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 	engine()->free_buffer(m_k);;
 	engine()->free_buffer(m_tmpy);
 	engine()->free_buffer(m_tmpk);
-	engine()->free_buffer(m_y_stack);
+	for(auto b : m_y_stack)
+	{
+		engine()->free_buffer(b);
+	}
 	engine()->free_buffer(m_coeff);
 }
 
@@ -91,7 +93,11 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 		m_k = engine()->create_buffer(sizeof(nbcoord_t) * STEPS * ps);
 		m_tmpy = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_tmpk = engine()->create_buffer(sizeof(nbcoord_t) * ps);
-		m_y_stack = engine()->create_buffer(sizeof(nbcoord_t) * ps * m_max_recursion);
+		m_y_stack.resize(m_max_recursion);
+		for(size_t level = 0; level != m_max_recursion; ++level)
+		{
+			m_y_stack[level] = engine()->create_buffer(sizeof(nbcoord_t) * ps);
+		}
 		m_coeff = engine()->create_buffer(sizeof(nbcoord_t) * coeff_count);
 	}
 
@@ -169,9 +175,10 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 
 //			qDebug() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << max_error << "Down to dt" << new_dt;
 
-			engine()->copy_buffer(m_y_stack, y, recursion_level * ps, yoff);
-			sub_step(m_substep_subdivisions, t, new_dt, m_y_stack, recursion_level * ps, recursion_level + 1);
-			engine()->copy_buffer(y, m_y_stack, yoff, recursion_level * ps);
+			nbody_engine::memory*	curr_y = m_y_stack[recursion_level];
+			engine()->copy_buffer(curr_y, y, 0, 0);
+			sub_step(m_substep_subdivisions, t, new_dt, curr_y, 0, recursion_level + 1);
+			engine()->copy_buffer(y, curr_y, 0, 0);
 		}
 		else
 		{
