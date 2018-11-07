@@ -42,15 +42,13 @@ bool test_memcpy(nbody_engine* e)
 bool test_copy_buffer(nbody_engine* e)
 {
 	const size_t			cnt = e->problem_size();
-	size_t					off1  = 33;
-	size_t					off2 = 44;
 	std::vector<nbcoord_t>	data1;
 	std::vector<nbcoord_t>	data2;
-	nbody_engine::memory*	mem1 = e->create_buffer((cnt + off1) * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem2 = e->create_buffer((cnt + off2) * sizeof(nbcoord_t));
+	nbody_engine::memory*	mem1 = e->create_buffer(cnt * sizeof(nbcoord_t));
+	nbody_engine::memory*	mem2 = e->create_buffer(cnt * sizeof(nbcoord_t));
 
-	data1.resize(cnt + off1);
-	data2.resize(cnt + off2);
+	data1.resize(cnt);
+	data2.resize(cnt);
 
 	for(size_t i = 0; i != data1.size(); ++i)
 	{
@@ -58,16 +56,17 @@ bool test_copy_buffer(nbody_engine* e)
 	}
 
 	e->write_buffer(mem1, data1.data());
-	e->copy_buffer(mem2, mem1, off2, off1);
+	e->copy_buffer(mem2, mem1);
 	e->read_buffer(data2.data(), mem2);
 
-	bool	ret = (0 == memcmp(data1.data() + off1, data2.data() + off2, cnt * sizeof(nbcoord_t)));
+	bool	ret = (0 == memcmp(data1.data(), data2.data(), cnt * sizeof(nbcoord_t)));
 
 	e->free_buffer(mem1);
 	e->free_buffer(mem2);
 
 	return ret;
 }
+
 bool test_fmadd1(nbody_engine* e)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
@@ -591,13 +590,13 @@ void test_nbody_engine::test_negative_branches()
 	{
 		nbody_engine_memory_fake	a(0);
 		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
-		m_e->copy_buffer(&a, b, 0, 0);
+		m_e->copy_buffer(&a, b);
 		m_e->free_buffer(b);
 	}
 	{
 		nbody_engine_memory_fake	b(0);
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
-		m_e->copy_buffer(a, &b, 0, 0);
+		m_e->copy_buffer(a, &b);
 		m_e->free_buffer(a);
 	}
 

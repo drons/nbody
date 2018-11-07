@@ -482,7 +482,7 @@ void nbody_engine_opencl::write_buffer(memory* _dst, void* _src)
 	dst->queue().enqueueWriteBuffer(dst->buffer(), CL_TRUE, 0, dst->size(), _src);
 }
 
-void nbody_engine_opencl::copy_buffer(memory* _a, const memory* _b, size_t aoff, size_t boff)
+void nbody_engine_opencl::copy_buffer(memory* _a, const memory* _b)
 {
 	smemory*		a = dynamic_cast<smemory*>(_a);
 	const smemory*	b = dynamic_cast<const smemory*>(_b);
@@ -501,8 +501,7 @@ void nbody_engine_opencl::copy_buffer(memory* _a, const memory* _b, size_t aoff,
 	cl::Event		ev;
 	size_t			sz = problem_size() * sizeof(nbcoord_t);
 
-	a->queue().enqueueCopyBuffer(b->buffer(), a->buffer(), boff * sizeof(nbcoord_t), aoff * sizeof(nbcoord_t), sz, NULL,
-								 &ev);
+	a->queue().enqueueCopyBuffer(b->buffer(), a->buffer(), 0, 0, sz, NULL, &ev);
 	ev.wait();
 }
 

@@ -13,7 +13,7 @@ public:
 
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
 
-	virtual void copy_buffer(memory* a, const memory* b, size_t aoff, size_t boff) override;
+	virtual void copy_buffer(memory* a, const memory* b) override;
 
 	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;
 	virtual void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff,

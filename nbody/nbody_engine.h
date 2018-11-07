@@ -50,8 +50,8 @@ public:
 	virtual void free_buffer(memory*) = 0;
 	virtual void read_buffer(void* dst, memory* src) = 0;
 	virtual void write_buffer(memory* dst, void* src) = 0;
-	//! a[i+aoff] = b[i+boff]
-	virtual void copy_buffer(memory* a, const memory* b, size_t aoff, size_t boff) = 0;
+	//! a[i] = b[i]
+	virtual void copy_buffer(memory* a, const memory* b) = 0;
 
 	//! a[i] += b[i]*c
 	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) = 0;

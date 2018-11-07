@@ -176,9 +176,9 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 //			qDebug() << QString( "-" ).repeated(recursion_level) << "sub_step #" << sub_n << "ERR" << max_error << "Down to dt" << new_dt;
 
 			nbody_engine::memory*	curr_y = m_y_stack[recursion_level];
-			engine()->copy_buffer(curr_y, y, 0, 0);
+			engine()->copy_buffer(curr_y, y);
 			sub_step(m_substep_subdivisions, t, new_dt, curr_y, 0, recursion_level + 1);
-			engine()->copy_buffer(y, curr_y, 0, 0);
+			engine()->copy_buffer(y, curr_y);
 		}
 		else
 		{

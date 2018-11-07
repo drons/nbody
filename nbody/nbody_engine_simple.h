@@ -39,7 +39,7 @@ public:
 	virtual void free_buffer(memory*) override;
 	virtual void read_buffer(void* dst, memory* src) override;
 	virtual void write_buffer(memory* dst, void* src) override;
-	virtual void copy_buffer(memory* a, const memory* b, size_t aoff, size_t boff) override;
+	virtual void copy_buffer(memory* a, const memory* b) override;
 
 	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;
 	virtual void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff,

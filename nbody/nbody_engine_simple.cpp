@@ -202,8 +202,7 @@ void nbody_engine_simple::write_buffer(memory* _dst, void* src)
 	::memcpy(dst->data(), src, dst->size());
 }
 
-void nbody_engine_simple::copy_buffer(nbody_engine::memory* __a, const nbody_engine::memory* __b, size_t aoff,
-									  size_t boff)
+void nbody_engine_simple::copy_buffer(nbody_engine::memory* __a, const nbody_engine::memory* __b)
 {
 	smemory*			_a = dynamic_cast<smemory*>(__a);
 	const smemory*		_b = dynamic_cast<const smemory*>(__b);
@@ -225,7 +224,7 @@ void nbody_engine_simple::copy_buffer(nbody_engine::memory* __a, const nbody_eng
 
 	for(size_t i = 0; i < count; ++i)
 	{
-		a[i + aoff] = b[i + boff];
+		a[i] = b[i];
 	}
 }
 
