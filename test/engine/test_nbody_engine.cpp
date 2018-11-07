@@ -402,6 +402,7 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 		double					tbegin = omp_get_wtime();
 		nbody_engine::memory*	fbuff;
 		fbuff = e0.create_buffer(sizeof(nbcoord_t) * e0.problem_size());
+		e0.fill_buffer(fbuff, 1e10);
 		e0.fcompute(0, e0.get_y(), fbuff);
 
 		e0.read_buffer(f0.data(), fbuff);
@@ -409,13 +410,13 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 		qDebug() << "Time" << e0.type_name() << omp_get_wtime() - tbegin;
 	}
 
-
 	std::vector<nbcoord_t>	f(e->problem_size());
 
 	{
 		double					tbegin = omp_get_wtime();
 		nbody_engine::memory*	fbuff;
 		fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
+		e->fill_buffer(fbuff, -1e10);
 		e->fcompute(0, e->get_y(), fbuff);
 
 		e->read_buffer(f.data(), fbuff);
@@ -442,6 +443,8 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 
 	if(!ret)
 	{
+		qDebug() << "Stars count:         " << data->get_count();
+		qDebug() << "Problem size:        " << e->problem_size();
 		qDebug() << "Total count:         " << f.size();
 		qDebug() << "Total error:         " << total_err;
 		qDebug() << "Mean error:          " << total_err / f.size();
@@ -758,12 +761,12 @@ int main(int argc, char* argv[])
 //		test_nbody_engine	tc1(nbody_create_engine(param));
 //		res += QTest::qExec(&tc1, argc, argv);
 //	}
-//	{
-//		//Two devices with separate contexts
-//		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0;0:1"}}));
-//		test_nbody_engine	tc1(nbody_create_engine(param));
-//		res += QTest::qExec(&tc1, argc, argv);
-//	}
+	{
+		//Two devices with separate contexts
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0;0:0"}}));
+		test_nbody_engine	tc1(nbody_create_engine(param), 128);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 #endif
 
 	{

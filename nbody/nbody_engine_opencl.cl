@@ -164,58 +164,28 @@ __kernel void fmadd2(__global nbcoord_t* a, __global const nbcoord_t* b, __globa
 	a[i + aoff] = b[i + boff] + c[i + coff] * d;
 }
 
-//! a[i+aoff] += sum( b[i+boff+k*bstride]*c[k], k=[0...csize) )
-__kernel void fmaddn1(__global nbcoord_t* a, __global const nbcoord_t* b, constant nbcoord_t* c,
-					  int bstride, int aoff, int boff, int csize)
-{
-	int			i = get_global_id(0);
-	nbcoord_t	s = b[i + boff] * c[0];
-	for(int k = 1; k < csize; ++k)
-	{
-		s += b[i + boff + k * bstride] * c[k];
-	}
-	a[i + aoff] += s;
-}
-
-//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
-__kernel void fmaddn2(__global nbcoord_t* a, __global const nbcoord_t* b, __global const nbcoord_t* c,
-					  constant nbcoord_t* d,
-					  int cstride, int aoff, int boff, int coff, int dsize)
-{
-	int			i = get_global_id(0);
-	nbcoord_t	s = c[i + coff] * d[0];
-	for(int k = 1; k < dsize; ++k)
-	{
-		s += c[i + coff + k * cstride] * d[k];
-	}
-	a[i + aoff] = b[i + boff] + s;
-}
-
-//! a[i+aoff] = sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
-__kernel void fmaddn3(__global nbcoord_t* a, __global const nbcoord_t* c, constant nbcoord_t* d,
-					  int cstride, int aoff, int coff, int dsize)
-{
-	int			i = get_global_id(0);
-	nbcoord_t	s = c[i + coff] * d[0];
-	for(int k = 1; k < dsize; ++k)
-	{
-		s += c[i + coff + k * cstride] * d[k];
-	}
-	a[i + aoff] = s;
-}
-
 //! *result = max( fabs(a[k]), k=[0...asize) )
-__kernel void fmaxabs(__global const nbcoord_t* a, __global nbcoord_t* result)
+__kernel void fmaxabs(__global const nbcoord_t* a, int aoff, int alast, __global nbcoord_t* result, int roff)
 {
 	int			i = get_global_id(0);
-	int			first = i * NBODY_DATA_BLOCK_SIZE;
+	int			first = i * NBODY_DATA_BLOCK_SIZE + aoff;
+
+	if(first >= alast)
+	{
+		return;
+	}
+
 	nbcoord_t	r = fabs(a[first]);
 
 	for(int n = 0; n != NBODY_DATA_BLOCK_SIZE; ++n)
 	{
-		r = max(r, fabs(a[first + n]));
+		int aindex = first + n;
+		if(aindex < alast)
+		{
+			r = max(r, fabs(a[aindex]));
+		}
 	}
 
-	result[i] = r;
+	result[i + roff] = r;
 }
 
