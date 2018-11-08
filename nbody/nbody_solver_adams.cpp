@@ -6,16 +6,13 @@
 nbody_solver_adams::nbody_solver_adams(size_t rank) : nbody_solver()
 {
 	m_starter = new nbody_solver_euler();
-	m_f = NULL;
-	m_coeff = NULL;
 	m_rank = rank;
 }
 
 nbody_solver_adams::~nbody_solver_adams()
 {
 	delete m_starter;
-	engine()->free_buffer(m_f);
-	engine()->free_buffer(m_coeff);
+	engine()->free_buffers(m_f);
 }
 
 const char* nbody_solver_adams::type_name() const
@@ -39,33 +36,30 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 	size_t					fnum = step % m_rank;
 	size_t					ps = engine()->problem_size();
 
-	if(m_f == NULL)
+	if(m_f.empty())
 	{
 		m_starter->set_engine(engine());
-		m_f = engine()->create_buffer(sizeof(nbcoord_t) * ps * m_rank);
-		m_coeff = engine()->create_buffer(sizeof(nbcoord_t) * m_rank);
+		m_f = engine()->create_buffers(sizeof(nbcoord_t) * ps, m_rank);
 	}
 
 	if(step > m_rank)
 	{
 		std::vector<nbcoord_t>	coeff(m_rank);
 
-		engine()->fcompute(t, y, m_f, 0, fnum * ps);
+		engine()->fcompute(t, y, m_f[fnum], 0, 0);
 
 		for(size_t n = 0; n < m_rank; ++n)
 		{
 			coeff[(m_rank + fnum - n) % m_rank ] = a[n] * dt;
 		}
 
-		engine()->write_buffer(m_coeff, coeff.data());
-		engine()->fmaddn_inplace(y, m_f, m_coeff, ps, 0, 0, m_rank);
-
+		engine()->fmaddn_inplace(y, m_f, coeff.data(), 0, 0);
 		engine()->advise_time(dt);
 	}
 	else
 	{
-		engine()->fcompute(t, y, m_f, 0, fnum * ps);
-		engine()->fmadd(y, y, m_f, dt, 0, 0, fnum * ps);
+		engine()->fcompute(t, y, m_f[fnum], 0, 0);
+		engine()->fmadd_inplace(y, m_f[fnum], dt);
 		engine()->advise_time(dt);
 	}
 }

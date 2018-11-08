@@ -103,6 +103,26 @@ void nbody_engine_openmp::copy_buffer(nbody_engine::memory* __a, const nbody_eng
 	}
 }
 
+void nbody_engine_openmp::fill_buffer(nbody_engine::memory* __a, const nbcoord_t& value)
+{
+	smemory*			_a = dynamic_cast<smemory*>(__a);
+
+	if(_a == NULL)
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+
+	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
+	size_t				count = _a->size()/sizeof(nbcoord_t);
+
+	#pragma omp parallel for
+	for(size_t i = 0; i < count; ++i)
+	{
+		a[i] = value;
+	}
+}
+
 void nbody_engine_openmp::fmadd_inplace(memory* __a, const memory* __b, const nbcoord_t& c)
 {
 	smemory*			_a = dynamic_cast<smemory*>(__a);
@@ -161,134 +181,6 @@ void nbody_engine_openmp::fmadd(memory* __a, const memory* __b, const memory* __
 	for(size_t i = 0; i < count; ++i)
 	{
 		a[i + aoff] = b[i + boff] + c[i + coff] * d;
-	}
-}
-
-void nbody_engine_openmp::fmaddn_inplace(nbody_engine::memory* __a, const nbody_engine::memory* __b,
-										 const nbody_engine::memory* __c, size_t bstride, size_t aoff, size_t boff, size_t csize)
-{
-	smemory*			_a = dynamic_cast<smemory*>(__a);
-	const smemory*		_b = dynamic_cast<const smemory*>(__b);
-	const smemory*		_c = dynamic_cast<const smemory*>(__c);
-
-	if(_a == NULL)
-	{
-		qDebug() << "a is not smemory";
-		return;
-	}
-	if(_b == NULL)
-	{
-		qDebug() << "b is not smemory";
-		return;
-	}
-	if(_c == NULL)
-	{
-		qDebug() << "c is not smemory";
-		return;
-	}
-	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
-	const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
-	const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
-	size_t				count = problem_size();
-
-	#pragma omp parallel for
-	for(size_t i = 0; i < count; ++i)
-	{
-		nbcoord_t	sum = b[i + boff] * c[0];
-		for(size_t k = 1; k < csize; ++k)
-		{
-			sum += b[ i + boff + k * bstride ] * c[k];
-		}
-		a[i + aoff] += sum;
-	}
-}
-
-void nbody_engine_openmp::fmaddn(nbody_engine::memory* __a, const nbody_engine::memory* __b,
-								 const nbody_engine::memory* __c, const nbody_engine::memory* __d, size_t cstride, size_t aoff, size_t boff, size_t coff,
-								 size_t dsize)
-{
-	if(__b != NULL)
-	{
-		smemory*			_a = dynamic_cast<smemory*>(__a);
-		const smemory*		_b = dynamic_cast<const smemory*>(__b);
-		const smemory*		_c = dynamic_cast<const smemory*>(__c);
-		const smemory*		_d = dynamic_cast<const smemory*>(__d);
-
-		if(_a == NULL)
-		{
-			qDebug() << "a is not smemory";
-			return;
-		}
-		if(_b == NULL)
-		{
-			qDebug() << "b is not smemory";
-			return;
-		}
-		if(_c == NULL)
-		{
-			qDebug() << "c is not smemory";
-			return;
-		}
-		if(_d == NULL)
-		{
-			qDebug() << "d is not smemory";
-			return;
-		}
-
-		nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
-		const nbcoord_t*	b = reinterpret_cast<const nbcoord_t*>(_b->data());
-		const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
-		const nbcoord_t*	d = reinterpret_cast<const nbcoord_t*>(_d->data());
-		size_t				count = problem_size();
-
-		#pragma omp parallel for
-		for(size_t i = 0; i < count; ++i)
-		{
-			nbcoord_t	sum = c[i + coff] * d[0];
-			for(size_t k = 1; k < dsize; ++k)
-			{
-				sum += c[ i + coff + k * cstride ] * d[k];
-			}
-			a[i + aoff] = b[i + boff] + sum;
-		}
-	}
-	else
-	{
-		smemory*			_a = dynamic_cast<smemory*>(__a);
-		const smemory*		_c = dynamic_cast<const smemory*>(__c);
-		const smemory*		_d = dynamic_cast<const smemory*>(__d);
-
-		if(_a == NULL)
-		{
-			qDebug() << "a is not smemory";
-			return;
-		}
-		if(_c == NULL)
-		{
-			qDebug() << "c is not smemory";
-			return;
-		}
-		if(_d == NULL)
-		{
-			qDebug() << "d is not smemory";
-			return;
-		}
-
-		nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
-		const nbcoord_t*	c = reinterpret_cast<const nbcoord_t*>(_c->data());
-		const nbcoord_t*	d = reinterpret_cast<const nbcoord_t*>(_d->data());
-		size_t				count = problem_size();
-
-		#pragma omp parallel for
-		for(size_t i = 0; i < count; ++i)
-		{
-			nbcoord_t	sum = c[i + coff] * d[0];
-			for(size_t k = 1; k < dsize; ++k)
-			{
-				sum += c[ i + coff + k * cstride ] * d[k];
-			}
-			a[i + aoff] = sum;
-		}
 	}
 }
 

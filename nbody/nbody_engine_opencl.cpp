@@ -71,7 +71,7 @@ typedef cl::make_kernel< cl_int, cl_int,	//Block offset
 		cl_int, cl_int	//points_count,stride
 		> ComputeBlock;
 
-
+typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMadd1;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd2;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int, cl_int > FMaddn1;
@@ -88,6 +88,7 @@ struct nbody_engine_opencl::data
 		cl::Program			m_prog;
 		cl::CommandQueue	m_queue;
 		ComputeBlock		m_fcompute;
+		FMfill				m_fill;
 		FMadd1				m_fmadd1;
 		FMadd2				m_fmadd2;
 		FMaddn1				m_fmaddn1;
@@ -118,7 +119,7 @@ class nbody_engine_opencl::smemory : public nbody_engine::memory
 public:
 	smemory(size_t size, data::devctx& dev) :
 		m_size(size),
-		m_buffer(dev.m_context, CL_MEM_READ_WRITE, size),
+		m_buffer(dev.m_context, CL_MEM_READ_WRITE, alloc_size()),
 		m_queue(dev.m_queue)
 	{
 	}
@@ -126,6 +127,12 @@ public:
 	size_t size() const override
 	{
 		return m_size;
+	}
+
+	size_t alloc_size() const
+	{
+		constexpr	size_t block_size = sizeof(nbcoord_t)*NBODY_DATA_BLOCK_SIZE;
+		return block_size * (1 + (m_size - 1)/block_size);
 	}
 
 	const cl::Buffer& buffer() const
@@ -164,6 +171,7 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_prog(load_programs(m_context, device, build_options(), sources())),
 	m_queue(m_context, device, 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
+	m_fill(m_prog, "fill"),
 	m_fmadd1(m_prog, "fmadd1"),
 	m_fmadd2(m_prog, "fmadd2"),
 	m_fmaddn1(m_prog, "fmaddn1"),
@@ -505,6 +513,33 @@ void nbody_engine_opencl::copy_buffer(memory* _a, const memory* _b)
 	ev.wait();
 }
 
+void nbody_engine_opencl::fill_buffer(memory* _a, const nbcoord_t& value)
+{
+	smemory*		a = dynamic_cast<smemory*>(_a);
+
+	if(a == NULL)
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+
+	size_t					device_count(d->m_devices.size());
+	cl::NDRange				global_range(a->alloc_size()/sizeof(nbcoord_t));
+	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	std::vector<cl::Event>	events;
+
+	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+	{
+		data::devctx&	ctx(d->m_devices[dev_n]);
+		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+		cl::Event		ev(ctx.m_fill(eargs, a->buffer(), value));
+
+		events.push_back(ev);
+	}
+
+	cl::Event::waitForEvents(events);
+}
+
 void nbody_engine_opencl::fmadd_inplace(memory* _a, const memory* _b, const nbcoord_t& c)
 {
 	smemory*		a = dynamic_cast<smemory*>(_a);
@@ -581,142 +616,6 @@ void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, 
 	}
 
 	cl::Event::waitForEvents(events);
-}
-
-void nbody_engine_opencl::fmaddn_inplace(memory* _a, const memory* _b, const memory* _c, size_t bstride, size_t aoff,
-										 size_t boff, size_t csize)
-{
-	smemory*		a = dynamic_cast<smemory*>(_a);
-	const smemory*	b = dynamic_cast<const smemory*>(_b);
-	const smemory*	c = dynamic_cast<const smemory*>(_c);
-
-	if(a == NULL)
-	{
-		qDebug() << "a is not smemory";
-		return;
-	}
-	if(b == NULL)
-	{
-		qDebug() << "b is not smemory";
-		return;
-	}
-	if(c == NULL)
-	{
-		qDebug() << "c is not smemory";
-		return;
-	}
-
-	size_t					device_count(d->m_devices.size());
-	size_t					device_data_size = problem_size() / device_count;
-	cl::NDRange				global_range(device_data_size);
-	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
-	std::vector<cl::Event>	events;
-
-	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
-	{
-		size_t			offset = dev_n * device_data_size;
-		data::devctx&	ctx(d->m_devices[dev_n]);
-		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-		cl::Event		ev(ctx.m_fmaddn1(eargs, a->buffer(), b->buffer(), c->buffer(),
-										 bstride, aoff + offset, boff + offset, csize));
-
-		events.push_back(ev);
-	}
-
-	cl::Event::waitForEvents(events);
-}
-
-void nbody_engine_opencl::fmaddn(memory* _a, const memory* _b, const memory* _c, const memory* __d, size_t cstride,
-								 size_t aoff, size_t boff, size_t coff, size_t dsize)
-{
-	if(_b != NULL)
-	{
-		smemory*		a = dynamic_cast<smemory*>(_a);
-		const smemory*	b = dynamic_cast<const smemory*>(_b);
-		const smemory*	c = dynamic_cast<const smemory*>(_c);
-		const smemory*	_d = dynamic_cast<const smemory*>(__d);
-
-		if(a == NULL)
-		{
-			qDebug() << "a is not smemory";
-			return;
-		}
-		if(b == NULL)
-		{
-			qDebug() << "b is not smemory";
-			return;
-		}
-		if(c == NULL)
-		{
-			qDebug() << "c is not smemory";
-			return;
-		}
-		if(_d == NULL)
-		{
-			qDebug() << "d is not smemory";
-			return;
-		}
-
-		size_t					device_count(d->m_devices.size());
-		size_t					device_data_size = problem_size() / device_count;
-		cl::NDRange				global_range(device_data_size);
-		cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
-		std::vector<cl::Event>	events;
-
-		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
-		{
-			size_t			offset = dev_n * device_data_size;
-			data::devctx&	ctx(d->m_devices[dev_n]);
-			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-			cl::Event		ev(ctx.m_fmaddn2(eargs, a->buffer(), b->buffer(), c->buffer(), _d->buffer(),
-											 cstride, aoff + offset, boff + offset, coff + offset, dsize));
-
-			events.push_back(ev);
-		}
-
-		cl::Event::waitForEvents(events);
-	}
-	else
-	{
-		smemory*		a = dynamic_cast<smemory*>(_a);
-		const smemory*	c = dynamic_cast<const smemory*>(_c);
-		const smemory*	_d = dynamic_cast<const smemory*>(__d);
-
-		if(a == NULL)
-		{
-			qDebug() << "a is not smemory";
-			return;
-		}
-		if(c == NULL)
-		{
-			qDebug() << "c is not smemory";
-			return;
-		}
-		if(_d == NULL)
-		{
-			qDebug() << "d is not smemory";
-			return;
-		}
-
-
-		size_t					device_count(d->m_devices.size());
-		size_t					device_data_size = problem_size() / device_count;
-		cl::NDRange				global_range(device_data_size);
-		cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
-		std::vector<cl::Event>	events;
-
-		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
-		{
-			size_t			offset = dev_n * device_data_size;
-			data::devctx&	ctx(d->m_devices[dev_n]);
-			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-			cl::Event		ev(ctx.m_fmaddn3(eargs, a->buffer(), c->buffer(), _d->buffer(),
-											 cstride, aoff + offset, coff + offset, dsize));
-			events.push_back(ev);
-		}
-
-		cl::Event::waitForEvents(events);
-	}
 }
 
 void nbody_engine_opencl::fmaxabs(const memory* _a, nbcoord_t& result)

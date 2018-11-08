@@ -67,6 +67,33 @@ bool test_copy_buffer(nbody_engine* e)
 	return ret;
 }
 
+bool test_fill_buffer(nbody_engine* e)
+{
+	const size_t			cnt = 33;
+	std::vector<nbcoord_t>	data;
+	nbody_engine::memory*	mem = e->create_buffer(cnt * sizeof(nbcoord_t));
+	nbcoord_t				value(777);
+
+	data.resize(cnt);
+
+	e->fill_buffer(mem, value);
+	e->read_buffer(data.data(), mem);
+
+	bool ret = true;
+	for(size_t i = 0; i != data.size(); ++i)
+	{
+		if(fabs(data[i] - value) > std::numeric_limits<nbcoord_t>::min())
+		{
+			ret = false;
+			break;
+		};
+	}
+
+	e->free_buffer(mem);
+
+	return ret;
+}
+
 bool test_fmadd1(nbody_engine* e)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
@@ -164,16 +191,15 @@ bool test_fmaddn1(nbody_engine* e, size_t csize)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
-	const size_t			bstride = size;
 	size_t					aoff = 33;
 	size_t					boff = 44;
-	std::vector<nbcoord_t>	a(e->problem_size() + aoff);
-	std::vector<nbcoord_t>	a_res(e->problem_size() + aoff);
-	std::vector<nbcoord_t>	b(e->problem_size()*csize + boff);
+	const size_t			bstride = size + boff;
+	std::vector<nbcoord_t>	a(size + aoff);
+	std::vector<nbcoord_t>	a_res(size + aoff);
+	std::vector<nbcoord_t>	b(bstride * csize);
 	std::vector<nbcoord_t>	c(csize);
-	nbody_engine::memory*	mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_b = e->create_buffer(b.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_c = e->create_buffer(c.size() * sizeof(nbcoord_t));
+	nbody_engine::memory*		mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
+	nbody_engine::memory_array	mem_b = e->create_buffers(bstride * sizeof(nbcoord_t), csize);
 
 	for(size_t n = 0; n != a.size(); ++n)
 	{
@@ -189,11 +215,13 @@ bool test_fmaddn1(nbody_engine* e, size_t csize)
 	}
 
 	e->write_buffer(mem_a, a.data());
-	e->write_buffer(mem_b, b.data());
-	e->write_buffer(mem_c, c.data());
+	for(size_t n = 0; n != mem_b.size(); ++n)
+	{
+		e->write_buffer(mem_b[n], b.data() + n * bstride);
+	}
 
 	//! a[i+aoff] += sum( b[i+boff+k*bstride]*c[k], k=[0...csize) )
-	e->fmaddn_inplace(mem_a, mem_b, mem_c, bstride, aoff, boff, csize);
+	e->fmaddn_inplace(mem_a, mem_b, c.data(), aoff, boff);
 
 	e->read_buffer(a_res.data(), mem_a);
 
@@ -212,8 +240,7 @@ bool test_fmaddn1(nbody_engine* e, size_t csize)
 	}
 
 	e->free_buffer(mem_a);
-	e->free_buffer(mem_b);
-	e->free_buffer(mem_c);
+	e->free_buffers(mem_b);
 
 	return ret;
 }
@@ -222,18 +249,17 @@ bool test_fmaddn2(nbody_engine* e, size_t dsize)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
-	const size_t			cstride = size;
 	size_t					aoff = 33;
 	size_t					boff = 44;
 	size_t					coff = 55;
+	const size_t			cstride = size + coff;
 	std::vector<nbcoord_t>	a(e->problem_size() + aoff);
 	std::vector<nbcoord_t>	b(e->problem_size() + boff);
-	std::vector<nbcoord_t>	c(e->problem_size()*dsize + coff);
+	std::vector<nbcoord_t>	c(cstride * dsize);
 	std::vector<nbcoord_t>	d(dsize);
-	nbody_engine::memory*	mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_b = e->create_buffer(b.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_c = e->create_buffer(c.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_d = e->create_buffer(d.size() * sizeof(nbcoord_t));
+	nbody_engine::memory*		mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
+	nbody_engine::memory*		mem_b = e->create_buffer(b.size() * sizeof(nbcoord_t));
+	nbody_engine::memory_array	mem_c = e->create_buffers(cstride * sizeof(nbcoord_t), dsize);
 
 	for(size_t n = 0; n != a.size(); ++n)
 	{
@@ -254,11 +280,13 @@ bool test_fmaddn2(nbody_engine* e, size_t dsize)
 
 	e->write_buffer(mem_a, a.data());
 	e->write_buffer(mem_b, b.data());
-	e->write_buffer(mem_c, c.data());
-	e->write_buffer(mem_d, d.data());
+	for(size_t n = 0; n != mem_c.size(); ++n)
+	{
+		e->write_buffer(mem_c[n], c.data() + n * cstride);
+	}
 
 	//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
-	e->fmaddn(mem_a, mem_b, mem_c, mem_d, cstride, aoff, boff, coff, dsize);
+	e->fmaddn(mem_a, mem_b, mem_c, d.data(), aoff, boff, coff, dsize);
 
 	e->read_buffer(a.data(), mem_a);
 
@@ -278,8 +306,7 @@ bool test_fmaddn2(nbody_engine* e, size_t dsize)
 
 	e->free_buffer(mem_a);
 	e->free_buffer(mem_b);
-	e->free_buffer(mem_c);
-	e->free_buffer(mem_d);
+	e->free_buffers(mem_c);
 
 	return ret;
 }
@@ -288,15 +315,14 @@ bool test_fmaddn3(nbody_engine* e, size_t dsize)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
-	const size_t			cstride = size;
-	size_t					aoff = 0;
-	size_t					coff = 0;
+	size_t					aoff = 33;
+	size_t					coff = 55;
+	const size_t			cstride = size + coff;
 	std::vector<nbcoord_t>	a(e->problem_size() + aoff);
-	std::vector<nbcoord_t>	c(e->problem_size()*dsize + coff);
+	std::vector<nbcoord_t>	c(cstride * dsize);
 	std::vector<nbcoord_t>	d(dsize);
-	nbody_engine::memory*	mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_c = e->create_buffer(c.size() * sizeof(nbcoord_t));
-	nbody_engine::memory*	mem_d = e->create_buffer(d.size() * sizeof(nbcoord_t));
+	nbody_engine::memory*		mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
+	nbody_engine::memory_array	mem_c = e->create_buffers(cstride * sizeof(nbcoord_t), dsize);
 
 	for(size_t n = 0; n != a.size(); ++n)
 	{
@@ -312,11 +338,13 @@ bool test_fmaddn3(nbody_engine* e, size_t dsize)
 	}
 
 	e->write_buffer(mem_a, a.data());
-	e->write_buffer(mem_c, c.data());
-	e->write_buffer(mem_d, d.data());
+	for(size_t n = 0; n != mem_c.size(); ++n)
+	{
+		e->write_buffer(mem_c[n], c.data() + n * cstride);
+	}
 
 	//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
-	e->fmaddn(mem_a, NULL, mem_c, mem_d, cstride, aoff, 0, coff, dsize);
+	e->fmaddn(mem_a, NULL, mem_c, d.data(), aoff, 0, coff, dsize);
 
 	e->read_buffer(a.data(), mem_a);
 
@@ -335,8 +363,7 @@ bool test_fmaddn3(nbody_engine* e, size_t dsize)
 	}
 
 	e->free_buffer(mem_a);
-	e->free_buffer(mem_c);
-	e->free_buffer(mem_d);
+	e->free_buffers(mem_c);
 
 	return ret;
 }
@@ -453,6 +480,7 @@ private slots:
 	void test_mem();
 	void test_memcpy();
 	void test_copy_buffer();
+	void test_fill_buffer();
 	void test_fmadd1();
 	void test_fmadd2();
 	void test_fmaddn1();
@@ -502,6 +530,11 @@ void test_nbody_engine::test_memcpy()
 void test_nbody_engine::test_copy_buffer()
 {
 	QVERIFY(::test_copy_buffer(m_e));
+}
+
+void test_nbody_engine::test_fill_buffer()
+{
+	QVERIFY(::test_fill_buffer(m_e));
 }
 
 void test_nbody_engine::test_fmadd1()
@@ -642,26 +675,24 @@ void test_nbody_engine::test_negative_branches()
 	qDebug() << "fmaddn_inplace";
 	{
 		nbody_engine_memory_fake	a(0);
-		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn_inplace(&a, b, c, 0, 0, 0, 0);
-		m_e->free_buffer(b);
-		m_e->free_buffer(c);
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_inplace(&a, b, c, 0, 0);
+		m_e->free_buffers(b);
 	}
 	{
-		nbody_engine_memory_fake	c(0);
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn_inplace(a, b, &c, 0, 0, 0, 0);
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		m_e->fmaddn_inplace(a, b, NULL, 0, 0);
 		m_e->free_buffer(a);
-		m_e->free_buffer(b);
+		m_e->free_buffers(b);
 	}
 	{
-		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
+		nbody_engine_memory_fake	b0(0);
+		nbody_engine::memory_array	b(1, &b0);
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn_inplace(a, &b, c, 0, 0, 0, 0);
-		m_e->free_buffer(c);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_inplace(a, b, c, 0, 0);
 		m_e->free_buffer(a);
 	}
 
@@ -669,45 +700,43 @@ void test_nbody_engine::test_negative_branches()
 	{
 		nbody_engine_memory_fake	a(0);
 		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		d = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn(&a, b, c, d, 0, 0, 0, 0, 0);
-		m_e->fmaddn(&a, NULL, c, d, 0, 0, 0, 0, 0);
+		nbody_engine::memory_array	c = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					d[1] = {};
+		m_e->fmaddn(&a, b, c, d, 0, 0, 0, 0);
+		m_e->fmaddn(&a, NULL, c, d, 0, 0, 0, 0);
 		m_e->free_buffer(b);
-		m_e->free_buffer(c);
-		m_e->free_buffer(d);
+		m_e->free_buffers(c);
 	}
 	{
-		nbody_engine_memory_fake	d(0);
+		nbcoord_t*					d(NULL);
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn(a, b, c, &d, 0, 0, 0, 0, 0);
-		m_e->fmaddn(a, NULL, c, &d, 0, 0, 0, 0, 0);
+		nbody_engine::memory_array	c = m_e->create_buffers(m_e->problem_size(), 1);
+		m_e->fmaddn(a, b, c, d, 0, 0, 0, 0);
+		m_e->fmaddn(a, NULL, c, d, 0, 0, 0, 0);
 		m_e->free_buffer(a);
 		m_e->free_buffer(b);
-		m_e->free_buffer(c);
+		m_e->free_buffers(c);
 	}
 	{
-		nbody_engine_memory_fake	c(0);
-		nbody_engine::memory*		d = m_e->create_buffer(m_e->problem_size());
+		nbody_engine_memory_fake	c0(0);
+		nbody_engine::memory_array	c(1, &c0);
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn(a, b, &c, d, 0, 0, 0, 0, 0);
-		m_e->fmaddn(a, NULL, &c, d, 0, 0, 0, 0, 0);
-		m_e->free_buffer(d);
+		nbcoord_t					d[1] = {};
+		m_e->fmaddn(a, b, c, d, 0, 0, 0, 0);
+		m_e->fmaddn(a, NULL, c, d, 0, 0, 0, 0);
 		m_e->free_buffer(a);
 		m_e->free_buffer(b);
 	}
 	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
 		nbody_engine_memory_fake	b(0);
-		nbody_engine::memory*		c = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		d = m_e->create_buffer(m_e->problem_size());
-		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
-		m_e->fmaddn(a, &b, c, d, 0, 0, 0, 0, 0);
-		m_e->free_buffer(c);
-		m_e->free_buffer(d);
+		nbody_engine::memory_array	c = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					d[1] = {};
+		m_e->fmaddn(a, &b, c, d, 0, 0, 0, 0);
 		m_e->free_buffer(a);
+		m_e->free_buffers(c);
 	}
 
 	qDebug() << "fmaxabs";

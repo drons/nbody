@@ -56,18 +56,18 @@ public:
 	virtual void write_buffer(memory* dst, const void* src) = 0;
 	//! a[i] = b[i]
 	virtual void copy_buffer(memory* a, const memory* b) = 0;
-
+	//! a[i] = value
+	virtual void fill_buffer(memory* a, const nbcoord_t& value) = 0;
 	//! a[i] += b[i]*c
 	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) = 0;
 	//! a[i+aoff] = b[i+boff] + c[i+coff]*d
 	virtual void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d, size_t aoff, size_t boff,
 					   size_t coff) = 0;
-	//! a[i+aoff] += sum( b[i+boff+k*bstride]*c[k], k=[0...csize) )
-	virtual void fmaddn_inplace(memory* a, const memory* b, const memory* c, size_t bstride, size_t aoff, size_t boff,
-								size_t csize) = 0;
-	//! a[i+aoff] = b[i+boff] + sum( c[i+coff+k*cstride]*d[k], k=[0...dsize) )
-	virtual void fmaddn(memory* a, const memory* b, const memory* c, const memory* d, size_t cstride, size_t aoff,
-						size_t boff, size_t coff, size_t dsize) = 0;
+	//! a[i+aoff] += sum( b[k][i+boff]*c[k], k=[0...b.size()) )
+	virtual void fmaddn_inplace(memory* a, const memory_array& b, const nbcoord_t* c, size_t aoff, size_t boff);
+	//! a[i+aoff] = b[i+boff] + sum( c[k][i+coff]*d[k], k=[0...c.size()) )
+	virtual void fmaddn(memory* a, const memory* b, const memory_array& c, const nbcoord_t* d, size_t aoff,
+						 size_t boff, size_t coff, size_t dsize);
 	//! @result = max( fabs(a[k]), k=[0...asize) )
 	virtual void fmaxabs(const memory* a, nbcoord_t& result) = 0;
 	//! Print engine info

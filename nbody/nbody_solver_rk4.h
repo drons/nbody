@@ -5,9 +5,8 @@
 
 class NBODY_DLL nbody_solver_rk4 : public nbody_solver
 {
-	nbody_engine::memory*	m_k;
-	nbody_engine::memory*	m_tmp;
-	nbody_engine::memory*	m_coeff;
+	nbody_engine::memory_array	m_k;
+	nbody_engine::memory*		m_tmp;
 public:
 	nbody_solver_rk4();
 	~nbody_solver_rk4();

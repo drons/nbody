@@ -139,6 +139,14 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 	fvz[n1] = res_z;
 }
 
+//! a[i] = value
+__kernel void fill(__global nbcoord_t* a, nbcoord_t value)
+{
+	int		i = get_global_id(0);
+	if(i < get_global_size(0))
+		a[i] = value;
+}
+
 //! a[i] += b[i]*c
 __kernel void fmadd1(int offset, __global nbcoord_t* a, __global const nbcoord_t* b, nbcoord_t c)
 {
