@@ -456,9 +456,9 @@ void nbody_engine_opencl::free_buffer(memory* m)
 	delete m;
 }
 
-void nbody_engine_opencl::read_buffer(void* _dst, memory* _src)
+void nbody_engine_opencl::read_buffer(void* _dst, const memory* _src)
 {
-	smemory*	src = dynamic_cast<smemory*>(_src);
+	const smemory*	src = dynamic_cast<const smemory*>(_src);
 
 	if(src == NULL)
 	{
@@ -469,7 +469,7 @@ void nbody_engine_opencl::read_buffer(void* _dst, memory* _src)
 	src->queue().enqueueReadBuffer(src->buffer(), CL_TRUE, 0, src->size(), _dst);
 }
 
-void nbody_engine_opencl::write_buffer(memory* _dst, void* _src)
+void nbody_engine_opencl::write_buffer(memory* _dst, const void* _src)
 {
 	smemory*	dst = dynamic_cast<smemory*>(_dst);
 

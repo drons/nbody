@@ -28,8 +28,8 @@ public:
 
 	virtual memory* create_buffer(size_t) override;
 	virtual void free_buffer(memory*) override;
-	virtual void read_buffer(void* src, memory* dst) override;
-	virtual void write_buffer(memory*, void*) override;
+	virtual void read_buffer(void* dst, const memory* src) override;
+	virtual void write_buffer(memory* dst, const void* src) override;
 	virtual void copy_buffer(memory* a, const memory* b) override;
 
 	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;

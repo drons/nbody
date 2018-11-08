@@ -48,8 +48,8 @@ public:
 
 	virtual memory* create_buffer(size_t) = 0;
 	virtual void free_buffer(memory*) = 0;
-	virtual void read_buffer(void* dst, memory* src) = 0;
-	virtual void write_buffer(memory* dst, void* src) = 0;
+	virtual void read_buffer(void* dst, const memory* src) = 0;
+	virtual void write_buffer(memory* dst, const void* src) = 0;
 	//! a[i] = b[i]
 	virtual void copy_buffer(memory* a, const memory* b) = 0;
 

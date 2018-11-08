@@ -176,9 +176,9 @@ void nbody_engine_simple::free_buffer(memory* m)
 	delete m;
 }
 
-void nbody_engine_simple::read_buffer(void* dst, memory* _src)
+void nbody_engine_simple::read_buffer(void* dst, const memory* _src)
 {
-	smemory*		src = dynamic_cast<smemory*>(_src);
+	const smemory*	src = dynamic_cast<const smemory*>(_src);
 
 	if(src == NULL)
 	{
@@ -189,7 +189,7 @@ void nbody_engine_simple::read_buffer(void* dst, memory* _src)
 	::memcpy(dst, src->data(), src->size());
 }
 
-void nbody_engine_simple::write_buffer(memory* _dst, void* src)
+void nbody_engine_simple::write_buffer(memory* _dst, const void* src)
 {
 	smemory*		dst = dynamic_cast<smemory*>(_dst);
 
