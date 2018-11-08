@@ -20,6 +20,8 @@ public:
 		virtual size_t size() const = 0;
 		virtual ~memory();
 	};
+	typedef std::vector<memory*>	memory_array;
+
 public:
 	nbody_engine();
 	virtual ~nbody_engine();
@@ -48,6 +50,8 @@ public:
 
 	virtual memory* create_buffer(size_t) = 0;
 	virtual void free_buffer(memory*) = 0;
+	virtual memory_array create_buffers(size_t size, size_t count);
+	virtual void free_buffers(memory_array&);
 	virtual void read_buffer(void* dst, const memory* src) = 0;
 	virtual void write_buffer(memory* dst, const void* src) = 0;
 	//! a[i] = b[i]

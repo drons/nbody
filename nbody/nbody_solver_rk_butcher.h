@@ -6,12 +6,12 @@
 
 class NBODY_DLL nbody_solver_rk_butcher : public nbody_solver
 {
-	nbody_butcher_table*				m_bt;
-	nbody_engine::memory*				m_k;
-	nbody_engine::memory*				m_tmpy;
-	nbody_engine::memory*				m_tmpk;
-	nbody_engine::memory*				m_coeff;
-	std::vector<nbody_engine::memory*>	m_y_stack;
+	nbody_butcher_table*		m_bt;
+	nbody_engine::memory*		m_k;
+	nbody_engine::memory*		m_tmpy;
+	nbody_engine::memory*		m_tmpk;
+	nbody_engine::memory*		m_coeff;
+	nbody_engine::memory_array	m_y_stack;
 
 	size_t						m_max_recursion;
 	size_t						m_substep_subdivisions;

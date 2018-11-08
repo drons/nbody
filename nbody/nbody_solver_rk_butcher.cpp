@@ -21,10 +21,7 @@ nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 	engine()->free_buffer(m_k);;
 	engine()->free_buffer(m_tmpy);
 	engine()->free_buffer(m_tmpk);
-	for(auto b : m_y_stack)
-	{
-		engine()->free_buffer(b);
-	}
+	engine()->free_buffers(m_y_stack);
 	engine()->free_buffer(m_coeff);
 }
 
@@ -93,11 +90,7 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 		m_k = engine()->create_buffer(sizeof(nbcoord_t) * STEPS * ps);
 		m_tmpy = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_tmpk = engine()->create_buffer(sizeof(nbcoord_t) * ps);
-		m_y_stack.resize(m_max_recursion);
-		for(size_t level = 0; level != m_max_recursion; ++level)
-		{
-			m_y_stack[level] = engine()->create_buffer(sizeof(nbcoord_t) * ps);
-		}
+		m_y_stack = engine()->create_buffers(sizeof(nbcoord_t) * ps, m_max_recursion);
 		m_coeff = engine()->create_buffer(sizeof(nbcoord_t) * coeff_count);
 	}
 

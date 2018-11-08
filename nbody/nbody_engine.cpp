@@ -20,6 +20,32 @@ nbody_engine::~nbody_engine()
 
 }
 
+nbody_engine::memory_array nbody_engine::create_buffers(size_t size, size_t count)
+{
+	memory_array	mema;
+	mema.reserve(count);
+	for(size_t n = 0; n != count; ++n)
+	{
+		memory*	m = create_buffer(size);
+		if(m == NULL)
+		{
+			free_buffers(mema);
+			return memory_array();
+		}
+		mema.push_back(m);
+	}
+	return mema;
+}
+
+void nbody_engine::free_buffers(memory_array& mema)
+{
+	for(memory* m : mema)
+	{
+		free_buffer(m);
+	}
+	mema.clear();
+}
+
 void nbody_engine::print_info() const
 {
 }
