@@ -21,7 +21,7 @@ private:
 public:
 	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0, e_traverse_type tt = ett_cycle);
 	virtual const char* type_name() const override;
-	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
+	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 	virtual void print_info() const override;
 };
 

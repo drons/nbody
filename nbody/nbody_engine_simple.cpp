@@ -107,7 +107,7 @@ void nbody_engine_simple::set_step(size_t s)
 	m_data->set_step(s);
 }
 
-void nbody_engine_simple::fcompute(const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff)
+void nbody_engine_simple::fcompute(const nbcoord_t& t, const memory* _y, memory* _f)
 {
 	Q_UNUSED(t);
 	const smemory*	y = dynamic_cast<const  smemory*>(_y);
@@ -127,14 +127,14 @@ void nbody_engine_simple::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	advise_compute_count();
 
 	size_t				count = m_data->get_count();
-	const nbcoord_t*	rx = reinterpret_cast<const nbcoord_t*>(y->data()) + yoff;
+	const nbcoord_t*	rx = reinterpret_cast<const nbcoord_t*>(y->data());
 	const nbcoord_t*	ry = rx + count;
 	const nbcoord_t*	rz = rx + 2 * count;
 	const nbcoord_t*	vx = rx + 3 * count;
 	const nbcoord_t*	vy = rx + 4 * count;
 	const nbcoord_t*	vz = rx + 5 * count;
 
-	nbcoord_t*			frx = reinterpret_cast<nbcoord_t*>(f->data()) + foff;
+	nbcoord_t*			frx = reinterpret_cast<nbcoord_t*>(f->data());
 	nbcoord_t*			fry = frx + count;
 	nbcoord_t*			frz = frx + 2 * count;
 	nbcoord_t*			fvx = frx + 3 * count;
@@ -239,7 +239,7 @@ void nbody_engine_simple::fill_buffer(nbody_engine::memory* __a, const nbcoord_t
 	}
 
 	nbcoord_t*			a = reinterpret_cast<nbcoord_t*>(_a->data());
-	size_t				count = _a->size()/sizeof(nbcoord_t);
+	size_t				count = _a->size() / sizeof(nbcoord_t);
 
 	for(size_t i = 0; i < count; ++i)
 	{
@@ -273,8 +273,7 @@ void nbody_engine_simple::fmadd_inplace(memory* __a, const memory* __b, const nb
 	}
 }
 
-void nbody_engine_simple::fmadd(memory* __a, const memory* __b, const memory* __c, const nbcoord_t& d, size_t aoff,
-								size_t boff, size_t coff)
+void nbody_engine_simple::fmadd(memory* __a, const memory* __b, const memory* __c, const nbcoord_t& d)
 {
 	smemory*			_a = dynamic_cast<smemory*>(__a);
 	const smemory*		_b = dynamic_cast<const smemory*>(__b);
@@ -303,7 +302,7 @@ void nbody_engine_simple::fmadd(memory* __a, const memory* __b, const memory* __
 
 	for(size_t i = 0; i < count; ++i)
 	{
-		a[i + aoff] = b[i + boff] + c[i + coff] * d;
+		a[i] = b[i] + c[i] * d;
 	}
 }
 

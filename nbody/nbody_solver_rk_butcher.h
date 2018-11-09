@@ -27,8 +27,8 @@ public:
 	virtual void advise(nbcoord_t dt) override;
 	virtual void print_info() const override;
 private:
-	void sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt, nbody_engine::memory* y, size_t yoff,
-				  size_t recursion_level);
+	void sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt,
+				  nbody_engine::memory* y, size_t recursion_level);
 };
 
 #endif // NBODY_SOLVER_RK_BUTCHER_H

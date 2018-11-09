@@ -46,8 +46,7 @@ void nbody_engine::free_buffers(memory_array& mema)
 	mema.clear();
 }
 
-void nbody_engine::fmaddn_inplace(memory* a, const memory_array& b, const nbcoord_t* c,
-								   size_t aoff, size_t boff)
+void nbody_engine::fmaddn_inplace(memory* a, const memory_array& b, const nbcoord_t* c)
 {
 	if(c == NULL)
 	{
@@ -55,14 +54,19 @@ void nbody_engine::fmaddn_inplace(memory* a, const memory_array& b, const nbcoor
 	}
 	for(size_t i = 0; i != b.size(); ++i)
 	{
-		fmadd(a, a, b[i], c[i], aoff, aoff, boff);
+		fmadd(a, a, b[i], c[i]);
 	}
 }
 
-//! a[i+aoff] = b[i+boff] + sum( c[k][i+coff]*d[k], k=[0...c.size()) )
-void nbody_engine::fmaddn(memory* a, const memory* b, const memory_array& c, const nbcoord_t* d,
-						   size_t aoff, size_t boff, size_t coff, size_t dsize)
+//! a[i] = b[i] + sum( c[k][i]*d[k], k=[0...c.size()) )
+void nbody_engine::fmaddn(memory* a, const memory* b, const memory_array& c,
+						  const nbcoord_t* d, size_t dsize)
 {
+	if(d == NULL)
+	{
+		qDebug() << "dsize > c.size()";
+		return;
+	}
 	if(dsize > c.size())
 	{
 		qDebug() << "dsize > c.size()";
@@ -78,11 +82,11 @@ void nbody_engine::fmaddn(memory* a, const memory* b, const memory_array& c, con
 	{
 		if(i == 0 && b != NULL)
 		{
-			fmadd(a, b, c[i], d[i], aoff, boff, coff);
+			fmadd(a, b, c[i], d[i]);
 		}
 		else
 		{
-			fmadd(a, a, c[i], d[i], aoff, aoff, coff);
+			fmadd(a, a, c[i], d[i]);
 		}
 	}
 }

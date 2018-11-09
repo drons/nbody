@@ -35,21 +35,21 @@ void nbody_solver_trapeze::advise(nbcoord_t dt)
 		m_predictor = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 	}
 
-	engine()->fcompute(t, y, m_f[0], 0, 0);
-	engine()->fmadd(m_predictor, y, m_f[0], dt, 0, 0, 0);
+	engine()->fcompute(t, y, m_f[0]);
+	engine()->fmadd(m_predictor, y, m_f[0], dt);
 
 	for(size_t s = 0; s <= m_refine_steps_count; ++s)
 	{
 		const nbcoord_t	coeff[] = { dt / 2, dt / 2 };
-		engine()->fcompute(t, m_predictor, m_f[1], 0, 0);
+		engine()->fcompute(t, m_predictor, m_f[1]);
 
 		if(s == m_refine_steps_count)
 		{
-			engine()->fmaddn_inplace(y, m_f, coeff, 0, 0);
+			engine()->fmaddn_inplace(y, m_f, coeff);
 		}
 		else
 		{
-			engine()->fmaddn(m_predictor, y, m_f, coeff, 0, 0, 0, m_f.size());
+			engine()->fmaddn(m_predictor, y, m_f, coeff, m_f.size());
 		}
 	}
 	engine()->advise_time(dt);

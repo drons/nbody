@@ -46,19 +46,19 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 	{
 		std::vector<nbcoord_t>	coeff(m_rank);
 
-		engine()->fcompute(t, y, m_f[fnum], 0, 0);
+		engine()->fcompute(t, y, m_f[fnum]);
 
 		for(size_t n = 0; n < m_rank; ++n)
 		{
 			coeff[(m_rank + fnum - n) % m_rank ] = a[n] * dt;
 		}
 
-		engine()->fmaddn_inplace(y, m_f, coeff.data(), 0, 0);
+		engine()->fmaddn_inplace(y, m_f, coeff.data());
 		engine()->advise_time(dt);
 	}
 	else
 	{
-		engine()->fcompute(t, y, m_f[fnum], 0, 0);
+		engine()->fcompute(t, y, m_f[fnum]);
 		engine()->fmadd_inplace(y, m_f[fnum], dt);
 		engine()->advise_time(dt);
 	}

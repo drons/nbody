@@ -25,7 +25,7 @@ void nbody_solver_euler::advise(nbcoord_t dt)
 		m_dy = engine()->create_buffer(sizeof(nbcoord_t) * engine()->problem_size());
 	}
 
-	engine()->fcompute(engine()->get_time(), y, m_dy, 0, 0);
+	engine()->fcompute(engine()->get_time(), y, m_dy);
 	engine()->fmadd_inplace(y, m_dy, dt);   //y += dy*dt
 
 	engine()->advise_time(dt);

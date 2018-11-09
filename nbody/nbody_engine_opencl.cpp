@@ -131,8 +131,8 @@ public:
 
 	size_t alloc_size() const
 	{
-		constexpr	size_t block_size = sizeof(nbcoord_t)*NBODY_DATA_BLOCK_SIZE;
-		return block_size * (1 + (m_size - 1)/block_size);
+		constexpr	size_t block_size = sizeof(nbcoord_t) * NBODY_DATA_BLOCK_SIZE;
+		return block_size * (1 + (m_size - 1) / block_size);
 	}
 
 	const cl::Buffer& buffer() const
@@ -393,7 +393,7 @@ void nbody_engine_opencl::set_step(size_t s)
 	d->m_data->set_step(s);
 }
 
-void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff)
+void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory* _f)
 {
 	if(d->m_devices.empty())
 	{
@@ -436,7 +436,7 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 		data::devctx&	ctx(d->m_devices[dev_n]);
 		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
 		cl::Event		ev(ctx.m_fcompute(eargs, offset, 0, d->m_mass->buffer(),
-										  y->buffer(), f->buffer(), yoff, foff,
+										  y->buffer(), f->buffer(), 0, 0,
 										  d->m_data->get_count(), d->m_data->get_count()));
 		events.push_back(ev);
 	}
@@ -524,7 +524,7 @@ void nbody_engine_opencl::fill_buffer(memory* _a, const nbcoord_t& value)
 	}
 
 	size_t					device_count(d->m_devices.size());
-	cl::NDRange				global_range(a->alloc_size()/sizeof(nbcoord_t));
+	cl::NDRange				global_range(a->alloc_size() / sizeof(nbcoord_t));
 	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
 	std::vector<cl::Event>	events;
 
@@ -575,8 +575,7 @@ void nbody_engine_opencl::fmadd_inplace(memory* _a, const memory* _b, const nbco
 	cl::Event::waitForEvents(events);
 }
 
-void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, const nbcoord_t& _d, size_t aoff,
-								size_t boff, size_t coff)
+void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, const nbcoord_t& _d)
 {
 	smemory*		a = dynamic_cast<smemory*>(_a);
 	const smemory*	b = dynamic_cast<const smemory*>(_b);
@@ -610,7 +609,7 @@ void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, 
 		data::devctx&	ctx(d->m_devices[dev_n]);
 		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
 		cl::Event		ev(ctx.m_fmadd2(eargs, a->buffer(), b->buffer(), c->buffer(),
-										_d, aoff + offset, boff + offset, coff + offset));
+										_d, offset, offset, offset));
 
 		events.push_back(ev);
 	}

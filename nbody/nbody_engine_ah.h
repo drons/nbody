@@ -19,7 +19,7 @@ class NBODY_DLL nbody_engine_ah : public nbody_engine_simple
 public:
 	nbody_engine_ah(size_t full_recompute_rate = 1000, nbcoord_t max_dist = 10, nbcoord_t min_force = 1e-4);
 	const char* type_name() const override;
-	void fcompute(const nbcoord_t& t, const memory* y, memory* f, size_t yoff, size_t foff) override;
+	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 };
 
 #endif // NBODY_ENGINE_SPARSE_H

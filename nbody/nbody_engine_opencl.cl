@@ -144,7 +144,9 @@ __kernel void fill(__global nbcoord_t* a, nbcoord_t value)
 {
 	int		i = get_global_id(0);
 	if(i < get_global_size(0))
+	{
 		a[i] = value;
+	}
 }
 
 //! a[i] += b[i]*c

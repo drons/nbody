@@ -248,7 +248,7 @@ const char* nbody_engine_simple_bh::type_name() const
 	return "nbody_engine_simple_bh";
 }
 
-void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memory* _f, size_t yoff, size_t foff)
+void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memory* _f)
 {
 	Q_UNUSED(t);
 	const smemory*	y = dynamic_cast<const  smemory*>(_y);
@@ -268,14 +268,14 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 	advise_compute_count();
 
 	size_t				count = m_data->get_count();
-	const nbcoord_t*	rx = reinterpret_cast<const nbcoord_t*>(y->data()) + yoff;
+	const nbcoord_t*	rx = reinterpret_cast<const nbcoord_t*>(y->data());
 	const nbcoord_t*	ry = rx + count;
 	const nbcoord_t*	rz = rx + 2 * count;
 	const nbcoord_t*	vx = rx + 3 * count;
 	const nbcoord_t*	vy = rx + 4 * count;
 	const nbcoord_t*	vz = rx + 5 * count;
 
-	nbcoord_t*			frx = reinterpret_cast<nbcoord_t*>(f->data()) + foff;
+	nbcoord_t*			frx = reinterpret_cast<nbcoord_t*>(f->data());
 	nbcoord_t*			fry = frx + count;
 	nbcoord_t*			frz = frx + 2 * count;
 	nbcoord_t*			fvx = frx + 3 * count;
