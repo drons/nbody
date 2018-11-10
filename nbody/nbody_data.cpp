@@ -2,6 +2,8 @@
 #include "nbody_engine.h"
 #include <qnumeric.h>
 #include <QDebug>
+#include <QFile>
+#include <QTextStream>
 
 #include "summation.h"
 #include "summation_proxy.h"
@@ -214,11 +216,16 @@ nbcoord_t static randcoord(nbcoord_t min, nbcoord_t max)
 	return min + (max - min) * static_cast<nbcoord_t>(rand()) / static_cast<nbcoord_t>(RAND_MAX);
 }
 
+static size_t round_up(size_t n, size_t factor)
+{
+	return factor * (1 + (n - 1) / factor);
+}
+
 void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity,
 							nbcoord_t radius, nbcoord_t total_mass,
 							size_t count, const nbcolor_t& color)
 {
-	count = (count / NBODY_DATA_BLOCK_SIZE + 1) * NBODY_DATA_BLOCK_SIZE - 1;
+	count = round_up(count, NBODY_DATA_BLOCK_SIZE) - 1;
 
 	nbvertex_t	up(0, 0, 1);
 	nbvertex_t	right(1, 0, 0);
@@ -256,6 +263,8 @@ void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity
 
 void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz)
 {
+	clear();
+
 	nbcoord_t	radius = sx * 0.5;
 	nbcoord_t	galaxy_mass = 1000;
 	nbvertex_t	center(sx * 0.5, sy * 0.5, sz * 0.5);
@@ -332,10 +341,99 @@ nbcoord_t nbody_data::get_energy_err() const
 	return fabs(100.0 * (get_last_total_energy() - get_total_energy()) / get_total_energy());
 }
 
-bool nbody_data::is_equal(const nbody_data& other) const
+bool nbody_data::is_equal(const nbody_data& other, const nbcoord_t eps) const
 {
-	return m_vertites == other.m_vertites &&
-		   m_velosites == other.m_velosites &&
-		   m_color == other.m_color &&
-		   m_mass == other.m_mass;
+	if(m_count != other.m_count)
+	{
+		return false;
+	}
+	if(eps <= 0)
+	{
+		return m_vertites == other.m_vertites &&
+			   m_velosites == other.m_velosites &&
+			   m_color == other.m_color &&
+			   m_mass == other.m_mass;
+	}
+
+	for(size_t n = 0; n != m_count; ++n)
+	{
+		if(
+			fabs(m_mass[n] - other.m_mass[n]) > eps ||
+			fabs(m_vertites[n].x - other.m_vertites[n].x) > eps ||
+			fabs(m_vertites[n].y - other.m_vertites[n].y) > eps ||
+			fabs(m_vertites[n].z - other.m_vertites[n].z) > eps ||
+			fabs(m_velosites[n].x - other.m_velosites[n].x) > eps ||
+			fabs(m_velosites[n].y - other.m_velosites[n].y) > eps ||
+			fabs(m_velosites[n].z - other.m_velosites[n].z) > eps)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void nbody_data::clear()
+{
+	m_vertites.clear();
+	m_velosites.clear();
+	m_mass.clear();
+	m_color.clear();
+	m_count = 0;
+}
+
+bool nbody_data::save(const QString& fn) const
+{
+	QFile		file(fn);
+
+	if(!file.open(QFile::WriteOnly))
+	{
+		qDebug() << "Can't open file" << fn << file.errorString();
+		return false;
+	}
+
+	QTextStream	s(&file);
+	s.setRealNumberPrecision(16);
+	s.setRealNumberNotation(QTextStream::ScientificNotation);
+	s.setNumberFlags(QTextStream::ForceSign);
+
+	for(size_t n = 0; n != get_count(); ++n)
+	{
+		s << m_vertites[n].x << " " << m_vertites[n].y << " " << m_vertites[n].z << " "
+		  << m_velosites[n].x << " " << m_velosites[n].y << " " << m_velosites[n].z << " "
+		  << m_mass[n] << "\n";
+	}
+
+	return true;
+}
+
+bool nbody_data::load(const QString& fn)
+{
+	QFile		file(fn);
+
+	if(!file.open(QFile::ReadOnly))
+	{
+		qDebug() << "Can't open file" << fn << file.errorString();
+		return false;
+	}
+
+	clear();
+
+	QTextStream	s(&file);
+
+	while(!s.atEnd())
+	{
+		QString		line(s.readLine());
+		QStringList	p(line.split(" "));
+
+		if(p.size() != 7)
+		{
+			qDebug() << "Failed to parse line" << line;
+			return false;
+		}
+		add_body(nbvertex_t(p[0].toDouble(), p[1].toDouble(), p[2].toDouble()),
+				 nbvertex_t(p[3].toDouble(), p[4].toDouble(), p[5].toDouble()),
+				 p[6].toDouble(), nbcolor_t(1, 1, 1, 1));
+	}
+
+	return true;
 }

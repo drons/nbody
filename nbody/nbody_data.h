@@ -78,7 +78,10 @@ public:
 	nbcoord_t get_impulce_moment_err() const;
 	nbcoord_t get_energy_err() const;
 
-	bool is_equal(const nbody_data& other) const;
+	bool is_equal(const nbody_data& other, const nbcoord_t eps = -1) const;
+	void clear();
+	bool save(const QString& fn) const;
+	bool load(const QString& fn);
 };
 
 #endif // NBODY_DATA_H
