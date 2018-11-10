@@ -755,12 +755,12 @@ int main(int argc, char* argv[])
 		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
-//	{
-//		//Two devices with same context
-//		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0,1"}}));
-//		test_nbody_engine	tc1(nbody_create_engine(param));
-//		res += QTest::qExec(&tc1, argc, argv);
-//	}
+	{
+		//Two devices with same context
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0,0"}}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 	{
 		//Two devices with separate contexts
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0;0:0"}}));

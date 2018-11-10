@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QStringList>
+#include <set>
 
 #ifdef HAVE_OPENCL2
 #define CL_HPP_ENABLE_EXCEPTIONS
@@ -215,6 +216,7 @@ int nbody_engine_opencl::data::select_devices(const QString& devices)
 		const cl::Platform&			platform(platforms[platform_n]);
 		std::vector<cl::Device>		all_devices;
 		std::vector<cl::Device>		active_devices;
+		std::set<size_t>			dev_ids;
 
 		platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
 		qDebug() << platform_n << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
@@ -234,9 +236,16 @@ int nbody_engine_opencl::data::select_devices(const QString& devices)
 				return -1;
 			}
 			active_devices.push_back(all_devices[device_n]);
+			dev_ids.insert(device_n);
 		}
 
-		cl::Context	context(active_devices);
+		std::vector<cl::Device>		context_devices;
+		for(auto ii = dev_ids.begin(); ii != dev_ids.end(); ++ii)
+		{
+			context_devices.push_back(all_devices[*ii]);
+		}
+
+		cl::Context	context(context_devices);
 
 		for(size_t device_n = 0; device_n != active_devices.size(); ++device_n)
 		{
