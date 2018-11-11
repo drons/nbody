@@ -569,6 +569,8 @@ void test_nbody_engine::test_fmaxabs()
 void test_nbody_engine::test_fcompute()
 {
 	QVERIFY(::test_fcompute(m_e, &m_data, m_eps));
+	m_data.advise_time(0);
+	QVERIFY(::test_fcompute(m_e, &m_data, m_eps));
 }
 
 class nbody_engine_memory_fake : public nbody_engine::memory
@@ -743,7 +745,13 @@ void test_nbody_engine::test_negative_branches()
 int main(int argc, char* argv[])
 {
 	int res = 0;
-
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "ah"},
+			{"full_recompute_rate", 5}, {"max_dist", 7}, {"min_force", 1e-6}
+		}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "block"}}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
@@ -805,14 +813,6 @@ int main(int argc, char* argv[])
 			{"traverse_type", "cycle"}
 		}));
 		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-
-	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "ah"},
-			{"full_recompute_rate", 5}, {"max_dist", 7}, {"min_force", 1e-6}
-		}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 
