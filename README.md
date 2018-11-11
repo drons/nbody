@@ -29,7 +29,7 @@ block |  :heavy_minus_sign: | Multi-threaded (OpenMP) engine with block-by-block
 opencl |  :heavy_minus_sign:  | Parallel OpenCL engine
 openmp |  :heavy_minus_sign:  | Multi-threaded (OpenMP) engine
 simple |  :heavy_minus_sign:  | Simple single threaded engine
-simple_bh |  :star:  | Single threaded engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation
+simple_bh |  :star:  | Multi-threaded (OpenMP) engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation
 
 ### How to run
 #### Simulation
