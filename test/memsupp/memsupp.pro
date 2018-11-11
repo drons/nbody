@@ -17,3 +17,5 @@ LIBS += -L../../lib
 LIBS += -lnbody
 
 SOURCES += test_memsupp.cpp
+
+OTHER_FILES += memcheck.supp

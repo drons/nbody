@@ -40,8 +40,11 @@ void test_memsupp::test1()
 void test_memsupp::test2()
 {
 	//Suppress error at QLocale::QLocale() from QString::toDouble()
-	QString	val("+4.2820153172908482e-03");
-	qDebug() << val.toDouble();
+	QString	val1("+4.2820153172908482e-03");
+	qDebug() << val1.toDouble();
+	//Suppress error at QLocale::QLocale() from QString::toLongLong()
+	QString	val2("+4282015317290848203");
+	qDebug() << val2.toULongLong();
 }
 
 int main(int argc, char* argv[])

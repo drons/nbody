@@ -1,0 +1,8 @@
+{
+   <QLocale>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:_ZN7QLocaleC1Ev
+   ...
+}
