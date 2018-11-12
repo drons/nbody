@@ -38,7 +38,7 @@ public:
 
 	virtual void print_info() const override;
 
-	int select_devices(const QString& devices);
+	int select_devices(const QString& devices, bool verbose);
 };
 
 #endif // NBODY_ENGINE_OPENCL_H

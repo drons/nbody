@@ -22,7 +22,7 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 	{
 		QString	devices(param.value("device", "0:0").toString());
 		nbody_engine_opencl* engine = new nbody_engine_opencl();
-		if(0 != engine->select_devices(devices))
+		if(0 != engine->select_devices(devices, !param.value("verbose").isNull()))
 		{
 			qDebug() << "Failed to select devices" << devices;
 			delete engine;

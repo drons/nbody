@@ -100,7 +100,7 @@ struct nbody_engine_opencl::data
 	smemory*				m_y;
 	nbody_data*				m_data;
 
-	int select_devices(const QString& devices);
+	int select_devices(const QString& devices, bool verbose = false);
 	void prepare(devctx&, const nbody_data* data, const nbvertex_t* vertites);
 	void compute_block(devctx& ctx, size_t offset_n1, size_t offset_n2, const nbody_data* data);
 };
@@ -166,14 +166,9 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_fmadd2(m_prog, "fmadd2"),
 	m_fmaxabs(m_prog, "fmaxabs")
 {
-	size_t	local_memory_amount = 0;
-
-	local_memory_amount += NBODY_DATA_BLOCK_SIZE * 4 * sizeof(nbcoord_t); // x2, y2, z2, m2
-
-	qDebug() << "\t\t\tKernel local memory" << local_memory_amount / 1024.0 << "Kb";
 }
 
-int nbody_engine_opencl::data::select_devices(const QString& devices)
+int nbody_engine_opencl::data::select_devices(const QString& devices, bool verbose)
 {
 	std::vector<cl::Platform>		platforms;
 	try
@@ -219,7 +214,11 @@ int nbody_engine_opencl::data::select_devices(const QString& devices)
 		std::set<size_t>			dev_ids;
 
 		platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
-		qDebug() << platform_n << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
+
+		if(verbose)
+		{
+			qDebug() << platform_n << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
+		}
 
 		for(int i = 0; i != devices_list.size(); ++i)
 		{
@@ -250,6 +249,12 @@ int nbody_engine_opencl::data::select_devices(const QString& devices)
 		for(size_t device_n = 0; device_n != active_devices.size(); ++device_n)
 		{
 			cl::Device&		device(active_devices[device_n]);
+			if(verbose)
+			{
+				qDebug() << "\tDevice:";
+				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
+				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
+			}
 			m_devices.push_back(devctx(context, device));
 		}
 	}
@@ -776,7 +781,7 @@ void nbody_engine_opencl::print_info() const
 	return;
 }
 
-int nbody_engine_opencl::select_devices(const QString& devices)
+int nbody_engine_opencl::select_devices(const QString& devices, bool verbose)
 {
-	return d->select_devices(devices);
+	return d->select_devices(devices, verbose);
 }
