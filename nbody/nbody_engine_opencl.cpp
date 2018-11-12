@@ -250,9 +250,6 @@ int nbody_engine_opencl::data::select_devices(const QString& devices)
 		for(size_t device_n = 0; device_n != active_devices.size(); ++device_n)
 		{
 			cl::Device&		device(active_devices[device_n]);
-			qDebug() << "\tDevice:";
-			qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
-			qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
 			m_devices.push_back(devctx(context, device));
 		}
 	}

@@ -487,7 +487,6 @@ private slots:
 test_nbody_engine::test_nbody_engine(nbody_engine* e, size_t problen_size, nbcoord_t eps) :
 	m_e(e), m_problem_size(problen_size), m_eps(eps)
 {
-	e->print_info();
 }
 
 test_nbody_engine::~test_nbody_engine()
@@ -500,7 +499,7 @@ void test_nbody_engine::initTestCase()
 	nbcoord_t				box_size = 100;
 
 	qDebug() << "Engine" << m_e->type_name() << "Problem size" << m_problem_size;
-
+	m_e->print_info();
 	m_data.make_universe(m_problem_size, box_size, box_size, box_size);
 	m_e->init(&m_data);
 }
