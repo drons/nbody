@@ -464,13 +464,9 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 			data::devctx&	ctx(d->m_devices[dev_n]);
 			size_t			offset = dev_n * rect_row_size;
 			cl::Event		ev;
-			cl::array<size_t, 3>	buffer_offset{offset, 0, 0};
-			cl::array<size_t, 3>	host_offset{offset, 0, 0};
-			cl::array<size_t, 3>	region{rect_row_size, row_count, 1};
 
-			ctx.m_queue.enqueueReadBufferRect(f->buffer(dev_n), CL_FALSE, buffer_offset, host_offset,
-											  region, row_size, 0, row_size, 0,
-											  host_buffer.data(), NULL, &ev);
+			ctx.m_queue.enqueueReadBufferRect(f->buffer(dev_n), CL_FALSE, {offset, 0, 0}, {offset, 0, 0}, {rect_row_size, row_count, 1},
+											  row_size, 0, row_size, 0, host_buffer.data(), NULL, &ev);
 			events.push_back(ev);
 		}
 		cl::Event::waitForEvents(events);
