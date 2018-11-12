@@ -6,3 +6,11 @@
    fun:_ZN7QLocaleC1Ev
    ...
 }
+{
+   <libgomp>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
+   ...
+}

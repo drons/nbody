@@ -91,7 +91,7 @@ matrix:
       - make -j2
       - valgrind --tool=memcheck --trace-children=yes --log-file=./memsupp.log --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/memsupp/memsupp
       - grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
-#      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
+      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
       - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
       - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/stream/stream
     - os: linux
