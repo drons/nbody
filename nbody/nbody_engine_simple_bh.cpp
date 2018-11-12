@@ -71,6 +71,8 @@ public:
 		}
 
 		m_root = new node(0);
+		#pragma omp parallel
+		#pragma omp single
 		m_root->build(count, bodies_indites.data(), rx, ry, rz, mass);
 	}
 
@@ -233,8 +235,19 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 	m_left = new node(next_dimension);
 	m_right = new node(next_dimension);
 
-	m_left->build(left.size(), left.data(), rx, ry, rz, mass);
-	m_right->build(right.size(), right.data(), rx, ry, rz, mass);
+	if(count > NBODY_DATA_BLOCK_SIZE)
+	{
+		#pragma omp task
+		m_left->build(left.size(), left.data(), rx, ry, rz, mass);
+		#pragma omp task
+		m_right->build(right.size(), right.data(), rx, ry, rz, mass);
+		#pragma omp taskwait
+	}
+	else
+	{
+		m_left->build(left.size(), left.data(), rx, ry, rz, mass);
+		m_right->build(right.size(), right.data(), rx, ry, rz, mass);
+	}
 }
 
 
