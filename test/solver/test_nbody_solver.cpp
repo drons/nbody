@@ -78,7 +78,7 @@ void test_nbody_solver::run()
 	QString		data_path(m_apppath + "/../data/" + m_test_name + ".txt");
 	//m_data.save(data_path);
 	QVERIFY(expected.load(data_path));
-	QVERIFY(expected.is_equal(m_data, 1e-14));
+	QVERIFY(expected.is_equal(m_data, 1e-13));
 }
 
 typedef nbody_engine_simple	nbody_engine_active;
