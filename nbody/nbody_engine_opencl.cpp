@@ -424,7 +424,7 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	if(device_count > 1)
 	{
 		// synchronize multiple devices
-		copy_buffer(y, y);
+		copy_buffer(const_cast<smemory*>(y), y);
 	}
 
 	{
