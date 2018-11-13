@@ -60,7 +60,7 @@ void nbody_data::print_statistics(nbody_engine* engine)
 		compute_count = engine->get_compute_count();
 	}
 
-//	double		timer_end = omp_get_wtime();
+	double		timer_end = omp_get_wtime();
 	nbvertex_t	total_impulce(summation<nbvertex_t, impulce_proxy>(impulce_proxy(this), m_count));
 	nbvertex_t	total_impulce_moment(summation<nbvertex_t, impulce_moment_proxy>(impulce_moment_proxy(this), m_count));
 	nbvertex_t	mass_center(summation<nbvertex_t, mass_center_proxy>(mass_center_proxy(this), m_count));
@@ -97,10 +97,10 @@ void nbody_data::print_statistics(nbody_engine* engine)
 			 << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'))
 			 << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3)
 			 << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3)
-			 << "Vcm" << (mass_center_vel).length()
+			 << "Vcm" << QString("%1").arg((mass_center_vel).length(), 4, 'e', 3)
 			 << "dE" << QString("%1").arg(get_energy_err(), 4, 'e', 3)
-//			<< "St" << ( timer_end - m_timer_start )/( m_step - m_timer_step )
-//			<< "Wt" << ( omp_get_wtime() - m_timer_start )/( m_step - m_timer_step )
+			 << "St" << (timer_end - m_timer_start) / (m_step - m_timer_step)
+			 << "Wt" << (omp_get_wtime() - m_timer_start) / (m_step - m_timer_step)
 			 << "";
 
 	m_timer_start = omp_get_wtime();
