@@ -93,6 +93,102 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 	fvz[n1] = res_z;
 }
 
+#define MAX_STACK_SIZE 64
+#define NULL_NODE_PTR (-1)
+#define distance_to_node_radius_ratio 10
+struct node_bh
+{
+	nbcoord_t x;
+	nbcoord_t y;
+	nbcoord_t z;
+	nbcoord_t m;
+	nbcoord_t r2;
+	int left;
+	int right;
+};
+
+// Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
+__kernel void ComputeTreeBH(int offset_n1, int offset_n2,
+							__global const nbcoord_t* mass,
+							__global const nbcoord_t* y,
+							__global nbcoord_t* f, int yoff,
+							int foff, int points_count, int stride,
+							__global struct node_bh* tree)
+{
+	int		n1 = get_global_id(0) + offset_n1;
+	__global const nbcoord_t*	rx = y + yoff;
+	__global const nbcoord_t*	ry = rx + stride;
+	__global const nbcoord_t*	rz = rx + 2 * stride;
+	__global const nbcoord_t*	vx = rx + 3 * stride;
+	__global const nbcoord_t*	vy = rx + 4 * stride;
+	__global const nbcoord_t*	vz = rx + 5 * stride;
+
+	__global nbcoord_t*	frx = f + foff;
+	__global nbcoord_t*	fry = frx + stride;
+	__global nbcoord_t*	frz = frx + 2 * stride;
+	__global nbcoord_t*	fvx = frx + 3 * stride;
+	__global nbcoord_t*	fvy = frx + 4 * stride;
+	__global nbcoord_t*	fvz = frx + 5 * stride;
+
+	nbcoord_t	x1 = rx[n1];
+	nbcoord_t	y1 = ry[n1];
+	nbcoord_t	z1 = rz[n1];
+
+	nbcoord_t	res_x = 0.0;
+	nbcoord_t	res_y = 0.0;
+	nbcoord_t	res_z = 0.0;
+
+	struct node_bh	stack_data[MAX_STACK_SIZE] = {};
+	int	stack = 0;
+	int	stack_head = stack;
+
+	stack_data[stack++] = tree[0];
+	while(stack != stack_head)
+	{
+		struct node_bh	curr = stack_data[--stack];
+		nbcoord_t		dx = x1 - curr.x;
+		nbcoord_t		dy = y1 - curr.y;
+		nbcoord_t		dz = z1 - curr.z;
+		nbcoord_t		r2 = (dx * dx + dy * dy + dz * dz);
+
+		if(r2 > distance_to_node_radius_ratio * curr.r2)
+		{
+			if(r2 < NBODY_MIN_R)
+			{
+				r2 = NBODY_MIN_R;
+			}
+
+			nbcoord_t	r = sqrt(r2);
+			nbcoord_t	coeff = curr.m / (r * r2);
+
+			dx *= coeff;
+			dy *= coeff;
+			dz *= coeff;
+			res_x -= dx;
+			res_y -= dy;
+			res_z -= dz;
+		}
+		else
+		{
+			if(curr.left != NULL_NODE_PTR)
+			{
+				stack_data[stack++] = tree[curr.left];
+			}
+			if(curr.right != NULL_NODE_PTR)
+			{
+				stack_data[stack++] = tree[curr.right];
+			}
+		}
+	}
+
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+	fvx[n1] = res_x;
+	fvy[n1] = res_y;
+	fvz[n1] = res_z;
+}
+
 //! a[i] = value
 __kernel void fill(__global nbcoord_t* a, nbcoord_t value)
 {
