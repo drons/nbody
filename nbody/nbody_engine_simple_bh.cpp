@@ -6,6 +6,9 @@
 #include "summation.h"
 
 static constexpr	size_t SPACE_DIMENSIONS = 3;
+static constexpr	size_t DIM_NUM_X = 0;
+static constexpr	size_t DIM_NUM_Y = 1;
+static constexpr	size_t DIM_NUM_Z = 2;
 static constexpr	size_t MAX_STACK_SIZE = 64;
 
 class nbody_space_tree
@@ -213,22 +216,27 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 
 	m_radius_sqr = max_rad_sqr;
 
-	std::vector<size_t>	left, right;
-	left.reserve(count / 2);
-	right.reserve(count / 2);
+	size_t	left_size = count / 2;
+	size_t	right_size = count - left_size;
+	size_t*	median = indites + left_size;
+	auto comparator_x = [rx](size_t a, size_t b) { return rx[a] < rx[b];};
+	auto comparator_y = [ry](size_t a, size_t b) { return ry[a] < ry[b];};
+	auto comparator_z = [rz](size_t a, size_t b) { return rz[a] < rz[b];};
 
-	for(size_t n = 0; n != count; ++n)
+	switch(m_dimension)
 	{
-		size_t				i(indites[n]);
-		const nbvertex_t	v(rx[i], ry[i], rz[i]);
-		if(v[m_dimension] < m_mass_center[m_dimension])
-		{
-			left.push_back(i);
-		}
-		else
-		{
-			right.push_back(i);
-		}
+	case DIM_NUM_X:
+		std::nth_element(indites, median, indites + count, comparator_x);
+		break;
+	case DIM_NUM_Y:
+		std::nth_element(indites, median, indites + count, comparator_y);
+		break;
+	case DIM_NUM_Z:
+		std::nth_element(indites, median, indites + count, comparator_z);
+		break;
+	default:
+		qDebug() << "Unexpected dimension";
+		break;
 	}
 
 	size_t next_dimension((m_dimension + 1) % SPACE_DIMENSIONS);
@@ -238,15 +246,15 @@ void nbody_space_tree::node::build(size_t count, size_t* indites, const nbcoord_
 	if(count > NBODY_DATA_BLOCK_SIZE)
 	{
 		#pragma omp task
-		m_left->build(left.size(), left.data(), rx, ry, rz, mass);
+		m_left->build(left_size, indites, rx, ry, rz, mass);
 		#pragma omp task
-		m_right->build(right.size(), right.data(), rx, ry, rz, mass);
+		m_right->build(right_size, median, rx, ry, rz, mass);
 		#pragma omp taskwait
 	}
 	else
 	{
-		m_left->build(left.size(), left.data(), rx, ry, rz, mass);
-		m_right->build(right.size(), right.data(), rx, ry, rz, mass);
+		m_left->build(left_size, indites, rx, ry, rz, mass);
+		m_right->build(right_size, median, rx, ry, rz, mass);
 	}
 }
 
