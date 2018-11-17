@@ -1,10 +1,11 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-
+// Dense fcompute with local memory load (each particle interacts with each).
 __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 								__global const nbcoord_t* mass,
 								__global const nbcoord_t* y,
-								__global nbcoord_t* f, int yoff, int foff, int points_count, int stride)
+								__global nbcoord_t* f, int yoff,
+								int foff, int points_count, int stride)
 {
 	int		n1 = get_global_id(0) + offset_n1;
 	__global const nbcoord_t*	rx = y + yoff;
