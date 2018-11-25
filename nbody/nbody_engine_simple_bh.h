@@ -15,14 +15,25 @@ public:
 		ett_cycle,
 		ett_nested_tree
 	};
+	enum e_tree_layout
+	{
+		etl_tree,
+		etl_heap
+	};
 private:
 	nbcoord_t			m_distance_to_node_radius_ratio;
 	e_traverse_type		m_traverse_type;
+	e_tree_layout		m_tree_layout;
 public:
-	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0, e_traverse_type tt = ett_cycle);
+	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio = 0,
+						   e_traverse_type tt = ett_cycle,
+						   e_tree_layout tl = etl_tree);
 	virtual const char* type_name() const override;
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 	virtual void print_info() const override;
+private:
+	template<class T>
+	void space_subdivided_fcompute(const smemory* y, smemory* f);
 };
 
 #endif // NBODY_ENGINE_SIMPLE_BH_H

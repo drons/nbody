@@ -791,30 +791,57 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 1e16},
-			{"traverse_type", "cycle"}
+			{"traverse_type", "cycle"},
+			{"tree_layout", "tree"}
 		}));
 		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
-
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 1e16},
-			{"traverse_type", "nested_tree"}
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"}
 		}));
 		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
-
+	{
+		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "tree"}
+		}));
+		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-11);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 10},
-			{"traverse_type", "cycle"}
+			{"traverse_type", "cycle"},
+			{"tree_layout", "tree"}
 		}));
 		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
-
+	{
+		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 	return res;
 }
 

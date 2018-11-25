@@ -42,13 +42,16 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 	else if(type == "simple_bh")
 	{
 		QString		strtt(param.value("traverse_type", "cycle").toString());
+		QString		strtl(param.value("tree_layout", "tree").toString());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
 		nbody_engine_simple_bh::e_traverse_type	tt;
+		nbody_engine_simple_bh::e_tree_layout	tl;
+
 		if(strtt == "cycle")
 		{
 			tt = nbody_engine_simple_bh::ett_cycle;
 		}
-		else if(param.value("traverse_type") == "nested_tree")
+		else if(strtt == "nested_tree")
 		{
 			tt = nbody_engine_simple_bh::ett_nested_tree;
 		}
@@ -58,7 +61,21 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 			return NULL;
 		}
 
-		return new nbody_engine_simple_bh(distance_to_node_radius_ratio, tt);
+		if(strtl == "tree")
+		{
+			tl = nbody_engine_simple_bh::etl_tree;
+		}
+		else if(strtl == "heap")
+		{
+			tl = nbody_engine_simple_bh::etl_heap;
+		}
+		else
+		{
+			qDebug() << "Invalid tree_layout. Allowed values are 'tree' or 'heap'";
+			return NULL;
+		}
+
+		return new nbody_engine_simple_bh(distance_to_node_radius_ratio, tt, tl);
 	}
 
 	return NULL;
