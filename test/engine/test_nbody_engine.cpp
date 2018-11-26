@@ -391,23 +391,20 @@ bool test_fmaxabs(nbody_engine* e)
 	return ret;
 }
 
-bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
+bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 {
-	nbody_engine_simple		e0;
-	e0.init(data);
-
-	std::vector<nbcoord_t>	f0(e0.problem_size());
+	std::vector<nbcoord_t>	f0(e0->problem_size());
 
 	{
 		double					tbegin = omp_get_wtime();
 		nbody_engine::memory*	fbuff;
-		fbuff = e0.create_buffer(sizeof(nbcoord_t) * e0.problem_size());
-		e0.fill_buffer(fbuff, 1e10);
-		e0.fcompute(0, e0.get_y(), fbuff);
+		fbuff = e0->create_buffer(sizeof(nbcoord_t) * e0->problem_size());
+		e0->fill_buffer(fbuff, 1e10);
+		e0->fcompute(0, e0->get_y(), fbuff);
 
-		e0.read_buffer(f0.data(), fbuff);
-		e0.free_buffer(fbuff);
-		qDebug() << "Time" << e0.type_name() << omp_get_wtime() - tbegin;
+		e0->read_buffer(f0.data(), fbuff);
+		e0->free_buffer(fbuff);
+		qDebug() << "Time" << e0->type_name() << omp_get_wtime() - tbegin;
 	}
 
 	std::vector<nbcoord_t>	f(e->problem_size());
@@ -453,6 +450,14 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 	}
 
 	return ret;
+}
+
+bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
+{
+	nbody_engine_simple		e0;
+	e0.init(data);
+
+	return test_fcompute(&e0, e, data, eps);
 }
 
 class test_nbody_engine : public QObject
@@ -741,6 +746,56 @@ void test_nbody_engine::test_negative_branches()
 	}
 }
 
+class test_nbody_engine_compare : public QObject
+{
+	Q_OBJECT
+	nbody_data		m_data;
+	nbody_engine*	m_e1;
+	nbody_engine*	m_e2;
+	size_t			m_problem_size;
+	nbcoord_t		m_eps;
+public:
+	test_nbody_engine_compare(nbody_engine* e1, nbody_engine* e2, size_t problen_size = 64, nbcoord_t eps = 1e-13);
+	~test_nbody_engine_compare();
+private slots:
+	void initTestCase();
+	void compare();
+};
+
+test_nbody_engine_compare::test_nbody_engine_compare(nbody_engine* e1, nbody_engine* e2,
+													 size_t problen_size, nbcoord_t eps) :
+	m_e1(e1),
+	m_e2(e2),
+	m_problem_size(problen_size),
+	m_eps(eps)
+{
+}
+
+test_nbody_engine_compare::~test_nbody_engine_compare()
+{
+	delete m_e1;
+	delete m_e2;
+}
+
+void test_nbody_engine_compare::initTestCase()
+{
+	nbcoord_t				box_size = 100;
+
+	qDebug() << "Problem size" << m_problem_size;
+	qDebug() << "Engine1" << m_e1->type_name();
+	m_e1->print_info();
+	qDebug() << "Engine2" << m_e2->type_name();
+	m_e2->print_info();
+	m_data.make_universe(m_problem_size, box_size, box_size, box_size);
+	m_e1->init(&m_data);
+	m_e2->init(&m_data);
+}
+
+void test_nbody_engine_compare::compare()
+{
+	QVERIFY(::test_fcompute(m_e1, m_e2, &m_data, m_eps));
+}
+
 int main(int argc, char* argv[])
 {
 	int res = 0;
@@ -830,7 +885,7 @@ int main(int argc, char* argv[])
 			{"traverse_type", "cycle"},
 			{"tree_layout", "tree"}
 		}));
-		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
+		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
@@ -839,7 +894,55 @@ int main(int argc, char* argv[])
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
-		test_nbody_engine tc1(new nbody_engine_simple_bh(10), 128, 1e-2);
+		test_nbody_engine tc1(nbody_create_engine(param), 128, 1e-2);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "tree"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-14);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "tree"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "tree"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-14);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-14);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	return res;

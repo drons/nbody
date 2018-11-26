@@ -445,4 +445,5 @@ void nbody_engine_simple_bh::print_info() const
 	nbody_engine_simple::print_info();
 	qDebug() << "\tdistance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
 	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
+	qDebug() << "\ttree_layout:" << (m_tree_layout == etl_heap ? "heap" : "tree");
 }
