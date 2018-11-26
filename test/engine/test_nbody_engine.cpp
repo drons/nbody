@@ -701,6 +701,15 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory_array	c = m_e->create_buffers(m_e->problem_size(), 1);
 		nbcoord_t					d[1] = {};
+		m_e->fmaddn(&a, b, c, d, 200000);
+		m_e->free_buffer(b);
+		m_e->free_buffers(c);
+	}
+	{
+		nbody_engine_memory_fake	a(0);
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	c = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					d[1] = {};
 		m_e->fmaddn(&a, b, c, d, 1);
 		m_e->fmaddn(&a, NULL, c, d, 1);
 		m_e->free_buffer(b);
