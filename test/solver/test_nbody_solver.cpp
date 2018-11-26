@@ -88,6 +88,16 @@ int main(int argc, char* argv[])
 	int res = 0;
 
 	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "invalid"}}));
+		nbody_solver*		s(nbody_create_solver(param));
+		if(s != NULL)
+		{
+			qDebug() << "Created solver with invalid type" << param;
+			res += 1;
+			delete s;
+		}
+	}
+	{
 		QVariantMap			param(std::map<QString, QVariant>({{"solver", "adams"}, {"rank", 5}}));
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "adams5");
 		res += QTest::qExec(&tc1, argc, argv);
