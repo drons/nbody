@@ -800,6 +800,16 @@ int main(int argc, char* argv[])
 {
 	int res = 0;
 	{
+		QVariantMap param0(std::map<QString, QVariant>({{"engine", "invalid"}}));
+		nbody_engine*	e0(nbody_create_engine(param0));
+		if(e0 != NULL)
+		{
+			qDebug() << "Created engine with invalid type" << param0;
+			res += 1;
+			delete e0;
+		}
+	}
+	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "ah"},
 			{"full_recompute_rate", 5}, {"max_dist", 7}, {"min_force", 1e-6}
 		}));
@@ -828,6 +838,24 @@ int main(int argc, char* argv[])
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0;0:0"}}));
 		test_nbody_engine	tc1(nbody_create_engine(param), 128);
 		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap	param1(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "77:0"}}));
+		QVariantMap	param2(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:77"}}));
+		nbody_engine*	e1(nbody_create_engine(param1));
+		nbody_engine*	e2(nbody_create_engine(param2));
+		if(e1 != NULL)
+		{
+			qDebug() << "Created engine with invalid device" << param1;
+			res += 1;
+			delete e1;
+		}
+		if(e2 != NULL)
+		{
+			qDebug() << "Created engine with invalid device" << param2;
+			res += 1;
+			delete e2;
+		}
 	}
 #endif
 
@@ -944,6 +972,32 @@ int main(int argc, char* argv[])
 									  nbody_create_engine(param2),
 									  1024, 1e-14);
 		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "invalid"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "invalid"},
+			{"tree_layout", "heap"}
+		}));
+		nbody_engine*	e1(nbody_create_engine(param1));
+		if(e1 != NULL)
+		{
+			qDebug() << "Created engine with invalid tree_layout" << param1;
+			res += 1;
+			delete e1;
+		}
+		nbody_engine*	e2(nbody_create_engine(param2));
+		if(e2 != NULL)
+		{
+			qDebug() << "Created engine with invalid traverse_type" << param2;
+			res += 1;
+			delete e2;
+		}
 	}
 	return res;
 }
