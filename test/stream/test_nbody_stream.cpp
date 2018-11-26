@@ -139,15 +139,13 @@ void test_nbody_stream::negative_branch()
 		nbody_data_stream	stream;
 		QVERIFY(0 != stream.write(NULL));
 	}
-#ifdef Q_OS_UNIX
 	{
 		nbody_data_stream	stream;
 		nbody_data			data;
 		data.make_universe(32, 1, 1, 1);
-		QVERIFY(0 != stream.open("/nameless/file", 1000));
+		QVERIFY(0 != stream.open("/dev/null/:nameless", 1000));
 		QVERIFY(0 != stream.write(&data));
 	}
-#endif //Q_OS_UNIX
 	{
 		nbody_data_stream	stream;
 		nbody_data			data;
@@ -195,7 +193,7 @@ void test_nbody_stream::negative_branch()
 
 	{
 		nbody_data_stream_reader	stream;
-		QVERIFY(0 != stream.load("/nameless/stream"));
+		QVERIFY(0 != stream.load("/dev/null/:nameless"));
 	}
 
 	{
