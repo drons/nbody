@@ -3,6 +3,12 @@
 
 #include "nbody_engine_openmp.h"
 
+static constexpr	size_t SPACE_DIMENSIONS = 3;
+static constexpr	size_t DIM_NUM_X = 0;
+static constexpr	size_t DIM_NUM_Y = 1;
+static constexpr	size_t DIM_NUM_Z = 2;
+static constexpr	size_t MAX_STACK_SIZE = 64;
+
 /*!
   Barnes–Hut simulation
   https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation

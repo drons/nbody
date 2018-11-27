@@ -38,8 +38,10 @@ SOURCES	+= \
 	nbody_solver_stormer.cpp \
 	nbody_solver_trapeze.cpp \
 	nbody_solvers.cpp \
-    nbody_data_stream.cpp \
-    nbody_data_stream_reader.cpp
+	nbody_space_heap.cpp \
+	nbody_space_tree.cpp \
+	nbody_data_stream.cpp \
+	nbody_data_stream_reader.cpp
 
 HEADERS	+= \
 	nbody_export.h \
@@ -68,10 +70,12 @@ HEADERS	+= \
 	nbody_solver_stormer.h \
 	nbody_solver_trapeze.h \
 	nbody_solvers.h \
+	nbody_space_heap.h \
+	nbody_space_tree.h \
 	vertex.h \
-    nbtype.h \
-    nbody_data_stream.h \
-    nbody_data_stream_reader.h
+	nbtype.h \
+	nbody_data_stream.h \
+	nbody_data_stream_reader.h
 
 contains( DEFINES, HAVE_OPENCL ){
 	OTHER_FILES += nbody_engine_opencl.cl
