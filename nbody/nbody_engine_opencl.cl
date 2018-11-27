@@ -94,36 +94,35 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 }
 
 #define MAX_STACK_SIZE 64
-#define NULL_NODE_PTR (-1)
-#define distance_to_node_radius_ratio 10
-struct node_bh
+#define distance_to_node_radius_ratio 1e16
+int left_idx(int idx)
 {
-	nbcoord_t x;
-	nbcoord_t y;
-	nbcoord_t z;
-	nbcoord_t m;
-	nbcoord_t r2;
-	int left;
-	int right;
-};
-
+	return 2 * idx + 1;
+}
+int rght_idx(int idx)
+{
+	return 2 * idx + 2;
+}
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
-__kernel void ComputeTreeBH(int offset_n1, int offset_n2,
-							__global const nbcoord_t* mass,
+__kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 							__global const nbcoord_t* y,
-							__global nbcoord_t* f, int yoff,
-							int foff, int points_count, int stride,
-							__global struct node_bh* tree)
+							__global nbcoord_t* f,
+							__global const nbcoord_t* tree_cmx,
+							__global const nbcoord_t* tree_cmy,
+							__global const nbcoord_t* tree_cmz,
+							__global const nbcoord_t* tree_mass,
+							__global const nbcoord_t* tree_r2)
 {
 	int		n1 = get_global_id(0) + offset_n1;
-	__global const nbcoord_t*	rx = y + yoff;
+	int		stride = points_count;
+	__global const nbcoord_t*	rx = y;
 	__global const nbcoord_t*	ry = rx + stride;
 	__global const nbcoord_t*	rz = rx + 2 * stride;
 	__global const nbcoord_t*	vx = rx + 3 * stride;
 	__global const nbcoord_t*	vy = rx + 4 * stride;
 	__global const nbcoord_t*	vz = rx + 5 * stride;
 
-	__global nbcoord_t*	frx = f + foff;
+	__global nbcoord_t*	frx = f;
 	__global nbcoord_t*	fry = frx + stride;
 	__global nbcoord_t*	frz = frx + 2 * stride;
 	__global nbcoord_t*	fvx = frx + 3 * stride;
@@ -138,20 +137,20 @@ __kernel void ComputeTreeBH(int offset_n1, int offset_n2,
 	nbcoord_t	res_y = 0.0;
 	nbcoord_t	res_z = 0.0;
 
-	struct node_bh	stack_data[MAX_STACK_SIZE] = {};
+	int stack_data[MAX_STACK_SIZE] = {};
 	int	stack = 0;
 	int	stack_head = stack;
 
-	stack_data[stack++] = tree[0];
+	stack_data[stack++] = 0;
 	while(stack != stack_head)
 	{
-		struct node_bh	curr = stack_data[--stack];
-		nbcoord_t		dx = x1 - curr.x;
-		nbcoord_t		dy = y1 - curr.y;
-		nbcoord_t		dz = z1 - curr.z;
-		nbcoord_t		r2 = (dx * dx + dy * dy + dz * dz);
+		int			curr = stack_data[--stack];
+		nbcoord_t	dx = x1 - tree_cmx[curr];
+		nbcoord_t	dy = y1 - tree_cmy[curr];
+		nbcoord_t	dz = z1 - tree_cmz[curr];
+		nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
 
-		if(r2 > distance_to_node_radius_ratio * curr.r2)
+		if(r2 > distance_to_node_radius_ratio * tree_r2[curr])
 		{
 			if(r2 < NBODY_MIN_R)
 			{
@@ -159,7 +158,7 @@ __kernel void ComputeTreeBH(int offset_n1, int offset_n2,
 			}
 
 			nbcoord_t	r = sqrt(r2);
-			nbcoord_t	coeff = curr.m / (r * r2);
+			nbcoord_t	coeff = tree_mass[curr] / (r * r2);
 
 			dx *= coeff;
 			dy *= coeff;
@@ -170,13 +169,15 @@ __kernel void ComputeTreeBH(int offset_n1, int offset_n2,
 		}
 		else
 		{
-			if(curr.left != NULL_NODE_PTR)
+			int	left = left_idx(curr);
+			int	rght = rght_idx(curr);
+			if(left < tree_size)
 			{
-				stack_data[stack++] = tree[curr.left];
+				stack_data[stack++] = left;
 			}
-			if(curr.right != NULL_NODE_PTR)
+			if(rght < tree_size)
 			{
-				stack_data[stack++] = tree[curr.right];
+				stack_data[stack++] = rght;
 			}
 		}
 	}

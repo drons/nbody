@@ -30,6 +30,18 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		}
 		return engine;
 	}
+	else if(type == "opencl_bh")
+	{
+		QString	devices(param.value("device", "0:0").toString());
+		nbody_engine_opencl* engine = new nbody_engine_opencl_bh();
+		if(0 != engine->select_devices(devices, !param.value("verbose").isNull()))
+		{
+			qDebug() << "Failed to select devices" << devices;
+			delete engine;
+			return NULL;
+		}
+		return engine;
+	}
 #endif
 	else if(type == "openmp")
 	{

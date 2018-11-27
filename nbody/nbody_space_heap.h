@@ -34,6 +34,9 @@ public:
 			}
 		}
 	}
+	const std::vector<nbvertex_t>& get_mass_center() const;
+	const std::vector<nbcoord_t>& get_mass() const;
+	const std::vector<nbcoord_t>& get_radius_sqr() const;
 private:
 	void build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
 			   const nbcoord_t* rz, const nbcoord_t* mass, size_t idx, size_t dimension);

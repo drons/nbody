@@ -82,6 +82,8 @@ contains( DEFINES, HAVE_OPENCL ){
 	RESOURCES += opencl.qrc
 	HEADERS += nbody_engine_opencl.h
 	SOURCES += nbody_engine_opencl.cpp
+	HEADERS += nbody_engine_opencl_bh.h
+	SOURCES += nbody_engine_opencl_bh.cpp
 }
 
 nbodyinst.path = /tmp/nbody

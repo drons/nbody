@@ -4,6 +4,8 @@
 #include <QStringList>
 #include <set>
 
+#include "nbody_space_heap.h"
+
 #ifdef HAVE_OPENCL2
 #define CL_HPP_ENABLE_EXCEPTIONS
 #define CL_USE_DEPRECATED_OPENCL_2_0_APIS
@@ -72,6 +74,16 @@ typedef cl::make_kernel< cl_int, cl_int,	//Block offset
 		cl_int, cl_int	//points_count,stride
 		> ComputeBlock;
 
+typedef cl::make_kernel< cl_int,	//Block offset
+		cl_int, // Points count
+		cl_int, // Tree size
+		cl::Buffer,	//y
+		cl::Buffer,	//f
+		cl::Buffer, cl::Buffer, cl::Buffer,	// mass center
+		cl::Buffer,	//tree mass
+		cl::Buffer	//square node radius
+		> ComputeBlockBH;
+
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMadd1;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd2;
@@ -85,6 +97,7 @@ struct nbody_engine_opencl::data
 		cl::Program			m_prog;
 		cl::CommandQueue	m_queue;
 		ComputeBlock		m_fcompute;
+		ComputeBlockBH		m_fcompute_bh;
 		FMfill				m_fill;
 		FMadd1				m_fmadd1;
 		FMadd2				m_fmadd2;
@@ -161,6 +174,7 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_prog(load_programs(m_context, device, build_options(), sources())),
 	m_queue(m_context, device, 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
+	m_fcompute_bh(m_prog, "ComputeTreeBH"),
 	m_fill(m_prog, "fill"),
 	m_fmadd1(m_prog, "fmadd1"),
 	m_fmadd2(m_prog, "fmadd2"),
@@ -429,50 +443,155 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 		copy_buffer(const_cast<smemory*>(y), y);
 	}
 
+	size_t					data_size = d->m_data->get_count();
+	size_t					device_data_size = data_size / device_count;
+	cl::NDRange				global_range(device_data_size);
+	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	std::vector<cl::Event>	events;
+
+	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
 	{
-		size_t					data_size = d->m_data->get_count();
-		size_t					device_data_size = data_size / device_count;
-		cl::NDRange				global_range(device_data_size);
-		cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
-		std::vector<cl::Event>	events;
-
-		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
-		{
-			size_t			offset = dev_n * device_data_size;
-			data::devctx&	ctx(d->m_devices[dev_n]);
-			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-			cl::Event		ev(ctx.m_fcompute(eargs, offset, 0, d->m_mass->buffer(dev_n),
-											  y->buffer(dev_n), f->buffer(dev_n), 0, 0,
-											  d->m_data->get_count(), d->m_data->get_count()));
-			events.push_back(ev);
-		}
-
-		cl::Event::waitForEvents(events);
+		size_t			offset = dev_n * device_data_size;
+		data::devctx&	ctx(d->m_devices[dev_n]);
+		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+		cl::Event		ev(ctx.m_fcompute(eargs, offset, 0, d->m_mass->buffer(dev_n),
+										  y->buffer(dev_n), f->buffer(dev_n), 0, 0,
+										  d->m_data->get_count(), d->m_data->get_count()));
+		events.push_back(ev);
 	}
+
+	cl::Event::waitForEvents(events);
 
 	if(device_count > 1)
 	{
 		// synchronize again
-		QByteArray		host_buffer(static_cast<int>(f->size()), Qt::Uninitialized);
-		size_t			data_size = f->size();
-		size_t			row_count = 6;
-		size_t			device_data_size = data_size / device_count;
-		size_t			row_size = data_size / row_count;
-		size_t			rect_row_size = device_data_size / row_count;
-		std::vector<cl::Event>	events;
+		synchronize_f(f);
+	}
+}
 
-		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
-		{
-			data::devctx&	ctx(d->m_devices[dev_n]);
-			size_t			offset = dev_n * rect_row_size;
-			cl::Event		ev;
+void nbody_engine_opencl::synchronize_f(smemory* f)
+{
+	QByteArray		host_buffer(static_cast<int>(f->size()), Qt::Uninitialized);
+	size_t			device_count(d->m_devices.size());
+	size_t			data_size = f->size();
+	size_t			row_count = 6;
+	size_t			device_data_size = data_size / device_count;
+	size_t			row_size = data_size / row_count;
+	size_t			rect_row_size = device_data_size / row_count;
+	std::vector<cl::Event>	events;
 
-			ctx.m_queue.enqueueReadBufferRect(f->buffer(dev_n), CL_FALSE, {offset, 0, 0}, {offset, 0, 0}, {rect_row_size, row_count, 1},
-											  row_size, 0, row_size, 0, host_buffer.data(), NULL, &ev);
-			events.push_back(ev);
-		}
-		cl::Event::waitForEvents(events);
-		write_buffer(f, host_buffer.data());
+	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+	{
+		data::devctx&	ctx(d->m_devices[dev_n]);
+		size_t			offset = dev_n * rect_row_size;
+		cl::Event		ev;
+
+		ctx.m_queue.enqueueReadBufferRect(f->buffer(dev_n), CL_FALSE, {offset, 0, 0}, {offset, 0, 0}, {rect_row_size, row_count, 1},
+										  row_size, 0, row_size, 0, host_buffer.data(), NULL, &ev);
+		events.push_back(ev);
+	}
+	cl::Event::waitForEvents(events);
+	write_buffer(f, host_buffer.data());
+}
+
+void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const nbody_engine::memory* _y, nbody_engine::memory* _f)
+{
+	if(d->m_devices.empty())
+	{
+		qDebug() << "No OpenCL device available";
+		return;
+	}
+
+	Q_UNUSED(t);
+	advise_compute_count();
+
+	const smemory*	y = dynamic_cast<const smemory*>(_y);
+	smemory*		f = dynamic_cast<smemory*>(_f);
+
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+	if(f == NULL)
+	{
+		qDebug() << "f is not smemory";
+		return;
+	}
+
+	if(d->m_devices.empty())
+	{
+		qDebug() << Q_FUNC_INFO << "m_devices.empty()";
+		return;
+	}
+
+	size_t	device_count(d->m_devices.size());
+
+	if(device_count > 1)
+	{
+		// synchronize multiple devices
+		copy_buffer(const_cast<smemory*>(y), y);
+	}
+
+	size_t					data_size = d->m_data->get_count();
+	size_t					device_data_size = data_size / device_count;
+	cl::NDRange				global_range(device_data_size);
+	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	std::vector<cl::Event>	events;
+	std::vector<nbcoord_t>	y_host(y->size() / sizeof(nbcoord_t));
+	std::vector<nbcoord_t>	mass_host(d->m_mass->size() / sizeof(nbcoord_t));
+
+	read_buffer(y_host.data(), y);
+	read_buffer(mass_host.data(), d->m_mass);
+
+	const nbcoord_t*	rx = y_host.data();
+	const nbcoord_t*	ry = rx + data_size;
+	const nbcoord_t*	rz = rx + 2 * data_size;
+	const nbcoord_t*	mass = mass_host.data();
+
+	nbody_space_heap	heap;
+	heap.build(data_size, rx, ry, rz, mass);
+
+	size_t					tree_size = heap.get_radius_sqr().size();
+	smemory					tree_cmx(tree_size * sizeof(nbcoord_t), d->m_devices);
+	smemory					tree_cmy(tree_size * sizeof(nbcoord_t), d->m_devices);
+	smemory					tree_cmz(tree_size * sizeof(nbcoord_t), d->m_devices);
+	smemory					tree_mass(tree_size * sizeof(nbcoord_t), d->m_devices);
+	smemory					tree_r2(tree_size * sizeof(nbcoord_t), d->m_devices);
+
+	std::vector<nbcoord_t>	tree_cmx_host(tree_size), tree_cmy_host(tree_size), tree_cmz_host(tree_size);
+
+	for(size_t n = 0; n != tree_size; ++n)
+	{
+		tree_cmx_host[n] = heap.get_mass_center()[n].x;
+		tree_cmy_host[n] = heap.get_mass_center()[n].y;
+		tree_cmz_host[n] = heap.get_mass_center()[n].z;
+	}
+
+	write_buffer(&tree_cmx, tree_cmx_host.data());
+	write_buffer(&tree_cmy, tree_cmy_host.data());
+	write_buffer(&tree_cmz, tree_cmz_host.data());
+	write_buffer(&tree_mass, heap.get_mass().data());
+	write_buffer(&tree_r2, heap.get_radius_sqr().data());
+
+	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+	{
+		size_t			offset = dev_n * device_data_size;
+		data::devctx&	ctx(d->m_devices[dev_n]);
+		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+		cl::Event		ev(ctx.m_fcompute_bh(eargs, offset, data_size, tree_size,
+											 y->buffer(dev_n), f->buffer(dev_n),
+											 tree_cmx.buffer(dev_n), tree_cmy.buffer(dev_n), tree_cmz.buffer(dev_n),
+											 tree_mass.buffer(dev_n), tree_r2.buffer(dev_n)));
+		events.push_back(ev);
+	}
+
+	cl::Event::waitForEvents(events);
+
+	if(device_count > 1)
+	{
+		// synchronize again
+		synchronize_f(f);
 	}
 }
 

@@ -867,6 +867,11 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl_bh"}, {"verbose", "1"}}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 #endif
 
 	{

@@ -39,6 +39,10 @@ public:
 	virtual void print_info() const override;
 
 	int select_devices(const QString& devices, bool verbose);
+protected:
+	void fcompute_bh_impl(const nbcoord_t& t, const memory* y, memory* f);
+private:
+	void synchronize_f(smemory* f);
 };
 
 #endif // NBODY_ENGINE_OPENCL_H

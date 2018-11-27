@@ -58,6 +58,21 @@ nbvertex_t nbody_space_heap::traverse(const nbody_data* data, nbcoord_t distance
 	return total_force;
 }
 
+const std::vector<nbvertex_t>& nbody_space_heap::get_mass_center() const
+{
+	return m_mass_center;
+}
+
+const std::vector<nbcoord_t>& nbody_space_heap::get_mass() const
+{
+	return m_mass;
+}
+
+const std::vector<nbcoord_t>& nbody_space_heap::get_radius_sqr() const
+{
+	return m_radius_sqr;
+}
+
 void nbody_space_heap::build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
 							 const nbcoord_t* rz, const nbcoord_t* mass, size_t idx, size_t dimension)
 {
