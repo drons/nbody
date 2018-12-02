@@ -250,4 +250,18 @@ struct vertex4
 
 };
 
+template< class S, class T >
+S operator << (S g, const vertex3<T>& v)
+{
+	g << "[" << v.x << "," << v.y << "," << v.z << "]";
+	return g;
+}
+
+template< class S, class T >
+S operator << (S g, const vertex4<T>& v)
+{
+	g << "[" << v.x << "," << v.y << "," << v.z << "," << v.w << "]";
+	return g;
+}
+
 #endif//_VERTEX_
