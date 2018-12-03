@@ -40,7 +40,7 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory
 	const nbcoord_t*	mass = reinterpret_cast<const nbcoord_t*>(m_mass->data());
 	T					tree;
 
-	tree.build(count, rx, ry, rz, mass);
+	tree.build(count, rx, ry, rz, mass, m_distance_to_node_radius_ratio);
 
 	auto update_f = [ = ](size_t body1, const nbvertex_t& total_force, nbcoord_t mass1)
 	{
@@ -54,7 +54,7 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory
 
 	auto node_visitor = [&](size_t body1, const nbvertex_t& v1, const nbcoord_t mass1)
 	{
-		nbvertex_t			total_force(tree.traverse(m_data, m_distance_to_node_radius_ratio, v1, mass1));
+		nbvertex_t			total_force(tree.traverse(m_data, v1, mass1));
 		update_f(body1, total_force, mass[body1]);
 	};
 
@@ -66,7 +66,7 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory
 		{
 			const nbvertex_t	v1(rx[body1], ry[body1], rz[body1]);
 			const nbcoord_t		mass1(mass[body1]);
-			const nbvertex_t	total_force(tree.traverse(m_data, m_distance_to_node_radius_ratio, v1, mass1));
+			const nbvertex_t	total_force(tree.traverse(m_data, v1, mass1));
 			update_f(body1, total_force, mass1);
 		}
 		break;

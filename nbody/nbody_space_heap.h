@@ -9,6 +9,8 @@ class nbody_space_heap
 	std::vector<nbcoord_t>	m_mass;
 	std::vector<nbcoord_t>	m_radius_sqr;
 	std::vector<size_t>		m_body_n;
+	nbcoord_t				m_distance_to_node_radius_ratio;
+
 	static size_t left_idx(size_t idx)
 	{
 		return 2 * idx + 1;
@@ -18,10 +20,10 @@ class nbody_space_heap
 		return 2 * idx + 2;
 	}
 public:
-	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass);
+	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
+			   const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio);
 
-	nbvertex_t traverse(const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
-						const nbvertex_t& v1, const nbcoord_t mass1) const;
+	nbvertex_t traverse(const nbody_data* data, const nbvertex_t& v1, const nbcoord_t mass1) const;
 	template<class Visitor>
 	void traverse(Visitor visit) const
 	{

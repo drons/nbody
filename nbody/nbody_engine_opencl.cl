@@ -94,7 +94,6 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 }
 
 #define MAX_STACK_SIZE 64
-#define distance_to_node_radius_ratio 1e16
 int left_idx(int idx)
 {
 	return 2 * idx + 1;
@@ -111,7 +110,7 @@ __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 							__global const nbcoord_t* tree_cmy,
 							__global const nbcoord_t* tree_cmz,
 							__global const nbcoord_t* tree_mass,
-							__global const nbcoord_t* tree_r2)
+							__global const nbcoord_t* tree_crit_r2)
 {
 	int		n1 = get_global_id(0) + offset_n1;
 	int		stride = points_count;
@@ -150,7 +149,7 @@ __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 		nbcoord_t	dz = z1 - tree_cmz[curr];
 		nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
 
-		if(r2 > distance_to_node_radius_ratio * tree_r2[curr])
+		if(r2 > tree_crit_r2[curr])
 		{
 			if(r2 < NBODY_MIN_R)
 			{

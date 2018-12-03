@@ -1,7 +1,7 @@
 #include "nbody_space_heap.h"
 
 void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
-							 const nbcoord_t* mass)
+							 const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio)
 {
 	std::vector<size_t>	bodies_indites;
 
@@ -17,13 +17,20 @@ void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	m_body_n.resize(heap_size);
 	std::fill(m_body_n.begin(), m_body_n.end(), std::numeric_limits<size_t>::max());
 
+	m_distance_to_node_radius_ratio = distance_to_node_radius_ratio;
+
 	#pragma omp parallel
 	#pragma omp single
 	build(count, bodies_indites.data(), rx, ry, rz, mass, 0, 0);
+
+	#pragma omp parallel for
+	for(size_t n = 0; n < m_radius_sqr.size(); ++n)
+	{
+		m_radius_sqr[n] *= distance_to_node_radius_ratio;
+	}
 }
 
-nbvertex_t nbody_space_heap::traverse(const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
-									  const nbvertex_t& v1, const nbcoord_t mass1) const
+nbvertex_t nbody_space_heap::traverse(const nbody_data* data, const nbvertex_t& v1, const nbcoord_t mass1) const
 {
 	nbvertex_t			total_force;
 
@@ -37,7 +44,7 @@ nbvertex_t nbody_space_heap::traverse(const nbody_data* data, nbcoord_t distance
 		size_t				curr = *--stack;
 		const nbcoord_t		distance_sqr((v1 - m_mass_center[curr]).norm());
 
-		if(distance_sqr > distance_to_node_radius_ratio * m_radius_sqr[curr])
+		if(distance_sqr > m_radius_sqr[curr])
 		{
 			total_force += data->force(v1, m_mass_center[curr], mass1, m_mass[curr]);
 		}

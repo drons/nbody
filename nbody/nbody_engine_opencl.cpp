@@ -81,7 +81,7 @@ typedef cl::make_kernel< cl_int,	//Block offset
 		cl::Buffer,	//f
 		cl::Buffer, cl::Buffer, cl::Buffer,	// mass center
 		cl::Buffer,	//tree mass
-		cl::Buffer	//square node radius
+		cl::Buffer	//square node critical radius
 		> ComputeBlockBH;
 
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
@@ -494,7 +494,8 @@ void nbody_engine_opencl::synchronize_f(smemory* f)
 	write_buffer(f, host_buffer.data());
 }
 
-void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const nbody_engine::memory* _y, nbody_engine::memory* _f)
+void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y, memory* _f,
+										   nbcoord_t distance_to_node_radius_ratio)
 {
 	if(d->m_devices.empty())
 	{
@@ -550,7 +551,7 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const nbody_engin
 	const nbcoord_t*	mass = mass_host.data();
 
 	nbody_space_heap	heap;
-	heap.build(data_size, rx, ry, rz, mass);
+	heap.build(data_size, rx, ry, rz, mass, distance_to_node_radius_ratio);
 
 	size_t					tree_size = heap.get_radius_sqr().size();
 	smemory					tree_cmx(tree_size * sizeof(nbcoord_t), d->m_devices);

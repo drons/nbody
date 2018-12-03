@@ -40,7 +40,8 @@ public:
 
 	int select_devices(const QString& devices, bool verbose);
 protected:
-	void fcompute_bh_impl(const nbcoord_t& t, const memory* y, memory* f);
+	void fcompute_bh_impl(const nbcoord_t& t, const memory* y, memory* f,
+						  nbcoord_t distance_to_node_radius_ratio);
 private:
 	void synchronize_f(smemory* f);
 };

@@ -19,15 +19,17 @@ class nbody_space_tree
 		~node();
 		void build(size_t count, size_t* indites,
 				   const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
-				   const nbcoord_t* mass, size_t dimension);
+				   const nbcoord_t* mass, size_t dimension,
+				   nbcoord_t distance_to_node_radius_ratio);
 	};
-	node*	m_root;
-
+	node*		m_root;
+	nbcoord_t	m_distance_to_node_radius_ratio;
 public:
 	nbody_space_tree();
 	~nbody_space_tree();
 
-	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz, const nbcoord_t* mass);
+	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
+			   const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio);
 
 	template<class Visitor>
 	void traverse(Visitor visit) const
@@ -58,8 +60,7 @@ public:
 		}
 	}
 
-	nbvertex_t traverse(const nbody_data* data, nbcoord_t distance_to_node_radius_ratio,
-						const nbvertex_t& v1, const nbcoord_t mass1) const;
+	nbvertex_t traverse(const nbody_data* data, const nbvertex_t& v1, const nbcoord_t mass1) const;
 };
 
 
