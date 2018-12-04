@@ -38,7 +38,7 @@ public:
 
 	virtual void print_info() const override;
 
-	int select_devices(const QString& devices, bool verbose);
+	int select_devices(const QString& devices, bool verbose, bool prof);
 protected:
 	void fcompute_bh_impl(const nbcoord_t& t, const memory* y, memory* f,
 						  nbcoord_t distance_to_node_radius_ratio);

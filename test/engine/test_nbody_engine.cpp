@@ -832,7 +832,10 @@ int main(int argc, char* argv[])
 	}
 #ifdef HAVE_OPENCL
 	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"verbose", "1"}}));
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"},
+			{"verbose", "1"},
+			{"oclprof", "1"}
+		}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
@@ -871,6 +874,7 @@ int main(int argc, char* argv[])
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl_bh"},
 			{"verbose", "1"},
 			{"distance_to_node_radius_ratio", 1e16},
+			{"oclprof", "1"}
 		}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);

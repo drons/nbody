@@ -105,17 +105,26 @@ struct nbody_engine_opencl::data
 
 		static QString build_options();
 		static QStringList sources();
-		devctx(cl::Context& context, cl::Device& device);
+		devctx(cl::Context& context, cl::Device& device, bool prof);
 	};
 	cl::Context				m_context;
 	std::vector<devctx>		m_devices;
 	smemory*				m_mass;
 	smemory*				m_y;
 	nbody_data*				m_data;
+	bool					m_prof_enabled;
 
-	int select_devices(const QString& devices, bool verbose = false);
+	data() :
+		m_mass(NULL),
+		m_y(NULL),
+		m_data(NULL),
+		m_prof_enabled(false)
+	{
+	}
+	int select_devices(const QString& devices, bool verbose, bool prof);
 	void prepare(devctx&, const nbody_data* data, const nbvertex_t* vertites);
 	void compute_block(devctx& ctx, size_t offset_n1, size_t offset_n2, const nbody_data* data);
+	void print_profile_info(const std::vector<cl::Event>& events, const QString& func);
 };
 
 class nbody_engine_opencl::smemory : public nbody_engine::memory
@@ -169,10 +178,10 @@ QStringList nbody_engine_opencl::data::devctx::sources()
 	return QStringList() << ":/nbody_engine_opencl.cl";
 }
 
-nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& device) :
+nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& device, bool prof) :
 	m_context(_context),
 	m_prog(load_programs(m_context, device, build_options(), sources())),
-	m_queue(m_context, device, 0),
+	m_queue(m_context, device, prof ? CL_QUEUE_PROFILING_ENABLE : 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
 	m_fill(m_prog, "fill"),
@@ -182,7 +191,8 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 {
 }
 
-int nbody_engine_opencl::data::select_devices(const QString& devices, bool verbose)
+int nbody_engine_opencl::data::select_devices(const QString& devices,
+											  bool verbose, bool prof)
 {
 	std::vector<cl::Platform>		platforms;
 	try
@@ -194,6 +204,8 @@ int nbody_engine_opencl::data::select_devices(const QString& devices, bool verbo
 		qDebug() << e.err() << e.what();
 		return -1;
 	}
+
+	m_prof_enabled = prof;
 
 	QStringList	platform_devices_list(devices.split(";"));
 
@@ -269,7 +281,7 @@ int nbody_engine_opencl::data::select_devices(const QString& devices, bool verbo
 				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
 				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
 			}
-			m_devices.push_back(devctx(context, device));
+			m_devices.push_back(devctx(context, device, m_prof_enabled));
 		}
 	}
 
@@ -280,6 +292,23 @@ int nbody_engine_opencl::data::select_devices(const QString& devices, bool verbo
 	}
 
 	return 0;
+}
+
+void nbody_engine_opencl::data::print_profile_info(const std::vector<cl::Event>& events, const QString& func)
+{
+	if(!m_prof_enabled)
+	{
+		return;
+	}
+	for(size_t dev_n = 0; dev_n != events.size(); ++dev_n)
+	{
+		qDebug() << func
+				 << "dev" << dev_n
+				 << events[dev_n].getProfilingInfo<CL_PROFILING_COMMAND_START>()
+				 << events[dev_n].getProfilingInfo<CL_PROFILING_COMMAND_END>()
+				 << (events[dev_n].getProfilingInfo<CL_PROFILING_COMMAND_END>() -
+					 events[dev_n].getProfilingInfo<CL_PROFILING_COMMAND_START>()) * 1e-9;
+	}
 }
 
 nbody_engine_opencl::nbody_engine_opencl() :
@@ -462,6 +491,8 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 
 	cl::Event::waitForEvents(events);
 
+	d->print_profile_info(events, "fcompute");
+
 	if(device_count > 1)
 	{
 		// synchronize again
@@ -588,6 +619,8 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 	}
 
 	cl::Event::waitForEvents(events);
+
+	d->print_profile_info(events, "fcompute_bh");
 
 	if(device_count > 1)
 	{
@@ -890,7 +923,7 @@ void nbody_engine_opencl::print_info() const
 
 			try
 			{
-				nbody_engine_opencl::data::devctx	c(context, device);
+				nbody_engine_opencl::data::devctx	c(context, device, false);
 			}
 			catch(cl::Error& e)
 			{
@@ -901,7 +934,7 @@ void nbody_engine_opencl::print_info() const
 	return;
 }
 
-int nbody_engine_opencl::select_devices(const QString& devices, bool verbose)
+int nbody_engine_opencl::select_devices(const QString& devices, bool verbose, bool prof)
 {
-	return d->select_devices(devices, verbose);
+	return d->select_devices(devices, verbose, prof);
 }

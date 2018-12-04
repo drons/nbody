@@ -60,6 +60,7 @@ Argument | Description
 `--max_dist` | The maximum distance at which the force is calculated completely at each step  (Ahmad-Cohen engine).
 `--min_force` | The minimum force of attraction at which it is calculated completely at each step (Ahmad-Cohen engine).
 `--device` | Platforms/devices list for OpenCL based engines. Format: Platform1_ID:Device1,Device2;Platform2_ID:Device1,Device2... For example:  `--device=0:0,1` - first and second devices from first platform (with same context), `--device=0:0;0:1` - first and second devices from first platform (with separate contexts)
+`--oclprof` | Enable OpenCL profile
 
 ##### Solver control arguments are:
 
