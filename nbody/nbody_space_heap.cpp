@@ -1,5 +1,10 @@
 #include "nbody_space_heap.h"
 
+nbody_space_heap::nbody_space_heap() :
+	m_distance_to_node_radius_ratio(0)
+{
+}
+
 void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 							 const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio)
 {

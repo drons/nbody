@@ -7,7 +7,7 @@ class NBODY_DLL nbody_engine_opencl_bh : public nbody_engine_opencl
 {
 	nbcoord_t	m_distance_to_node_radius_ratio;
 public:
-	nbody_engine_opencl_bh(nbcoord_t distance_to_node_radius_ratio);
+	explicit nbody_engine_opencl_bh(nbcoord_t distance_to_node_radius_ratio);
 	~nbody_engine_opencl_bh();
 	virtual const char* type_name() const override;
 

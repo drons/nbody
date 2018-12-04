@@ -20,6 +20,7 @@ class nbody_space_heap
 		return 2 * idx + 2;
 	}
 public:
+	nbody_space_heap();
 	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 			   const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio);
 
