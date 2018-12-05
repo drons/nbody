@@ -18,7 +18,7 @@ int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, cons
 	QCoreApplication	a(argc, argv);
 	nbody_data_stream	stream;
 
-	if(!param.value("verbose").isNull())
+	if(param.value("verbose", "0").toInt() != 0)
 	{
 		qDebug() << "General:";
 		qDebug() << "\tStars count:" << data->get_count();
