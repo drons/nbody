@@ -834,7 +834,8 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"},
 			{"verbose", "1"},
-			{"oclprof", "1"}
+			{"oclprof", "1"},
+			{"block_size", 32}
 		}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);

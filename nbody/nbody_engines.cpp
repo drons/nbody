@@ -21,7 +21,11 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 	else if(type == "opencl")
 	{
 		QString	devices(param.value("device", "0:0").toString());
+		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbody_engine_opencl* engine = new nbody_engine_opencl();
+
+		engine->set_block_size(block_size);
+
 		if(0 != engine->select_devices(devices, param.value("verbose", "0").toInt() != 0,
 									   param.value("oclprof", "0").toInt() != 0))
 		{
@@ -34,8 +38,12 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 	else if(type == "opencl_bh")
 	{
 		QString	devices(param.value("device", "0:0").toString());
+		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
 		nbody_engine_opencl* engine = new nbody_engine_opencl_bh(distance_to_node_radius_ratio);
+
+		engine->set_block_size(block_size);
+
 		if(0 != engine->select_devices(devices, param.value("verbose", "0").toInt() != 0,
 									   param.value("oclprof", "0").toInt() != 0))
 		{

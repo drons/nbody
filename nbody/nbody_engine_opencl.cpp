@@ -103,9 +103,9 @@ struct nbody_engine_opencl::data
 		FMadd2				m_fmadd2;
 		FMaxabs				m_fmaxabs;
 
-		static QString build_options();
+		static QString build_options(int block_size);
 		static QStringList sources();
-		devctx(cl::Context& context, cl::Device& device, bool prof);
+		devctx(cl::Context& context, cl::Device& device, const data* d);
 	};
 	cl::Context				m_context;
 	std::vector<devctx>		m_devices;
@@ -113,12 +113,14 @@ struct nbody_engine_opencl::data
 	smemory*				m_y;
 	nbody_data*				m_data;
 	bool					m_prof_enabled;
+	int						m_block_size;
 
 	data() :
 		m_mass(NULL),
 		m_y(NULL),
 		m_data(NULL),
-		m_prof_enabled(false)
+		m_prof_enabled(false),
+		m_block_size(NBODY_DATA_BLOCK_SIZE)
 	{
 	}
 	int select_devices(const QString& devices, bool verbose, bool prof);
@@ -163,11 +165,11 @@ public:
 	}
 };
 
-QString nbody_engine_opencl::data::devctx::build_options()
+QString nbody_engine_opencl::data::devctx::build_options(int block_size)
 {
 	QString			options;
 
-	options += "-DNBODY_DATA_BLOCK_SIZE=" + QString::number(NBODY_DATA_BLOCK_SIZE) + " ";
+	options += "-DNBODY_DATA_BLOCK_SIZE=" + QString::number(block_size) + " ";
 	options += "-DNBODY_MIN_R=" + QString::number(NBODY_MIN_R) + " ";
 	options += "-Dnbcoord_t=" + QString(nbtype_info<nbcoord_t>::type_name()) + " ";
 	return options;
@@ -178,10 +180,10 @@ QStringList nbody_engine_opencl::data::devctx::sources()
 	return QStringList() << ":/nbody_engine_opencl.cl";
 }
 
-nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& device, bool prof) :
+nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& device, const data* d) :
 	m_context(_context),
-	m_prog(load_programs(m_context, device, build_options(), sources())),
-	m_queue(m_context, device, prof ? CL_QUEUE_PROFILING_ENABLE : 0),
+	m_prog(load_programs(m_context, device, build_options(d->m_block_size), sources())),
+	m_queue(m_context, device, d->m_prof_enabled ? CL_QUEUE_PROFILING_ENABLE : 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
 	m_fill(m_prog, "fill"),
@@ -281,7 +283,7 @@ int nbody_engine_opencl::data::select_devices(const QString& devices,
 				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
 				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
 			}
-			m_devices.push_back(devctx(context, device, m_prof_enabled));
+			m_devices.push_back(devctx(context, device, this));
 		}
 	}
 
@@ -475,7 +477,7 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	size_t					data_size = d->m_data->get_count();
 	size_t					device_data_size = data_size / device_count;
 	cl::NDRange				global_range(device_data_size);
-	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	cl::NDRange				local_range(d->m_block_size);
 	std::vector<cl::Event>	events;
 
 	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
@@ -568,7 +570,7 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 	size_t					data_size = d->m_data->get_count();
 	size_t					device_data_size = data_size / device_count;
 	cl::NDRange				global_range(device_data_size);
-	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	cl::NDRange				local_range(d->m_block_size);
 	std::vector<cl::Event>	events;
 	std::vector<nbcoord_t>	y_host(y->size() / sizeof(nbcoord_t));
 	std::vector<nbcoord_t>	mass_host(d->m_mass->size() / sizeof(nbcoord_t));
@@ -923,7 +925,7 @@ void nbody_engine_opencl::print_info() const
 
 			try
 			{
-				nbody_engine_opencl::data::devctx	c(context, device, false);
+				nbody_engine_opencl::data::devctx	c(context, device, d);
 			}
 			catch(cl::Error& e)
 			{
@@ -931,10 +933,16 @@ void nbody_engine_opencl::print_info() const
 			}
 		}
 	}
+	qDebug() << "\tblock_size" << d->m_block_size;
 	return;
 }
 
 int nbody_engine_opencl::select_devices(const QString& devices, bool verbose, bool prof)
 {
 	return d->select_devices(devices, verbose, prof);
+}
+
+void nbody_engine_opencl::set_block_size(int block_size)
+{
+	d->m_block_size = block_size;
 }
