@@ -859,8 +859,9 @@ int main(int argc, char* argv[])
 		QVariantMap	param4(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0"}}));
 		QVariantMap	param5(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "a:0"}}));
 		QVariantMap	param6(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:a"}}));
-		QVariantMap	params[] = {param1, param2, param3, param4, param5, param6};
-		for(size_t n = 0; n != 6; ++n)
+		QVariantMap	param7(std::map<QString, QVariant>({{"engine", "opencl_bh"}, {"traverse_type", "infinite"}}));
+		QVariantMap	params[] = {param1, param2, param3, param4, param5, param6, param7};
+		for(size_t n = 0; n != 7; ++n)
 		{
 			nbody_engine*	e(nbody_create_engine(params[n]));
 			if(e != NULL)
@@ -881,6 +882,15 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"verbose", "1"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverse_type", "nested_tree"}
+		}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "opencl_bh"},
 			{"distance_to_node_radius_ratio", 10},
 			{"traverse_type", "cycle"},
@@ -896,7 +906,7 @@ int main(int argc, char* argv[])
 									  256, 1e-12);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
-#endif
+#endif // HAVE_OPENCL
 
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "openmp"}}));
@@ -1012,6 +1022,24 @@ int main(int argc, char* argv[])
 									  1024, 1e-14);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+#ifdef HAVE_OPENCL
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  128, 1e-13);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+#endif // HAVE_OPENCL
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 10},

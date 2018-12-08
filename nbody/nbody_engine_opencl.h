@@ -42,7 +42,8 @@ public:
 	void set_block_size(int block_size);
 protected:
 	void fcompute_bh_impl(const nbcoord_t& t, const memory* y, memory* f,
-						  nbcoord_t distance_to_node_radius_ratio);
+						  nbcoord_t distance_to_node_radius_ratio,
+						  bool cycle_traverse);
 private:
 	void synchronize_f(smemory* f);
 };

@@ -84,6 +84,17 @@ typedef cl::make_kernel< cl_int,	//Block offset
 		cl::Buffer	//square node critical radius
 		> ComputeBlockBH;
 
+typedef cl::make_kernel< cl_int,	//Block offset
+		cl_int, // Points count
+		cl_int, // Tree size
+		cl::Buffer,	//y
+		cl::Buffer,	//f
+		cl::Buffer, cl::Buffer, cl::Buffer,	// mass center
+		cl::Buffer,	//tree mass
+		cl::Buffer,	//square node critical radius
+		cl::Buffer	//body indites
+		> ComputeHeapBH;
+
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMadd1;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd2;
@@ -98,6 +109,7 @@ struct nbody_engine_opencl::data
 		cl::CommandQueue	m_queue;
 		ComputeBlock		m_fcompute;
 		ComputeBlockBH		m_fcompute_bh;
+		ComputeHeapBH		m_fcompute_hbh;
 		FMfill				m_fill;
 		FMadd1				m_fmadd1;
 		FMadd2				m_fmadd2;
@@ -186,6 +198,7 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_queue(m_context, device, d->m_prof_enabled ? CL_QUEUE_PROFILING_ENABLE : 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
+	m_fcompute_hbh(m_prog, "ComputeHeapBH"),
 	m_fill(m_prog, "fill"),
 	m_fmadd1(m_prog, "fmadd1"),
 	m_fmadd2(m_prog, "fmadd2"),
@@ -528,7 +541,8 @@ void nbody_engine_opencl::synchronize_f(smemory* f)
 }
 
 void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y, memory* _f,
-										   nbcoord_t distance_to_node_radius_ratio)
+										   nbcoord_t distance_to_node_radius_ratio,
+										   bool cycle_traverse)
 {
 	if(d->m_devices.empty())
 	{
@@ -608,16 +622,45 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 	write_buffer(&tree_mass, heap.get_mass().data());
 	write_buffer(&tree_r2, heap.get_radius_sqr().data());
 
-	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+	if(cycle_traverse)
 	{
-		size_t			offset = dev_n * device_data_size;
-		data::devctx&	ctx(d->m_devices[dev_n]);
-		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-		cl::Event		ev(ctx.m_fcompute_bh(eargs, offset, data_size, tree_size,
-											 y->buffer(dev_n), f->buffer(dev_n),
-											 tree_cmx.buffer(dev_n), tree_cmy.buffer(dev_n), tree_cmz.buffer(dev_n),
-											 tree_mass.buffer(dev_n), tree_r2.buffer(dev_n)));
-		events.push_back(ev);
+		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+		{
+			size_t			offset = dev_n * device_data_size;
+			data::devctx&	ctx(d->m_devices[dev_n]);
+			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+			cl::Event		ev(
+				ctx.m_fcompute_bh(eargs, offset, data_size, tree_size,
+								  y->buffer(dev_n), f->buffer(dev_n),
+								  tree_cmx.buffer(dev_n), tree_cmy.buffer(dev_n), tree_cmz.buffer(dev_n),
+								  tree_mass.buffer(dev_n), tree_r2.buffer(dev_n)));
+			events.push_back(ev);
+		}
+	}
+	else
+	{
+		smemory				indites(tree_size * sizeof(cl_int), d->m_devices);
+		std::vector<cl_int>	indites_host(tree_size);
+		for(size_t n = 0; n != tree_size; ++n)
+		{
+			indites_host[n] = heap.get_body_n()[n];
+		}
+
+		write_buffer(&indites, indites_host.data());
+
+		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+		{
+			size_t			offset = dev_n * device_data_size;
+			data::devctx&	ctx(d->m_devices[dev_n]);
+			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+			cl::Event		ev(
+				ctx.m_fcompute_hbh(eargs, offset, data_size, tree_size,
+								   y->buffer(dev_n), f->buffer(dev_n),
+								   tree_cmx.buffer(dev_n), tree_cmy.buffer(dev_n), tree_cmz.buffer(dev_n),
+								   tree_mass.buffer(dev_n), tree_r2.buffer(dev_n),
+								   indites.buffer(dev_n)));
+			events.push_back(ev);
+		}
 	}
 
 	cl::Event::waitForEvents(events);

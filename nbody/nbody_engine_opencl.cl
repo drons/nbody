@@ -189,6 +189,95 @@ __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 	fvz[n1] = res_z;
 }
 
+// Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
+// Traverse starts form a tree node
+__kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
+							__global const nbcoord_t* y,
+							__global nbcoord_t* f,
+							__global const nbcoord_t* tree_cmx,
+							__global const nbcoord_t* tree_cmy,
+							__global const nbcoord_t* tree_cmz,
+							__global const nbcoord_t* tree_mass,
+							__global const nbcoord_t* tree_crit_r2,
+							__global const int* body_n)
+{
+	int		tree_offset = points_count - 1;
+	int		stride = points_count;
+	int		tn1 = get_global_id(0) + offset_n1 + tree_offset;
+
+	int			n1 = body_n[tn1];
+	nbcoord_t	x1 = tree_cmx[tn1];
+	nbcoord_t	y1 = tree_cmy[tn1];
+	nbcoord_t	z1 = tree_cmz[tn1];
+
+	nbcoord_t	res_x = 0.0;
+	nbcoord_t	res_y = 0.0;
+	nbcoord_t	res_z = 0.0;
+
+	int stack_data[MAX_STACK_SIZE] = {};
+	int	stack = 0;
+	int	stack_head = stack;
+
+	stack_data[stack++] = 0;
+	while(stack != stack_head)
+	{
+		int			curr = stack_data[--stack];
+		nbcoord_t	dx = x1 - tree_cmx[curr];
+		nbcoord_t	dy = y1 - tree_cmy[curr];
+		nbcoord_t	dz = z1 - tree_cmz[curr];
+		nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
+
+		if(r2 > tree_crit_r2[curr])
+		{
+			if(r2 < NBODY_MIN_R)
+			{
+				r2 = NBODY_MIN_R;
+			}
+
+			nbcoord_t	r = sqrt(r2);
+			nbcoord_t	coeff = tree_mass[curr] / (r * r2);
+
+			dx *= coeff;
+			dy *= coeff;
+			dz *= coeff;
+			res_x -= dx;
+			res_y -= dy;
+			res_z -= dz;
+		}
+		else
+		{
+			int	left = left_idx(curr);
+			int	rght = rght_idx(curr);
+			if(left < tree_size)
+			{
+				stack_data[stack++] = left;
+			}
+			if(rght < tree_size)
+			{
+				stack_data[stack++] = rght;
+			}
+		}
+	}
+
+	__global const nbcoord_t*	vx = y + 3 * stride;
+	__global const nbcoord_t*	vy = y + 4 * stride;
+	__global const nbcoord_t*	vz = y + 5 * stride;
+
+	__global nbcoord_t*	frx = f;
+	__global nbcoord_t*	fry = frx + stride;
+	__global nbcoord_t*	frz = frx + 2 * stride;
+	__global nbcoord_t*	fvx = frx + 3 * stride;
+	__global nbcoord_t*	fvy = frx + 4 * stride;
+	__global nbcoord_t*	fvz = frx + 5 * stride;
+
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+	fvx[n1] = res_x;
+	fvy[n1] = res_y;
+	fvz[n1] = res_z;
+}
+
 //! a[i] = value
 __kernel void fill(__global nbcoord_t* a, nbcoord_t value)
 {
