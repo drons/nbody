@@ -65,6 +65,7 @@ greaterThan(COMPILER_MAJOR_VERSION, 5){
 
 	QMAKE_CXXFLAGS += -Werror=duplicated-cond
 	QMAKE_CXXFLAGS += -Werror=conversion-null
+	QMAKE_CXXFLAGS += -Wno-ignored-attributes
 }
 
 greaterThan(COMPILER_MAJOR_VERSION, 6){
