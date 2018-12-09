@@ -184,6 +184,8 @@ QString nbody_engine_opencl::data::devctx::build_options(int block_size)
 	options += "-DNBODY_DATA_BLOCK_SIZE=" + QString::number(block_size) + " ";
 	options += "-DNBODY_MIN_R=" + QString::number(NBODY_MIN_R) + " ";
 	options += "-Dnbcoord_t=" + QString(nbtype_info<nbcoord_t>::type_name()) + " ";
+	options += "-cl-fast-relaxed-math -cl-unsafe-math-optimizations -cl-finite-math-only -w -Werror ";
+
 	return options;
 }
 
