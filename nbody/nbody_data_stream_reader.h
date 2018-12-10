@@ -1,7 +1,7 @@
 #ifndef NBODY_DATA_STREAM_READER_H
 #define NBODY_DATA_STREAM_READER_H
 
-#include "nbtype.h"
+#include "nbtype_info.h"
 #include "nbody_export.h"
 
 class nbody_data;

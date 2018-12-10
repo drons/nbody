@@ -1,5 +1,6 @@
 include( ../pri/nbody.pri )
 include( ../pri/opencl.pri )
+include( ../pri/cuda.pri )
 include( ../pri/vectorize.pri )
 
 TEMPLATE	= lib
@@ -74,6 +75,7 @@ HEADERS	+= \
 	nbody_space_tree.h \
 	vertex.h \
 	nbtype.h \
+	nbtype_info.h \
 	nbody_data_stream.h \
 	nbody_data_stream_reader.h
 
@@ -84,6 +86,16 @@ contains( DEFINES, HAVE_OPENCL ){
 	SOURCES += nbody_engine_opencl.cpp
 	HEADERS += nbody_engine_opencl_bh.h
 	SOURCES += nbody_engine_opencl_bh.cpp
+}
+
+contains( DEFINES, HAVE_CUDA ){
+	HEADERS += nbody_engine_cuda.h
+	SOURCES += nbody_engine_cuda.cpp
+	HEADERS += nbody_engine_cuda_bh.h
+	SOURCES += nbody_engine_cuda_bh.cpp
+
+	HEADERS += nbody_engine_cuda_impl.h
+	CUSOURCES += nbody_engine_cuda_impl.cu
 }
 
 nbodyinst.path = /tmp/nbody

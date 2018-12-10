@@ -830,6 +830,13 @@ int main(int argc, char* argv[])
 		test_nbody_engine	tc1(nbody_create_engine(param));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+#ifdef HAVE_CUDA
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "cuda"}}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+#endif //HAVE_CUDA
 #ifdef HAVE_OPENCL
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"},
@@ -1022,6 +1029,24 @@ int main(int argc, char* argv[])
 									  1024, 1e-14);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+#ifdef HAVE_CUDA
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  128, 1e-13);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+#endif // HAVE_CUDA
 #ifdef HAVE_OPENCL
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},

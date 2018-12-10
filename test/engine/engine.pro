@@ -1,5 +1,6 @@
 include( ../../pri/nbody.pri )
 include( ../../pri/opencl.pri )
+include( ../../pri/cuda.pri )
 include( ../../pri/vectorize.pri )
 
 TEMPLATE	= app

@@ -2,11 +2,8 @@
 #define NBODY_DATA_H
 
 #include <vector>
-#include "nbtype.h"
+#include "nbtype_info.h"
 #include "nbody_export.h"
-
-#define NBODY_DATA_BLOCK_SIZE	64
-#define NBODY_MIN_R				1e-8
 
 class nbody_engine;
 

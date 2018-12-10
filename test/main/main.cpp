@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 	nbody_engine*	engine = nbody_create_engine(param);
 	if(engine == NULL)
 	{
-		qDebug() << "Can't create engine";
+		qDebug() << "Can't create engine" << param;
 		return -1;
 	}
 
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 	if(solver == NULL)
 	{
 		delete engine;
-		qDebug() << "Can't create solver";
+		qDebug() << "Can't create solver" << param;
 		return -1;
 	}
 

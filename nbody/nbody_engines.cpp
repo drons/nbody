@@ -17,6 +17,16 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 	{
 		return new nbody_engine_block();
 	}
+#ifdef HAVE_CUDA
+	else if(type == "cuda")
+	{
+		return new nbody_engine_cuda();
+	}
+	else if(type == "cuda_bh")
+	{
+		return new nbody_engine_cuda_bh();
+	}
+#endif //HAVE_CUDA
 #ifdef HAVE_OPENCL
 	else if(type == "opencl")
 	{
