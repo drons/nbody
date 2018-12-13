@@ -5,9 +5,9 @@
 #include "nbody_engine_cuda_impl.h"
 #include "nbody_space_heap.h"
 
-nbody_engine_cuda_bh::nbody_engine_cuda_bh() :
+nbody_engine_cuda_bh::nbody_engine_cuda_bh(nbcoord_t distance_to_node_radius_ratio) :
 	m_cycle_traverse(false),
-	m_distance_to_node_radius_ratio(10),
+	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio),
 	m_dev_tree_cmx(NULL),
 	m_dev_tree_cmy(NULL),
 	m_dev_tree_cmz(NULL),
@@ -108,7 +108,8 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 
 	fcompute_heap_bh(0, count, tree_size, dev_y, dev_f,
 					 dev_tree_cmx, dev_tree_cmy, dev_tree_cmz,
-					 dev_tree_mass, dev_tree_crit_r2, dev_indites);
+					 dev_tree_mass, dev_tree_crit_r2,
+					 dev_indites, get_block_size());
 }
 
 void nbody_engine_cuda_bh::print_info() const

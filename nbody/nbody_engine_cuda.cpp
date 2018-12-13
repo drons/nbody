@@ -35,7 +35,8 @@ size_t nbody_engine_cuda::smemory::size() const
 nbody_engine_cuda::nbody_engine_cuda() :
 	m_mass(NULL),
 	m_y(NULL),
-	m_data(NULL)
+	m_data(NULL),
+	m_block_size(NBODY_DATA_BLOCK_SIZE)
 {
 }
 
@@ -164,7 +165,7 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 	size_t			count = m_data->get_count();
 
 	fcompute_block(static_cast<const nbcoord_t*>(y->data()), static_cast<nbcoord_t*>(f->data()),
-				   static_cast<const nbcoord_t*>(m_mass->data()), count);
+				   static_cast<const nbcoord_t*>(m_mass->data()), count, get_block_size());
 }
 
 nbody_engine_cuda::smemory* nbody_engine_cuda::create_buffer(size_t s)
@@ -325,5 +326,15 @@ void nbody_engine_cuda::print_info() const
 	qDebug() << "\t" << "Const memory " << prop.totalConstMem;
 	qDebug() << "\t" << "Shared memory" << prop.sharedMemPerBlock << "/" << prop.sharedMemPerMultiprocessor;
 	qDebug() << "\t" << "Compute Cap  " << prop.major << "." << prop.minor;
+}
+
+int nbody_engine_cuda::get_block_size() const
+{
+	return m_block_size;
+}
+
+void nbody_engine_cuda::set_block_size(int block_size)
+{
+	m_block_size = block_size;
 }
 

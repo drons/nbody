@@ -16,7 +16,7 @@ class NBODY_DLL nbody_engine_cuda_bh : public nbody_engine_cuda
 	smemory*		m_dev_indites;
 
 public:
-	nbody_engine_cuda_bh();
+	explicit nbody_engine_cuda_bh(nbcoord_t distance_to_node_radius_ratio);
 	~nbody_engine_cuda_bh();
 	virtual const char* type_name() const override;
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;

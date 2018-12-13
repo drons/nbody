@@ -55,7 +55,7 @@ Argument | Description
 Argument | Description
 ---------|-------------
 `--engine` | Compute engine [type](#compute-engines).
-`--distance_to_node_radius_ratio` | Simulation accuracy control for Burnes-Hut engine.
+`--distance_to_node_radius_ratio` | Simulation accuracy control for Burnes-Hut engines.
 `--traverse_type` | Space tree traverse type for Burnes-Hut engine. Possible values are `cycle` or `nested_tree`.
 `--tree_layout` | Space tree layout type for Burnes-Hut engine. Possible values are `tree` or `heap`.
 `--full_recompute_rate` | Full force recompute rate in cucles (Ahmad-Cohen engine).
@@ -63,7 +63,7 @@ Argument | Description
 `--min_force` | The minimum force of attraction at which it is calculated completely at each step (Ahmad-Cohen engine).
 `--device` | Platforms/devices list for OpenCL based engines. Format: Platform1_ID:Device1,Device2;Platform2_ID:Device1,Device2... For example:  `--device=0:0,1` - first and second devices from first platform (with same context), `--device=0:0;0:1` - first and second devices from first platform (with separate contexts)
 `--oclprof` | Enable OpenCL profile
-`--block_size` | Data block size to load at local OpenCL memory
+`--block_size` | Data block size to load at local OpenCL/CUDA memory
 
 ##### Solver control arguments are:
 

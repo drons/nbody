@@ -4,7 +4,8 @@
 #include <cuda_runtime.h>
 #include "nbtype.h"
 
-__host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m, int count);
+__host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
+							 int count, int block_size);
 
 __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 							   const nbcoord_t* y,
@@ -14,7 +15,8 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 							   const nbcoord_t* tree_cmz,
 							   const nbcoord_t* tree_mass,
 							   const nbcoord_t* tree_crit_r2,
-							   const int* body_n);
+							   const int* body_n,
+							   int block_size);
 
 //! a[i] = value
 __host__ void fill_buffer(nbcoord_t* ptr, nbcoord_t v, int count);

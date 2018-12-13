@@ -21,6 +21,7 @@ protected:
 	smemory*			m_mass;
 	smemory*			m_y;
 	nbody_data*			m_data;
+	int					m_block_size;
 public:
 	nbody_engine_cuda();
 	~nbody_engine_cuda();
@@ -50,6 +51,9 @@ public:
 	virtual void fmaxabs(const memory* a, nbcoord_t& result) override;
 
 	virtual void print_info() const override;
+
+	int get_block_size() const;
+	void set_block_size(int block_size);
 };
 
 #endif // NBODY_ENGINE_CUDA_H

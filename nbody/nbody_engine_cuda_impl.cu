@@ -93,10 +93,11 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 	fvz[n1] = res_z;
 }
 
-__host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m, int count)
+__host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
+							 int count, int block_size)
 {
-	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
-	dim3 block(NBODY_DATA_BLOCK_SIZE);
+	dim3 grid(count / block_size);
+	dim3 block(block_size);
 
 	kfcompute <<< grid, block >>> (0, y, 0, f, 0, m, count, count);
 }
@@ -210,10 +211,11 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 							   const nbcoord_t* tree_cmz,
 							   const nbcoord_t* tree_mass,
 							   const nbcoord_t* tree_crit_r2,
-							   const int* body_n)
+							   const int* body_n,
+							   int block_size)
 {
-	dim3 grid(points_count / NBODY_DATA_BLOCK_SIZE);
-	dim3 block(NBODY_DATA_BLOCK_SIZE);
+	dim3 grid(points_count / block_size);
+	dim3 block(block_size);
 
 	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 										   tree_cmx, tree_cmy, tree_cmz, tree_mass,
