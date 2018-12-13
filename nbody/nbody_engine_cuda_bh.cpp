@@ -79,14 +79,14 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 		m_dev_indites = create_buffer(tree_size * sizeof(int));
 	}
 
-	nbcoord_t*		dev_y = static_cast<nbcoord_t*>(y->data());
-	nbcoord_t*		dev_f = static_cast<nbcoord_t*>(f->data());
-	nbcoord_t*		dev_tree_cmx = static_cast<nbcoord_t*>(m_dev_tree_cmx->data());
-	nbcoord_t*		dev_tree_cmy = static_cast<nbcoord_t*>(m_dev_tree_cmy->data());
-	nbcoord_t*		dev_tree_cmz = static_cast<nbcoord_t*>(m_dev_tree_cmz->data());
-	nbcoord_t*		dev_tree_mass = static_cast<nbcoord_t*>(m_dev_tree_mass->data());
-	nbcoord_t*		dev_tree_crit_r2 = static_cast<nbcoord_t*>(m_dev_tree_crit_r2->data());
-	int*			dev_indites = static_cast<int*>(m_dev_indites->data());
+	const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data());
+	nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data());
+	nbcoord_t*			dev_tree_cmx = static_cast<nbcoord_t*>(m_dev_tree_cmx->data());
+	nbcoord_t*			dev_tree_cmy = static_cast<nbcoord_t*>(m_dev_tree_cmy->data());
+	nbcoord_t*			dev_tree_cmz = static_cast<nbcoord_t*>(m_dev_tree_cmz->data());
+	nbcoord_t*			dev_tree_mass = static_cast<nbcoord_t*>(m_dev_tree_mass->data());
+	nbcoord_t*			dev_tree_crit_r2 = static_cast<nbcoord_t*>(m_dev_tree_crit_r2->data());
+	int*				dev_indites = static_cast<int*>(m_dev_indites->data());
 
 	std::vector<nbcoord_t>	host_tree_cmx(tree_size), host_tree_cmy(tree_size), host_tree_cmz(tree_size);
 	std::vector<int>		host_indites(tree_size);

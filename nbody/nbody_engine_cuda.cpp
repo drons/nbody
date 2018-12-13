@@ -21,7 +21,12 @@ nbody_engine_cuda::smemory::~smemory()
 	cudaFree(m_data);
 }
 
-void* nbody_engine_cuda::smemory::data() const
+const void* nbody_engine_cuda::smemory::data() const
+{
+	return m_data;
+}
+
+void* nbody_engine_cuda::smemory::data()
 {
 	return m_data;
 }

@@ -13,7 +13,8 @@ protected:
 	public:
 		explicit smemory(size_t);
 		virtual ~smemory();
-		void* data() const;
+		void* data();
+		const void* data() const;
 		size_t size() const override;
 	};
 

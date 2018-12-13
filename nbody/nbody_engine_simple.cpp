@@ -342,7 +342,12 @@ nbody_engine_simple::smemory::~smemory()
 	::free(m_data);
 }
 
-void* nbody_engine_simple::smemory::data() const
+void* nbody_engine_simple::smemory::data()
+{
+	return m_data;
+}
+
+const void* nbody_engine_simple::smemory::data() const
 {
 	return m_data;
 }
