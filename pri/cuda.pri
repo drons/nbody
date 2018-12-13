@@ -22,6 +22,7 @@ exists( /usr/local/cuda/bin ){
 	QMAKE_CUEXTRAFLAGS += -m64
 	QMAKE_CUEXTRAFLAGS += -arch $$QMAKE_CUDA_SM --compile
 	QMAKE_CUEXTRAFLAGS += $$join(INCLUDEPATH,'" -I"','-I"','"')
+	QMAKE_CUEXTRAFLAGS += $$join(DEFINES,'" -D"','-D"','"')
 	QMAKE_CUEXTRAFLAGS += -Xcompiler $$escape_expand(\")-fPIC$$escape_expand(\")
 	QMAKE_CUEXTRAFLAGS += -lineinfo
 
