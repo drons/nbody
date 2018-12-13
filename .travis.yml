@@ -114,7 +114,7 @@ matrix:
       - ./test/solver/solver
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
-      - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1
+      - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE"
       - cd nbody
       - gcov ./*
       after_success:

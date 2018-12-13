@@ -14,9 +14,12 @@ int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, cons
 	nbcoord_t	max_time = param.value("max_time", 1).toDouble();
 	nbcoord_t	dump_step = param.value("dump_step", 1e-2).toDouble();
 	nbcoord_t	check_step = param.value("check_step", 1e-1).toDouble();
+	QString		check_list(param.value("check_list", "PLV").toString());
 
 	QCoreApplication	a(argc, argv);
 	nbody_data_stream	stream;
+
+	data->set_check_list(check_list);
 
 	if(param.value("verbose", "0").toInt() != 0)
 	{
@@ -28,6 +31,7 @@ int con_run(int argc, char* argv[], nbody_solver* solver, nbody_data* data, cons
 		qDebug() << "\tmax_time:" << max_time;
 		qDebug() << "\tdump_step:" << dump_step;
 		qDebug() << "\tcheck_step:" << check_step;
+		qDebug() << "\tcheck_list:" << check_list;
 		qDebug() << "Solver:" << solver->type_name();
 		solver->print_info();
 		qDebug() << "Engine:" << solver->engine()->type_name();

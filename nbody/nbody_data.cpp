@@ -20,6 +20,7 @@ nbody_data::nbody_data()
 	m_step = 0;
 	m_box_size = 0;
 	m_count = 0;
+	m_check_list = "PLV";
 	m_total_kinetic_energy = 0;
 	m_total_potential_energy = 0;
 	m_last_total_kinetic_energy = 0;
@@ -61,17 +62,33 @@ void nbody_data::print_statistics(nbody_engine* engine)
 	}
 
 	double		timer_end = omp_get_wtime();
-	nbvertex_t	total_impulce(summation<nbvertex_t, impulce_proxy>(impulce_proxy(this), m_count));
-	nbvertex_t	total_impulce_moment(summation<nbvertex_t, impulce_moment_proxy>(impulce_moment_proxy(this), m_count));
-	nbvertex_t	mass_center(summation<nbvertex_t, mass_center_proxy>(mass_center_proxy(this), m_count));
-	nbcoord_t	total_mass(summation<nbcoord_t, const nbcoord_t*>(m_mass.data(), m_count));
-	nbcoord_t	total_kinetic_energy(summation<nbcoord_t, kinetic_energy_proxy>(kinetic_energy_proxy(this), m_count));
-	nbcoord_t	total_potential_energy(summation<nbcoord_t, potential_energy_proxy>(potential_energy_proxy(this),
-																					m_count * m_count));
+	nbvertex_t	total_impulce;
+	nbvertex_t	total_impulce_moment;
+	nbvertex_t	mass_center;
+	nbcoord_t	total_kinetic_energy(0);
+	nbcoord_t	total_potential_energy(0);
 
-	total_kinetic_energy /= 2;
-	total_potential_energy /= 2;
-	mass_center /= total_mass;
+	if(m_check_list.contains("P"))
+	{
+		total_impulce = summation<nbvertex_t, impulce_proxy>(impulce_proxy(this), m_count);
+	}
+	if(m_check_list.contains("L"))
+	{
+		total_impulce_moment = summation<nbvertex_t, impulce_moment_proxy>(impulce_moment_proxy(this), m_count);
+	}
+	if(m_check_list.contains("E"))
+	{
+		total_kinetic_energy = summation<nbcoord_t, kinetic_energy_proxy>(kinetic_energy_proxy(this), m_count);
+		total_potential_energy = summation<nbcoord_t, potential_energy_proxy>(potential_energy_proxy(this), m_count * m_count);
+		total_kinetic_energy /= 2;
+		total_potential_energy /= 2;
+	}
+	if(m_check_list.contains("V"))
+	{
+		nbcoord_t	total_mass(summation<nbcoord_t, const nbcoord_t*>(m_mass.data(), m_count));
+		mass_center = summation<nbvertex_t, mass_center_proxy>(mass_center_proxy(this), m_count);
+		mass_center /= total_mass;
+	}
 
 	if(!m_last_values_computed)
 	{
@@ -82,26 +99,40 @@ void nbody_data::print_statistics(nbody_engine* engine)
 		m_total_potential_energy = total_potential_energy;
 		m_last_values_computed = true;
 	}
-	m_last_total_impulce = total_impulce;
-	m_last_total_impulce_moment = total_impulce_moment;
-	m_last_mass_center = mass_center;
-	m_last_total_kinetic_energy = total_kinetic_energy;
-	m_last_total_potential_energy = total_potential_energy;
 
-	total_impulce -= m_total_impulce;
-	total_impulce_moment -= m_total_impulce_moment;
-	nbvertex_t	mass_center_vel((get_last_mass_center() - get_mass_center()) / m_time);
+	QDebug	g(qDebug());
 
-	qDebug() << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
-			 << "t" << QString("%1").arg(m_time, 6, 'f', 6, QChar(' '))
-			 << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'))
-			 << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3)
-			 << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3)
-			 << "Vcm" << QString("%1").arg((mass_center_vel).length(), 4, 'e', 3)
-			 << "dE" << QString("%1").arg(get_energy_err(), 4, 'e', 3)
-			 << "St" << (timer_end - m_timer_start) / (m_step - m_timer_step)
-			 << "Wt" << (omp_get_wtime() - m_timer_start) / (m_step - m_timer_step)
-			 << "";
+	g << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
+	  << "t" << QString("%1").arg(m_time, 6, 'f', 6, QChar(' '))
+	  << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'));
+
+	if(m_check_list.contains("P"))
+	{
+		m_last_total_impulce = total_impulce;
+		total_impulce -= m_total_impulce;
+		g << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3);
+	}
+	if(m_check_list.contains("L"))
+	{
+		m_last_total_impulce_moment = total_impulce_moment;
+		total_impulce_moment -= m_total_impulce_moment;
+		g << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3);
+	}
+	if(m_check_list.contains("V"))
+	{
+		m_last_mass_center = mass_center;
+		nbvertex_t	mass_center_vel((get_last_mass_center() - get_mass_center()) / m_time);
+		g << "Vcm" << QString("%1").arg((mass_center_vel).length(), 4, 'e', 3);
+	}
+	if(m_check_list.contains("E"))
+	{
+		m_last_total_kinetic_energy = total_kinetic_energy;
+		m_last_total_potential_energy = total_potential_energy;
+		g << "dE" << QString("%1").arg(get_energy_err(), 4, 'e', 3);
+	}
+	g << "St" << (timer_end - m_timer_start) / (m_step - m_timer_step)
+	  << "Wt" << (omp_get_wtime() - m_timer_start) / (m_step - m_timer_step)
+	  << "";
 
 	m_timer_start = omp_get_wtime();
 	m_timer_step = m_step;
@@ -209,6 +240,11 @@ size_t nbody_data::get_box_size() const
 size_t nbody_data::get_count() const
 {
 	return m_count;
+}
+
+void nbody_data::set_check_list(const QString& check_list)
+{
+	m_check_list = check_list;
 }
 
 nbcoord_t static randcoord(nbcoord_t min, nbcoord_t max)

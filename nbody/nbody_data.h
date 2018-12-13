@@ -18,6 +18,7 @@ class NBODY_DLL nbody_data
 	std::vector< nbvertex_t >	m_velosites;
 	std::vector< nbcoord_t >	m_mass;
 
+	QString						m_check_list;
 	nbvertex_t					m_total_impulce;
 	nbvertex_t					m_total_impulce_moment;
 	nbvertex_t					m_mass_center;
@@ -56,6 +57,9 @@ public:
 	void dump_body(size_t n);
 	bool resize(size_t);
 	size_t get_count() const;
+
+	//! List of fundamental laws of physics to check
+	void set_check_list(const QString& check_list);
 
 	void add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity,
 					nbcoord_t radius, nbcoord_t total_mass, size_t count,

@@ -47,7 +47,8 @@ Argument | Description
 `--max_part_size` | Max stream file size (splits a stream into multiple files).
 `--max_time` | Max simulation time.
 `--dump_step` | Time step to dump simulation state to stream.
-`--check_step` | Time step to verify the fundamental laws of physics. Conservation of impulse, angular momentum, energy.
+`--check_step` | Time step to verify the fundamental laws of physics. Conservation of impulse [P], angular momentum [L], energy [E], mass center velocity [V].
+`--check_list` | List of fundamental laws of physics to check. For example `--check_list=PL` to check only conservation of impulse [P] and angular momentum [L].
 `--verbose` | Print detailed simulation information.
 
 ##### Engine control arguments are:
