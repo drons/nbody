@@ -2,40 +2,7 @@
 
 #include <QDebug>
 
-#include "nbody_engine_cuda_impl.h"
-
-nbody_engine_cuda::smemory::smemory(size_t s) :
-	m_data(NULL),
-	m_size(0)
-{
-	cudaError_t res = cudaMalloc(&m_data, s);
-	if(res != cudaSuccess)
-	{
-		qDebug() << "Can't alloc " << s << "bytes. Err code" << res << cudaGetErrorString(res);
-	}
-	m_size = s;
-}
-
-nbody_engine_cuda::smemory::~smemory()
-{
-	cudaFree(m_data);
-}
-
-const void* nbody_engine_cuda::smemory::data() const
-{
-	return m_data;
-}
-
-void* nbody_engine_cuda::smemory::data()
-{
-	return m_data;
-}
-
-size_t nbody_engine_cuda::smemory::size() const
-{
-	return m_size;
-}
-
+#include "nbody_engine_cuda_memory.h"
 
 nbody_engine_cuda::nbody_engine_cuda() :
 	m_mass(NULL),
@@ -173,7 +140,7 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 				   static_cast<const nbcoord_t*>(m_mass->data()), count, get_block_size());
 }
 
-nbody_engine_cuda::smemory* nbody_engine_cuda::create_buffer(size_t s)
+nbody_engine_cuda::memory* nbody_engine_cuda::create_buffer(size_t s)
 {
 	smemory*	mem = new smemory(s);
 	if(mem->size() == 0 && s > 0)
@@ -342,4 +309,3 @@ void nbody_engine_cuda::set_block_size(int block_size)
 {
 	m_block_size = block_size;
 }
-

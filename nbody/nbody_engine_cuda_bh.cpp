@@ -2,7 +2,7 @@
 
 #include <QDebug>
 
-#include "nbody_engine_cuda_impl.h"
+#include "nbody_engine_cuda_memory.h"
 #include "nbody_space_heap.h"
 
 nbody_engine_cuda_bh::nbody_engine_cuda_bh(nbcoord_t distance_to_node_radius_ratio) :
@@ -71,12 +71,12 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 
 	if(m_dev_indites == NULL)
 	{
-		m_dev_tree_cmx = create_buffer(tree_size * sizeof(nbcoord_t));
-		m_dev_tree_cmy = create_buffer(tree_size * sizeof(nbcoord_t));
-		m_dev_tree_cmz = create_buffer(tree_size * sizeof(nbcoord_t));
-		m_dev_tree_crit_r2 = create_buffer(tree_size * sizeof(nbcoord_t));
-		m_dev_tree_mass = create_buffer(tree_size * sizeof(nbcoord_t));
-		m_dev_indites = create_buffer(tree_size * sizeof(int));
+		m_dev_tree_cmx = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
+		m_dev_tree_cmy = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
+		m_dev_tree_cmz = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
+		m_dev_tree_crit_r2 = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
+		m_dev_tree_mass = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
+		m_dev_indites = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(int)));
 	}
 
 	const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data());

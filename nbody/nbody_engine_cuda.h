@@ -8,17 +8,7 @@ class NBODY_DLL nbody_engine_cuda : public nbody_engine
 	nbody_engine_cuda(const nbody_engine_cuda&) = delete;
 	nbody_engine_cuda& operator = (const nbody_engine_cuda&) = delete;
 protected:
-	class smemory : public memory
-	{
-		void*	m_data;
-		size_t	m_size;
-	public:
-		explicit smemory(size_t s);
-		virtual ~smemory();
-		void* data();
-		const void* data() const;
-		size_t size() const override;
-	};
+	class				smemory;
 	smemory*			m_mass;
 	smemory*			m_y;
 	nbody_data*			m_data;
@@ -40,7 +30,7 @@ public:
 
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 
-	virtual smemory* create_buffer(size_t) override;
+	virtual memory* create_buffer(size_t) override;
 	virtual void free_buffer(memory*) override;
 	virtual void read_buffer(void* dst, const memory* src) override;
 	virtual void write_buffer(memory* dst, const void* src) override;
