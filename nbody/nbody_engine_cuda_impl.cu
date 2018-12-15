@@ -217,6 +217,8 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 	dim3 grid(points_count / block_size);
 	dim3 block(block_size);
 
+	cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1);
+
 	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 										   tree_cmx, tree_cmy, tree_cmz, tree_mass,
 										   tree_crit_r2, body_n);
