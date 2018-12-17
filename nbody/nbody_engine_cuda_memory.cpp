@@ -32,6 +32,27 @@ void* nbody_engine_cuda::smemory::data()
 	return m_data;
 }
 
+template<class T>
+void setup_texture_type(cudaResourceDesc&, cudaResourceViewDesc&)
+{
+}
+
+template<>
+void setup_texture_type<float>(cudaResourceDesc& res_desc, cudaResourceViewDesc& view_desc)
+{
+	res_desc.res.linear.desc.f = cudaChannelFormatKindFloat;
+	res_desc.res.linear.desc.x = 32; // bits per channel
+	view_desc.format = cudaResViewFormatFloat1;
+}
+
+template<>
+void setup_texture_type<double>(cudaResourceDesc& res_desc, cudaResourceViewDesc& view_desc)
+{
+	res_desc.res.linear.desc.f = cudaChannelFormatKindSigned;
+	res_desc.res.linear.desc.x = 32; // bits per channel
+	view_desc.format = cudaResViewFormatSignedInt2;
+}
+
 cudaTextureObject_t nbody_engine_cuda::smemory::tex()
 {
 	if(m_tex != 0)
@@ -47,18 +68,8 @@ cudaTextureObject_t nbody_engine_cuda::smemory::tex()
 
 	res_desc.resType = cudaResourceTypeLinear;
 	res_desc.res.linear.devPtr = data();
-	if(sizeof(nbcoord_t) == sizeof(float))
-	{
-		res_desc.res.linear.desc.f = cudaChannelFormatKindFloat;
-		res_desc.res.linear.desc.x = 32; // bits per channel
-		view_desc.format = cudaResViewFormatFloat1;
-	}
-	else if(sizeof(nbcoord_t) == sizeof(double))
-	{
-		res_desc.res.linear.desc.f = cudaChannelFormatKindSigned;
-		res_desc.res.linear.desc.x = 32; // bits per channel
-		view_desc.format = cudaResViewFormatSignedInt2;
-	}
+
+	setup_texture_type<nbcoord_t>(res_desc, view_desc);
 
 	res_desc.res.linear.sizeInBytes = size();
 	view_desc.width = size() / sizeof(nbcoord_t);

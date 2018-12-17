@@ -325,7 +325,8 @@ matrix:
           packages:
           - cppcheck
       script:
-      - cppcheck --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+	  - cppcheck -DNB_COORD_TYPE=double --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+	  - cppcheck -DNB_COORD_TYPE=float --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
 
 language:
   - cpp
