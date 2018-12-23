@@ -325,8 +325,8 @@ matrix:
           packages:
           - cppcheck
       script:
-	  - cppcheck -DNB_COORD_TYPE=double --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
-	  - cppcheck -DNB_COORD_TYPE=float --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_TYPE=double --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_TYPE=float  --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
 
 language:
   - cpp
