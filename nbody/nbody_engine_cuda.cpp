@@ -138,6 +138,9 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 
 	fcompute_block(static_cast<const nbcoord_t*>(y->data()), static_cast<nbcoord_t*>(f->data()),
 				   static_cast<const nbcoord_t*>(m_mass->data()), count, get_block_size());
+
+	fcompute_xyz(static_cast<const nbcoord_t*>(y->data()), static_cast<nbcoord_t*>(f->data()),
+				 count, get_block_size());
 }
 
 nbody_engine_cuda::memory* nbody_engine_cuda::create_buffer(size_t s)

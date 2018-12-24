@@ -4,6 +4,7 @@
 #include <cuda_runtime.h>
 #include "nbtype.h"
 
+__host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int count, int block_size);
 __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
 							 int count, int block_size);
 

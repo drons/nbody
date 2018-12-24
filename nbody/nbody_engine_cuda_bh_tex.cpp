@@ -105,6 +105,7 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 						 m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
 						 m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
 						 dev_indites, get_block_size());
+	fcompute_xyz(dev_y, dev_f, count, get_block_size());
 }
 
 void nbody_engine_cuda_bh_tex::print_info() const

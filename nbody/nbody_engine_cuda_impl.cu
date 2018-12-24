@@ -3,6 +3,31 @@
 #include <thrust/device_ptr.h>
 #include <thrust/extrema.h>
 
+__global__ void kfcompute_xyz(const nbcoord_t* y, int yoff, nbcoord_t* f, int foff, int stride)
+{
+	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
+
+	const nbcoord_t*	vx = y + yoff + 3 * stride;
+	const nbcoord_t*	vy = vx + stride;
+	const nbcoord_t*	vz = vx + 2 * stride;
+
+	nbcoord_t*	frx = f + foff;
+	nbcoord_t*	fry = frx + stride;
+	nbcoord_t*	frz = frx + 2 * stride;
+
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+}
+
+__host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int count, int block_size)
+{
+	dim3 grid(count / block_size);
+	dim3 block(block_size);
+
+	kfcompute_xyz <<< grid, block >>> (y, 0, f, 0, count);
+}
+
 __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t* f, int foff,
 						  const nbcoord_t* mass, int points_count, int stride)
 {
@@ -11,16 +36,6 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 	const nbcoord_t*	rx = y + yoff;
 	const nbcoord_t*	ry = rx + stride;
 	const nbcoord_t*	rz = rx + 2 * stride;
-	const nbcoord_t*	vx = rx + 3 * stride;
-	const nbcoord_t*	vy = rx + 4 * stride;
-	const nbcoord_t*	vz = rx + 5 * stride;
-
-	nbcoord_t*	frx = f + foff;
-	nbcoord_t*	fry = frx + stride;
-	nbcoord_t*	frz = frx + 2 * stride;
-	nbcoord_t*	fvx = frx + 3 * stride;
-	nbcoord_t*	fvy = frx + 4 * stride;
-	nbcoord_t*	fvz = frx + 5 * stride;
 
 	nbcoord_t	x1 = rx[n1];
 	nbcoord_t	y1 = ry[n1];
@@ -85,12 +100,10 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 		res_z += local_res_z;
 	}
 
-	frx[n1] = vx[n1];
-	fry[n1] = vy[n1];
-	frz[n1] = vz[n1];
-	fvx[n1] = res_x;
-	fvy[n1] = res_y;
-	fvz[n1] = res_z;
+	n1 += foff;
+	f[n1 + 3 * stride] = res_x;
+	f[n1 + 4 * stride] = res_y;
+	f[n1 + 5 * stride] = res_z;
 }
 
 __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
@@ -184,23 +197,9 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 		}
 	}
 
-	const nbcoord_t*	vx = y + 3 * stride;
-	const nbcoord_t*	vy = y + 4 * stride;
-	const nbcoord_t*	vz = y + 5 * stride;
-
-	nbcoord_t*	frx = f;
-	nbcoord_t*	fry = frx + stride;
-	nbcoord_t*	frz = frx + 2 * stride;
-	nbcoord_t*	fvx = frx + 3 * stride;
-	nbcoord_t*	fvy = frx + 4 * stride;
-	nbcoord_t*	fvz = frx + 5 * stride;
-
-	frx[n1] = vx[n1];
-	fry[n1] = vy[n1];
-	frz[n1] = vz[n1];
-	fvx[n1] = res_x;
-	fvy[n1] = res_y;
-	fvz[n1] = res_z;
+	f[n1 + 3 * stride] = res_x;
+	f[n1 + 4 * stride] = res_y;
+	f[n1 + 5 * stride] = res_z;
 }
 
 __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
@@ -319,23 +318,9 @@ __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_
 		}
 	}
 
-	const nbcoord_t*	vx = y + 3 * stride;
-	const nbcoord_t*	vy = y + 4 * stride;
-	const nbcoord_t*	vz = y + 5 * stride;
-
-	nbcoord_t*	frx = f;
-	nbcoord_t*	fry = frx + stride;
-	nbcoord_t*	frz = frx + 2 * stride;
-	nbcoord_t*	fvx = frx + 3 * stride;
-	nbcoord_t*	fvy = frx + 4 * stride;
-	nbcoord_t*	fvz = frx + 5 * stride;
-
-	frx[n1] = vx[n1];
-	fry[n1] = vy[n1];
-	frz[n1] = vz[n1];
-	fvx[n1] = res_x;
-	fvy[n1] = res_y;
-	fvz[n1] = res_z;
+	f[n1 + 3 * stride] = res_x;
+	f[n1 + 4 * stride] = res_y;
+	f[n1 + 5 * stride] = res_z;
 }
 
 __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
