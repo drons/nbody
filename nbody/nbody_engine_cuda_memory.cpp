@@ -33,24 +33,23 @@ void* nbody_engine_cuda::smemory::data()
 }
 
 template<class T>
-void setup_texture_type(cudaResourceDesc&, cudaResourceViewDesc&)
+void setup_texture_type(cudaResourceDesc&)
 {
 }
 
 template<>
-void setup_texture_type<float>(cudaResourceDesc& res_desc, cudaResourceViewDesc& view_desc)
+void setup_texture_type<float>(cudaResourceDesc& res_desc)
 {
 	res_desc.res.linear.desc.f = cudaChannelFormatKindFloat;
 	res_desc.res.linear.desc.x = 32; // bits per channel
-	view_desc.format = cudaResViewFormatFloat1;
 }
 
 template<>
-void setup_texture_type<double>(cudaResourceDesc& res_desc, cudaResourceViewDesc& view_desc)
+void setup_texture_type<double>(cudaResourceDesc& res_desc)
 {
 	res_desc.res.linear.desc.f = cudaChannelFormatKindSigned;
 	res_desc.res.linear.desc.x = 32; // bits per channel
-	view_desc.format = cudaResViewFormatSignedInt2;
+	res_desc.res.linear.desc.y = 32; // bits per channel
 }
 
 cudaTextureObject_t nbody_engine_cuda::smemory::tex()
@@ -61,26 +60,21 @@ cudaTextureObject_t nbody_engine_cuda::smemory::tex()
 	}
 
 	cudaResourceDesc		res_desc;
-	cudaResourceViewDesc	view_desc;
 
 	memset(&res_desc, 0, sizeof(res_desc));
-	memset(&view_desc, 0, sizeof(view_desc));
 
 	res_desc.resType = cudaResourceTypeLinear;
 	res_desc.res.linear.devPtr = data();
-
-	setup_texture_type<nbcoord_t>(res_desc, view_desc);
-
 	res_desc.res.linear.sizeInBytes = size();
-	view_desc.width = size() / sizeof(nbcoord_t);
-	view_desc.height = 1;
-	view_desc.depth = 1;
+
+	setup_texture_type<nbcoord_t>(res_desc);
 
 	cudaTextureDesc tex_desc;
 	memset(&tex_desc, 0, sizeof(tex_desc));
 	tex_desc.readMode = cudaReadModeElementType;
 	tex_desc.addressMode[0] = cudaAddressModeClamp;
 	tex_desc.filterMode = cudaFilterModePoint;
+	tex_desc.normalizedCoords = 0;
 
 	cudaCreateTextureObject(&m_tex, &res_desc, &tex_desc, NULL);
 

@@ -5,6 +5,7 @@
 #include "nbody_engine_block.h"
 #include "nbody_engine_cuda.h"
 #include "nbody_engine_cuda_bh.h"
+#include "nbody_engine_cuda_bh_tex.h"
 #include "nbody_engine_opencl.h"
 #include "nbody_engine_opencl_bh.h"
 #include "nbody_engine_openmp.h"

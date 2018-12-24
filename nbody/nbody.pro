@@ -91,11 +91,13 @@ contains( DEFINES, HAVE_OPENCL ){
 contains( DEFINES, HAVE_CUDA ){
 	HEADERS +=	nbody_engine_cuda.h \
 				nbody_engine_cuda_bh.h \
+				nbody_engine_cuda_bh_tex.h \
 				nbody_engine_cuda_impl.h \
 				nbody_engine_cuda_memory.h
 
 	SOURCES +=	nbody_engine_cuda.cpp \
 				nbody_engine_cuda_bh.cpp \
+				nbody_engine_cuda_bh_tex.cpp \
 				nbody_engine_cuda_memory.cpp
 
 	CUSOURCES += nbody_engine_cuda_impl.cu

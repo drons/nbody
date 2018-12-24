@@ -224,6 +224,140 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 										   tree_crit_r2, body_n);
 }
 
+// Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
+// Traverse starts form a tree node
+// Tree is stored in texture memory (float x = tex1Dfetch<float>(tex, i);)
+
+template<typename T>
+struct nb1Dfetch
+{
+};
+template<>
+struct nb1Dfetch<double>
+{
+	__device__ double fetch(cudaTextureObject_t tex, int i)
+	{
+		int2 p(tex1Dfetch<int2>(tex, i));
+		return __hiloint2double(p.y, p.x);
+	}
+};
+template<>
+struct nb1Dfetch<float>
+{
+	__device__ float fetch(cudaTextureObject_t tex, int i)
+	{
+		return tex1Dfetch<float>(tex, i);
+	}
+};
+
+__global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
+									  const nbcoord_t* y,
+									  nbcoord_t* f,
+									  cudaTextureObject_t tree_cmx,
+									  cudaTextureObject_t tree_cmy,
+									  cudaTextureObject_t tree_cmz,
+									  cudaTextureObject_t tree_mass,
+									  cudaTextureObject_t tree_crit_r2,
+									  const int* body_n)
+{
+	nb1Dfetch<nbcoord_t>	tex;
+	int		tree_offset = points_count - 1;
+	int		stride = points_count;
+	int		tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
+
+	int			n1 = body_n[tn1];
+	nbcoord_t	x1 = tex.fetch(tree_cmx, tn1);
+	nbcoord_t	y1 = tex.fetch(tree_cmy, tn1);
+	nbcoord_t	z1 = tex.fetch(tree_cmz, tn1);
+
+	nbcoord_t	res_x = 0.0;
+	nbcoord_t	res_y = 0.0;
+	nbcoord_t	res_z = 0.0;
+
+	int stack_data[MAX_STACK_SIZE] = {};
+	int	stack = 0;
+	int	stack_head = stack;
+
+	stack_data[stack++] = 0;
+	while(stack != stack_head)
+	{
+		int			curr = stack_data[--stack];
+		nbcoord_t	dx = x1 - tex.fetch(tree_cmx, curr);
+		nbcoord_t	dy = y1 - tex.fetch(tree_cmy, curr);
+		nbcoord_t	dz = z1 - tex.fetch(tree_cmz, curr);
+		nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
+
+		if(r2 > tex.fetch(tree_crit_r2, curr))
+		{
+			if(r2 < NBODY_MIN_R)
+			{
+				r2 = NBODY_MIN_R;
+			}
+
+			nbcoord_t	r = sqrt(r2);
+			nbcoord_t	coeff = tex.fetch(tree_mass, curr) / (r * r2);
+
+			dx *= coeff;
+			dy *= coeff;
+			dz *= coeff;
+			res_x -= dx;
+			res_y -= dy;
+			res_z -= dz;
+		}
+		else
+		{
+			int	left = left_idx(curr);
+			int	rght = rght_idx(curr);
+			if(left < tree_size)
+			{
+				stack_data[stack++] = left;
+			}
+			if(rght < tree_size)
+			{
+				stack_data[stack++] = rght;
+			}
+		}
+	}
+
+	const nbcoord_t*	vx = y + 3 * stride;
+	const nbcoord_t*	vy = y + 4 * stride;
+	const nbcoord_t*	vz = y + 5 * stride;
+
+	nbcoord_t*	frx = f;
+	nbcoord_t*	fry = frx + stride;
+	nbcoord_t*	frz = frx + 2 * stride;
+	nbcoord_t*	fvx = frx + 3 * stride;
+	nbcoord_t*	fvy = frx + 4 * stride;
+	nbcoord_t*	fvz = frx + 5 * stride;
+
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+	fvx[n1] = res_x;
+	fvy[n1] = res_y;
+	fvz[n1] = res_z;
+}
+
+__host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
+								   const nbcoord_t* y,
+								   nbcoord_t* f,
+								   cudaTextureObject_t tree_cmx,
+								   cudaTextureObject_t tree_cmy,
+								   cudaTextureObject_t tree_cmz,
+								   cudaTextureObject_t tree_mass,
+								   cudaTextureObject_t tree_crit_r2,
+								   const int* body_n,
+								   int block_size)
+{
+	dim3 grid(points_count / block_size);
+	dim3 block(block_size);
+
+	cudaFuncSetCacheConfig(kfcompute_heap_bh_tex, cudaFuncCachePreferL1);
+
+	kfcompute_heap_bh_tex <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
+											   tree_cmx, tree_cmy, tree_cmz, tree_mass,
+											   tree_crit_r2, body_n);
+}
 
 __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)
 {
