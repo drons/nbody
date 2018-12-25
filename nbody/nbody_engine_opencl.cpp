@@ -645,7 +645,7 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 		std::vector<cl_int>	indites_host(tree_size);
 		for(size_t n = 0; n != tree_size; ++n)
 		{
-			indites_host[n] = heap.get_body_n()[n];
+			indites_host[n] = static_cast<cl_int>(heap.get_body_n()[n]);
 		}
 
 		write_buffer(&indites, indites_host.data());

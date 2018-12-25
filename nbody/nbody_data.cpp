@@ -130,8 +130,9 @@ void nbody_data::print_statistics(nbody_engine* engine)
 		m_last_total_potential_energy = total_potential_energy;
 		g << "dE" << QString("%1").arg(get_energy_err(), 4, 'e', 3);
 	}
-	g << "St" << (timer_end - m_timer_start) / (m_step - m_timer_step)
-	  << "Wt" << (omp_get_wtime() - m_timer_start) / (m_step - m_timer_step)
+	double	dt = static_cast<double>(m_step - m_timer_step);
+	g << "St" << (timer_end - m_timer_start) / dt
+	  << "Wt" << (omp_get_wtime() - m_timer_start) / dt
 	  << "";
 
 	m_timer_start = omp_get_wtime();

@@ -15,3 +15,4 @@ test.subdir = test
 test.depends = nbody
 
 OTHER_FILES += appveyor.yml .travis.yml README.md .astylerc
+OTHER_FILES += test/pvs/plog.cfg
