@@ -97,9 +97,9 @@ void wgt_nbody_player::on_start_record()
 		compressor = std::make_shared<nbody_frame_compressor_image>();
 	}
 
-	if(!compressor->set_destination(out))
+	if((compressor == NULL) || (!compressor->set_destination(out)))
 	{
-		qDebug() << "can't setup compressor";
+		qDebug() << "can't setup compressor" << out;
 		return;
 	}
 

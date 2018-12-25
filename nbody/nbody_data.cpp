@@ -11,7 +11,7 @@
 #include <omp.h>
 
 namespace {
-nbcoord_t G = 1;
+nbcoord_t GravityConst = 1;
 }
 
 nbody_data::nbody_data()
@@ -38,7 +38,7 @@ nbvertex_t nbody_data::force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord
 	{
 		r2 = NBODY_MIN_R;
 	}
-	return dr * ((-G * mass1 * mass2) / (r2 * sqrt(r2)));
+	return dr * ((-GravityConst * mass1 * mass2) / (r2 * sqrt(r2)));
 }
 
 nbcoord_t nbody_data::potential_energy(const nbvertex_t* vertites, size_t body1, size_t body2) const
@@ -49,7 +49,7 @@ nbcoord_t nbody_data::potential_energy(const nbvertex_t* vertites, size_t body1,
 	{
 		return 0;
 	}
-	return -(G * m_mass[body1] * m_mass[body2]) / sqrt(r2);
+	return -(GravityConst * m_mass[body1] * m_mass[body2]) / sqrt(r2);
 }
 
 void nbody_data::print_statistics(nbody_engine* engine)
