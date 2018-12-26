@@ -96,7 +96,7 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 		host_tree_cmx[n] = heap.get_mass_center()[n].x;
 		host_tree_cmy[n] = heap.get_mass_center()[n].y;
 		host_tree_cmz[n] = heap.get_mass_center()[n].z;
-		host_indites[n] = heap.get_body_n()[n];
+		host_indites[n] = static_cast<int>(heap.get_body_n()[n]);
 	}
 
 	write_buffer(m_dev_tree_cmx, host_tree_cmx.data());
@@ -106,11 +106,12 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 	write_buffer(m_dev_tree_crit_r2, heap.get_radius_sqr().data());
 	write_buffer(m_dev_indites, host_indites.data());
 
-	fcompute_heap_bh(0, count, tree_size, dev_y, dev_f,
+	fcompute_heap_bh(0, static_cast<int>(count),
+					 static_cast<int>(tree_size), dev_y, dev_f,
 					 dev_tree_cmx, dev_tree_cmy, dev_tree_cmz,
 					 dev_tree_mass, dev_tree_crit_r2,
 					 dev_indites, get_block_size());
-	fcompute_xyz(dev_y, dev_f, count, get_block_size());
+	fcompute_xyz(dev_y, dev_f, static_cast<int>(count), get_block_size());
 }
 
 void nbody_engine_cuda_bh::print_info() const

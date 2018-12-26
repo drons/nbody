@@ -137,10 +137,10 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 	size_t			count = m_data->get_count();
 
 	fcompute_block(static_cast<const nbcoord_t*>(y->data()), static_cast<nbcoord_t*>(f->data()),
-				   static_cast<const nbcoord_t*>(m_mass->data()), count, get_block_size());
-
+				   static_cast<const nbcoord_t*>(m_mass->data()),
+				   static_cast<int>(count), get_block_size());
 	fcompute_xyz(static_cast<const nbcoord_t*>(y->data()), static_cast<nbcoord_t*>(f->data()),
-				 count, get_block_size());
+				 static_cast<int>(count), get_block_size());
 }
 
 nbody_engine_cuda::memory* nbody_engine_cuda::create_buffer(size_t s)
@@ -280,7 +280,7 @@ void nbody_engine_cuda::fmaxabs(const nbody_engine::memory* _a, nbcoord_t& resul
 		return;
 	}
 
-	int		size(a->size() / sizeof(nbcoord_t));
+	int		size(static_cast<int>(a->size() / sizeof(nbcoord_t)));
 
 	if(size == 0)
 	{
