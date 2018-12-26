@@ -308,28 +308,6 @@ matrix:
     - os: linux
       dist: xenial
       compiler: gcc
-      env: NAME="Astyle check"
-      addons:
-        apt:
-          packages:
-          - astyle
-      script:
-      - astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
-      - git diff --exit-code
-    - os: linux
-      dist: xenial
-      compiler: gcc
-      env: NAME="cppcheck"
-      addons:
-        apt:
-          packages:
-          - cppcheck
-      script:
-          - cppcheck -DNB_COORD_TYPE=double --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
-          - cppcheck -DNB_COORD_TYPE=float  --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
-    - os: linux
-      dist: xenial
-      compiler: gcc
       env: NAME="PVS + Qt5 + cuda10"
       addons:
         apt:
@@ -363,6 +341,28 @@ matrix:
           - plog-converter -a "GA:1,2;64:1,2;OP:1,2" -s ../test/pvs/plog.cfg -t errorfile -e -o ./pvs-error-list.txt -r ../ ./pvs-studio-analyzer.out.log
           - cat ./pvs-error-list.txt
           - test "$(cat ./pvs-error-list.txt | wc -l)" -le 1
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      env: NAME="Astyle check"
+      addons:
+        apt:
+          packages:
+          - astyle
+      script:
+      - astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
+      - git diff --exit-code
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      env: NAME="cppcheck"
+      addons:
+        apt:
+          packages:
+          - cppcheck
+      script:
+          - cppcheck -DNB_COORD_TYPE=double --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_TYPE=float  --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
 language:
   - cpp
 
