@@ -113,13 +113,13 @@ nbvertex_t nbody_space_tree::traverse(const nbody_data* data,
 		}
 		else
 		{
-			if(curr->m_left != NULL)
-			{
-				*stack++ = curr->m_left;
-			}
 			if(curr->m_right != NULL)
 			{
 				*stack++ = curr->m_right;
+			}
+			if(curr->m_left != NULL)
+			{
+				*stack++ = curr->m_left;
 			}
 		}
 	}

@@ -1029,6 +1029,38 @@ int main(int argc, char* argv[])
 									  1024, 1e-14);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e16},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap_stackless"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-16);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap_stackless"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-16);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
 #ifdef HAVE_CUDA
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},

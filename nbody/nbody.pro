@@ -40,6 +40,7 @@ SOURCES	+= \
 	nbody_solver_trapeze.cpp \
 	nbody_solvers.cpp \
 	nbody_space_heap.cpp \
+	nbody_space_heap_stackless.cpp \
 	nbody_space_tree.cpp \
 	nbody_data_stream.cpp \
 	nbody_data_stream_reader.cpp
@@ -72,6 +73,7 @@ HEADERS	+= \
 	nbody_solver_trapeze.h \
 	nbody_solvers.h \
 	nbody_space_heap.h \
+	nbody_space_heap_stackless.h \
 	nbody_space_tree.h \
 	vertex.h \
 	nbtype.h \

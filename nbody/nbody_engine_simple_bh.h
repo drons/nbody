@@ -24,7 +24,8 @@ public:
 	enum e_tree_layout
 	{
 		etl_tree,
-		etl_heap
+		etl_heap,
+		etl_heap_stackless
 	};
 private:
 	nbcoord_t			m_distance_to_node_radius_ratio;

@@ -3,6 +3,7 @@
 #include <QDebug>
 
 #include "nbody_space_heap.h"
+#include "nbody_space_heap_stackless.h"
 #include "nbody_space_tree.h"
 
 nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio,
@@ -105,9 +106,26 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 	case etl_heap:
 		space_subdivided_fcompute<nbody_space_heap>(y, f);
 		break;
+	case etl_heap_stackless:
+		space_subdivided_fcompute<nbody_space_heap_stackless>(y, f);
+		break;
 	default:
 		break;
 	}
+}
+
+static const char* tree_layout_name(nbody_engine_simple_bh::e_tree_layout tree_layout)
+{
+	switch(tree_layout)
+	{
+	case nbody_engine_simple_bh::etl_tree:
+		return "tree";
+	case nbody_engine_simple_bh::etl_heap:
+		return "heap";
+	case nbody_engine_simple_bh::etl_heap_stackless:
+		return "heap_stackless";
+	}
+	return "";
 }
 
 void nbody_engine_simple_bh::print_info() const
@@ -115,5 +133,5 @@ void nbody_engine_simple_bh::print_info() const
 	nbody_engine_simple::print_info();
 	qDebug() << "\tdistance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
 	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
-	qDebug() << "\ttree_layout:" << (m_tree_layout == etl_heap ? "heap" : "tree");
+	qDebug() << "\ttree_layout:" << tree_layout_name(m_tree_layout);
 }

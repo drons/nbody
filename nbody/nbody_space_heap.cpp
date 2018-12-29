@@ -57,13 +57,13 @@ nbvertex_t nbody_space_heap::traverse(const nbody_data* data, const nbvertex_t& 
 		{
 			size_t	left(left_idx(curr));
 			size_t	rght(rght_idx(curr));
-			if(left < m_body_n.size())
-			{
-				*stack++ = left;
-			}
 			if(rght < m_body_n.size())
 			{
 				*stack++ = rght;
+			}
+			if(left < m_body_n.size())
+			{
+				*stack++ = left;
 			}
 		}
 	}

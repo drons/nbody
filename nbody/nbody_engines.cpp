@@ -132,9 +132,13 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		{
 			tl = nbody_engine_simple_bh::etl_heap;
 		}
+		else if(strtl == "heap_stackless")
+		{
+			tl = nbody_engine_simple_bh::etl_heap_stackless;
+		}
 		else
 		{
-			qDebug() << "Invalid tree_layout. Allowed values are 'tree' or 'heap'";
+			qDebug() << "Invalid tree_layout. Allowed values are 'tree', 'heap' or 'heap_stackless'";
 			return NULL;
 		}
 

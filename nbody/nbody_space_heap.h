@@ -5,12 +5,13 @@
 
 class nbody_space_heap
 {
+protected:
 	std::vector<nbvertex_t>	m_mass_center;
 	std::vector<nbcoord_t>	m_mass;
 	std::vector<nbcoord_t>	m_radius_sqr;
 	std::vector<size_t>		m_body_n;
 	nbcoord_t				m_distance_to_node_radius_ratio;
-
+public:
 	static size_t left_idx(size_t idx)
 	{
 		return 2 * idx + 1;
