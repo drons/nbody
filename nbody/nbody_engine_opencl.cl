@@ -38,7 +38,7 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 	// NB! get_local_size(0) == NBODY_DATA_BLOCK_SIZE
 	for(int b2 = 0; b2 < points_count; b2 += NBODY_DATA_BLOCK_SIZE)
 	{
-		int			n2 = b2 + offset_n2 + get_local_id(0);
+		int	n2 = b2 + offset_n2 + get_local_id(0);
 
 		// Copy data block to local memory
 		x2[ get_local_id(0) ] = rx[n2];
@@ -53,11 +53,11 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 		nbcoord_t	local_res_y = 0.0;
 		nbcoord_t	local_res_z = 0.0;
 
-		for(int n2 = 0; n2 != NBODY_DATA_BLOCK_SIZE; ++n2)
+		for(int local_n2 = 0; local_n2 != NBODY_DATA_BLOCK_SIZE; ++local_n2)
 		{
-			nbcoord_t	dx = x1 - x2[n2];
-			nbcoord_t	dy = y1 - y2[n2];
-			nbcoord_t	dz = z1 - z2[n2];
+			nbcoord_t	dx = x1 - x2[local_n2];
+			nbcoord_t	dy = y1 - y2[local_n2];
+			nbcoord_t	dz = z1 - z2[local_n2];
 			nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
 
 			if(r2 < NBODY_MIN_R)
@@ -66,7 +66,7 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 			}
 
 			nbcoord_t	r = sqrt(r2);
-			nbcoord_t	coeff = (m2[n2]) / (r * r2);
+			nbcoord_t	coeff = (m2[local_n2]) / (r * r2);
 
 			dx *= coeff;
 			dy *= coeff;

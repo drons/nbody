@@ -14,20 +14,20 @@ namespace {
 nbcoord_t GravityConst = 1;
 }
 
-nbody_data::nbody_data()
+nbody_data::nbody_data() :
+	m_count(0),
+	m_time(0),
+	m_step(0),
+	m_box_size(0),
+	m_check_list("PLV"),
+	m_total_kinetic_energy(0),
+	m_total_potential_energy(0),
+	m_last_total_kinetic_energy(0),
+	m_last_total_potential_energy(0),
+	m_last_values_computed(false),
+	m_timer_start(omp_get_wtime()),
+	m_timer_step(0)
 {
-	m_time = 0;
-	m_step = 0;
-	m_box_size = 0;
-	m_count = 0;
-	m_check_list = "PLV";
-	m_total_kinetic_energy = 0;
-	m_total_potential_energy = 0;
-	m_last_total_kinetic_energy = 0;
-	m_last_total_potential_energy = 0;
-	m_last_values_computed = false;
-	m_timer_start = omp_get_wtime();
-	m_timer_step = 0;
 }
 
 nbvertex_t nbody_data::force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2) const

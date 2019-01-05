@@ -28,7 +28,7 @@ bool nbody_frame_compressor_image::set_destination(const QString& d)
 	return true;
 }
 
-static bool frame_writer(const QImage& img, const QString fname)
+static bool frame_writer(const QImage& img, const QString& fname)
 {
 	return img.save(fname, "PNG");
 }

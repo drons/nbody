@@ -9,9 +9,12 @@ struct vertex3
 	typedef size_t		size_type;
 	typedef T			value_type;
 	T x, y, z;
-	vertex3() {x = y = z = 0;}
-	explicit vertex3(T value) {x = y = z = value;}
-	explicit vertex3(int value) {x = y = z = static_cast<T>(value);}
+	vertex3() : x(0), y(0), z(0) {}
+	explicit vertex3(T value) : x(value), y(value), z(value) {}
+	explicit vertex3(int value) :
+		x(static_cast<T>(value)),
+		y(static_cast<T>(value)),
+		z(static_cast<T>(value)) {}
 	template<class V>
 	explicit vertex3(const V& copy) :
 		x(static_cast<T>(copy.x)),
@@ -165,16 +168,19 @@ struct vertex4
 	typedef size_t		size_type;
 	typedef T			value_type;
 	T x, y, z, w;
-	vertex4() {x = y = z = w = 0;}
-	explicit vertex4(T value) {x = y = z = w = value;}
-	explicit vertex4(int value) {x = y = z = w = static_cast<T>(value);}
+	vertex4() : x(0), y(0), z(0), w(0) {}
+	explicit vertex4(T value) : x(value), y(value), z(value), w(value) {}
+	explicit vertex4(int value) :
+		x(static_cast<T>(value)),
+		y(static_cast<T>(value)),
+		z(static_cast<T>(value)),
+		w(static_cast<T>(value)) {}
 	template<class V>
 	explicit vertex4(const V& copy) :
 		x(static_cast<T>(copy.x)),
 		y(static_cast<T>(copy.y)),
 		z(static_cast<T>(copy.z)),
-		w(static_cast<T>(copy.w))
-	{}
+		w(static_cast<T>(copy.w)) {}
 	template<class V>
 	vertex4& operator = (const V& copy)
 	{
