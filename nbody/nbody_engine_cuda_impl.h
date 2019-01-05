@@ -9,7 +9,6 @@ __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* 
 							 int count, int block_size);
 
 __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
-							   const nbcoord_t* y,
 							   nbcoord_t* f,
 							   const nbcoord_t* tree_cmx,
 							   const nbcoord_t* tree_cmy,
@@ -20,7 +19,6 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 							   int block_size);
 
 __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
-								   const nbcoord_t* y,
 								   nbcoord_t* f,
 								   cudaTextureObject_t tree_cmx,
 								   cudaTextureObject_t tree_cmy,
@@ -31,7 +29,6 @@ __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_siz
 								   int block_size);
 
 __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count, int tree_size,
-										 const nbcoord_t* y,
 										 nbcoord_t* f,
 										 cudaTextureObject_t tree_cmx,
 										 cudaTextureObject_t tree_cmy,

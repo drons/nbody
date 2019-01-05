@@ -104,14 +104,14 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 
 	if(m_tree_layout == etl_heap)
 	{
-		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_y, dev_f,
+		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
 							 m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
 							 m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
 							 dev_indites, get_block_size());
 	}
 	else if(m_tree_layout == etl_heap_stackless)
 	{
-		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_y, dev_f,
+		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
 								   m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
 								   m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
 								   dev_indites, get_block_size());

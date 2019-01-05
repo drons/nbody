@@ -107,7 +107,7 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 	write_buffer(m_dev_indites, host_indites.data());
 
 	fcompute_heap_bh(0, static_cast<int>(count),
-					 static_cast<int>(tree_size), dev_y, dev_f,
+					 static_cast<int>(tree_size), dev_f,
 					 dev_tree_cmx, dev_tree_cmy, dev_tree_cmz,
 					 dev_tree_mass, dev_tree_crit_r2,
 					 dev_indites, get_block_size());
