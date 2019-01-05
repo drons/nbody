@@ -5,8 +5,9 @@
 #include "nbody_engine_cuda_memory.h"
 #include "nbody_space_heap.h"
 
-nbody_engine_cuda_bh_tex::nbody_engine_cuda_bh_tex(nbcoord_t distance_to_node_radius_ratio) :
+nbody_engine_cuda_bh_tex::nbody_engine_cuda_bh_tex(nbcoord_t distance_to_node_radius_ratio, e_tree_layout tl) :
 	m_cycle_traverse(false),
+	m_tree_layout(tl),
 	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio),
 	m_dev_tree_cmx(NULL),
 	m_dev_tree_cmy(NULL),
@@ -101,10 +102,21 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 	write_buffer(m_dev_tree_crit_r2, heap.get_radius_sqr().data());
 	write_buffer(m_dev_indites, host_indites.data());
 
-	fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_y, dev_f,
-						 m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
-						 m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
-						 dev_indites, get_block_size());
+	if(m_tree_layout == etl_heap)
+	{
+		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_y, dev_f,
+							 m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
+							 m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
+							 dev_indites, get_block_size());
+	}
+	else if(m_tree_layout == etl_heap_stackless)
+	{
+		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_y, dev_f,
+								   m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
+								   m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
+								   dev_indites, get_block_size());
+	}
+
 	fcompute_xyz(dev_y, dev_f, static_cast<int>(count), get_block_size());
 }
 
@@ -113,5 +125,5 @@ void nbody_engine_cuda_bh_tex::print_info() const
 	nbody_engine_cuda::print_info();
 	qDebug() << "\t" << "distance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
 	qDebug() << "\t" << "traverse_type:" << ((m_cycle_traverse) ? "cycle" : "nested_tree");
-	qDebug() << "\t" << "tree_layout:" << "heap";
+	qDebug() << "\t" << "tree_layout:" << tree_layout_name(m_tree_layout);
 }

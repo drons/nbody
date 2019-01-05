@@ -114,18 +114,38 @@ void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memo
 	}
 }
 
-static const char* tree_layout_name(nbody_engine_simple_bh::e_tree_layout tree_layout)
+const char* tree_layout_name(e_tree_layout tree_layout)
 {
 	switch(tree_layout)
 	{
-	case nbody_engine_simple_bh::etl_tree:
+	case etl_tree:
 		return "tree";
-	case nbody_engine_simple_bh::etl_heap:
+	case etl_heap:
 		return "heap";
-	case nbody_engine_simple_bh::etl_heap_stackless:
+	case etl_heap_stackless:
 		return "heap_stackless";
+	default:
+		return "";
 	}
 	return "";
+}
+
+e_tree_layout tree_layout_from_str(const QString& name)
+{
+	if(name == "tree")
+	{
+		return etl_tree;
+	}
+	else if(name == "heap")
+	{
+		return etl_heap;
+	}
+	else if(name == "heap_stackless")
+	{
+		return etl_heap_stackless;
+	}
+
+	return etl_unknown;
 }
 
 void nbody_engine_simple_bh::print_info() const
@@ -135,3 +155,4 @@ void nbody_engine_simple_bh::print_info() const
 	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
 	qDebug() << "\ttree_layout:" << tree_layout_name(m_tree_layout);
 }
+

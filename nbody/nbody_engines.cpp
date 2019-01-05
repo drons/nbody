@@ -41,7 +41,15 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 	{
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
-		nbody_engine_cuda_bh_tex*	engine = new nbody_engine_cuda_bh_tex(distance_to_node_radius_ratio);
+		QString		strtl(param.value("tree_layout", "heap").toString());
+		e_tree_layout tl = tree_layout_from_str(strtl);
+
+		if(tl != etl_heap && tl != etl_heap_stackless)
+		{
+			qDebug() << "Invalid tree_layout. Allowed values are 'heap' or 'heap_stackless'";
+			return NULL;
+		}
+		nbody_engine_cuda_bh_tex*	engine = new nbody_engine_cuda_bh_tex(distance_to_node_radius_ratio, tl);
 
 		engine->set_block_size(block_size);
 
@@ -107,16 +115,15 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		QString		strtt(param.value("traverse_type", "cycle").toString());
 		QString		strtl(param.value("tree_layout", "tree").toString());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
-		nbody_engine_simple_bh::e_traverse_type	tt;
-		nbody_engine_simple_bh::e_tree_layout	tl;
+		e_traverse_type	tt;
 
 		if(strtt == "cycle")
 		{
-			tt = nbody_engine_simple_bh::ett_cycle;
+			tt = ett_cycle;
 		}
 		else if(strtt == "nested_tree")
 		{
-			tt = nbody_engine_simple_bh::ett_nested_tree;
+			tt = ett_nested_tree;
 		}
 		else
 		{
@@ -124,19 +131,8 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 			return NULL;
 		}
 
-		if(strtl == "tree")
-		{
-			tl = nbody_engine_simple_bh::etl_tree;
-		}
-		else if(strtl == "heap")
-		{
-			tl = nbody_engine_simple_bh::etl_heap;
-		}
-		else if(strtl == "heap_stackless")
-		{
-			tl = nbody_engine_simple_bh::etl_heap_stackless;
-		}
-		else
+		e_tree_layout tl = tree_layout_from_str(strtl);
+		if(tl == etl_unknown)
 		{
 			qDebug() << "Invalid tree_layout. Allowed values are 'tree', 'heap' or 'heap_stackless'";
 			return NULL;

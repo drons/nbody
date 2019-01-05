@@ -28,7 +28,7 @@ ah | :star:  | Single threaded engine with [Ahmad-Cohen](https://www.astronomycl
 block |  :heavy_minus_sign: | Multi-threaded (OpenMP) engine with block-by-block force computation
 cuda | :heavy_minus_sign:  | Parallel CUDA engine
 cuda_bh |:star:  | CUDA engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation
-cuda_bh_tex |:star:  | CUDA engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation and with bodies tree stored at texture memory
+cuda_bh_tex |:star:  | CUDA engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation and with bodies tree stored at texture memory. Possible tree layout is 'heap' and 'heap_stackless'
 opencl |  :heavy_minus_sign:  | Parallel OpenCL engine
 opencl_bh |  :star:  | Parallel OpenCL engine with [Burnes-Hut](https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation) force simulation
 openmp |  :heavy_minus_sign:  | Multi-threaded (OpenMP) engine
