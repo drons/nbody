@@ -2,8 +2,9 @@
 #define NBODY_SPACE_HEAP_H
 
 #include "nbody_engine_simple_bh.h"
+#include "nbody_space_heap_func.h"
 
-class nbody_space_heap
+class nbody_space_heap : public nbody_heap_func<size_t>
 {
 protected:
 	std::vector<nbvertex_t>	m_mass_center;
@@ -11,15 +12,6 @@ protected:
 	std::vector<nbcoord_t>	m_radius_sqr;
 	std::vector<size_t>		m_body_n;
 	nbcoord_t				m_distance_to_node_radius_ratio;
-public:
-	static size_t left_idx(size_t idx)
-	{
-		return 2 * idx + 1;
-	}
-	static size_t rght_idx(size_t idx)
-	{
-		return 2 * idx + 2;
-	}
 public:
 	nbody_space_heap();
 	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
