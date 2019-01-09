@@ -1,40 +1,44 @@
 #ifndef NBODY_SPACE_HEAP_FUNC_H
 #define NBODY_SPACE_HEAP_FUNC_H
 
+#ifndef NB_CALL_TYPE
+#define NB_CALL_TYPE
+#endif //NB_CALL_TYPE
+
 template<class index_t>
 struct nbody_heap_func
 {
-	static index_t left_idx(index_t idx)
+	static NB_CALL_TYPE index_t left_idx(index_t idx)
 	{
 		return (idx << 1) + 1;
 	}
 
-	static index_t rght_idx(index_t idx)
+	static NB_CALL_TYPE index_t rght_idx(index_t idx)
 	{
 		return (idx << 1) + 2;
 	}
 
-	static index_t parent_idx(index_t idx)
+	static NB_CALL_TYPE index_t parent_idx(index_t idx)
 	{
 		return (idx - 1) >> 1;
 	}
 
-	static bool is_left(index_t idx)
+	static NB_CALL_TYPE bool is_left(index_t idx)
 	{
 		return idx & 1;
 	}
 
-	static bool is_right(index_t idx)
+	static NB_CALL_TYPE bool is_right(index_t idx)
 	{
 		return (idx & 1) == 0;
 	}
 
-	static index_t left2right(index_t idx)
+	static NB_CALL_TYPE index_t left2right(index_t idx)
 	{
 		return idx + 1;
 	}
 
-	static index_t next_down(index_t idx)
+	static NB_CALL_TYPE index_t next_down(index_t idx)
 	{
 		// While index is 'right' -> go down
 		while(is_right(idx))
@@ -50,7 +54,7 @@ struct nbody_heap_func
 		return left2right(idx);
 	}
 
-	static index_t skip_idx(index_t idx)
+	static NB_CALL_TYPE index_t skip_idx(index_t idx)
 	{
 		// Index is 'left' branch -> next index is 'right'.
 		// Simple take next one.
@@ -61,7 +65,7 @@ struct nbody_heap_func
 		return next_down(idx);
 	}
 
-	static index_t next_up(index_t idx, index_t tree_size)
+	static NB_CALL_TYPE index_t next_up(index_t idx, index_t tree_size)
 	{
 		index_t left = left_idx(idx);
 		if(left < tree_size)

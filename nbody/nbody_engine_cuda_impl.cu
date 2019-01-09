@@ -1,5 +1,9 @@
 #include "nbody_engine_cuda_impl.h"
 
+#define NB_CALL_TYPE __device__ inline
+
+#include "nbody_space_heap_func.h"
+
 #include <thrust/device_ptr.h>
 #include <thrust/extrema.h>
 
@@ -117,16 +121,6 @@ __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* 
 
 #define MAX_STACK_SIZE 24
 
-__device__ int left_idx(int idx)
-{
-	return 2 * idx + 1;
-}
-
-__device__ int rght_idx(int idx)
-{
-	return 2 * idx + 2;
-}
-
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 // Traverse starts form a tree node
 __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size,
@@ -183,8 +177,8 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 		}
 		else
 		{
-			int	left = left_idx(curr);
-			int	rght = rght_idx(curr);
+			int	left = nbody_heap_func<int>::left_idx(curr);
+			int	rght = nbody_heap_func<int>::rght_idx(curr);
 			if(left < tree_size)
 			{
 				stack_data[stack++] = left;
@@ -302,8 +296,8 @@ __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_
 		}
 		else
 		{
-			int	left = left_idx(curr);
-			int	rght = rght_idx(curr);
+			int	left = nbody_heap_func<int>::left_idx(curr);
+			int	rght = nbody_heap_func<int>::rght_idx(curr);
 			if(left < tree_size)
 			{
 				stack_data[stack++] = left;
@@ -338,51 +332,6 @@ __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_siz
 	kfcompute_heap_bh_tex <<< grid, block >>> (offset_n1, points_count, tree_size, f,
 											   tree_cmx, tree_cmy, tree_cmz, tree_mass,
 											   tree_crit_r2, body_n);
-}
-
-__device__ int parent_idx(int idx)
-{
-	return (idx - 1) / 2;
-}
-
-__device__ int next_down(int idx)
-{
-	int	parent = parent_idx(idx);
-	int	rght = rght_idx(parent);
-	while(rght == idx)
-	{
-		// We at root again. Stop traverse.
-		if(parent == 0)
-		{
-			return 0;
-		}
-		idx = parent;
-		parent = parent_idx(idx);
-		rght = rght_idx(parent);
-	}
-	return rght;
-}
-
-__device__ int skip_idx(int idx)
-{
-	int	parent = parent_idx(idx);
-	int	left = left_idx(parent);
-	if(left == idx)
-	{
-		return rght_idx(parent);
-	}
-	return next_down(idx);
-}
-
-__device__ int next_up(int idx, int tree_size)
-{
-	int left = left_idx(idx);
-	if(left < tree_size)
-	{
-		return left;
-	}
-
-	return next_down(idx);
 }
 
 __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int tree_size,
@@ -432,11 +381,11 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 			res_x -= dx;
 			res_y -= dy;
 			res_z -= dz;
-			curr = skip_idx(curr);
+			curr = nbody_heap_func<int>::skip_idx(curr);
 		}
 		else
 		{
-			curr = next_up(curr, tree_size);
+			curr = nbody_heap_func<int>::next_up(curr, tree_size);
 		}
 	}
 	while(curr != 0);
