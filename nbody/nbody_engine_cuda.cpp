@@ -301,6 +301,7 @@ void nbody_engine_cuda::print_info() const
 	qDebug() << "\t" << "Const memory " << prop.totalConstMem;
 	qDebug() << "\t" << "Shared memory" << prop.sharedMemPerBlock << "/" << prop.sharedMemPerMultiprocessor;
 	qDebug() << "\t" << "Compute Cap  " << prop.major << "." << prop.minor;
+	qDebug() << "\t" << "Block size   " << m_block_size;
 }
 
 int nbody_engine_cuda::get_block_size() const

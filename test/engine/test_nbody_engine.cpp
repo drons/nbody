@@ -832,8 +832,17 @@ int main(int argc, char* argv[])
 	}
 #ifdef HAVE_CUDA
 	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "cuda"}}));
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "cuda"},
+			{"block_size", 64}
+		}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "cuda"},
+			{"block_size", 128}
+		}));
+		test_nbody_engine	tc1(nbody_create_engine(param), 128);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #endif //HAVE_CUDA

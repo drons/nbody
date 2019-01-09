@@ -49,13 +49,14 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 	nbcoord_t	res_y = 0.0;
 	nbcoord_t	res_z = 0.0;
 
-	__shared__ nbcoord_t	x2[NBODY_DATA_BLOCK_SIZE];
-	__shared__ nbcoord_t	y2[NBODY_DATA_BLOCK_SIZE];
-	__shared__ nbcoord_t	z2[NBODY_DATA_BLOCK_SIZE];
-	__shared__ nbcoord_t	m2[NBODY_DATA_BLOCK_SIZE];
+	extern __shared__ nbcoord_t shared_xyzm_buf[];
 
-	// NB! get_local_size(0) == NBODY_DATA_BLOCK_SIZE
-	for(int b2 = 0; b2 < points_count; b2 += NBODY_DATA_BLOCK_SIZE)
+	nbcoord_t*	x2 = shared_xyzm_buf;
+	nbcoord_t*	y2 = x2 + blockDim.x;
+	nbcoord_t*	z2 = y2 + blockDim.x;
+	nbcoord_t*	m2 = z2 + blockDim.x;
+
+	for(int b2 = 0; b2 < points_count; b2 += blockDim.x)
 	{
 		int			n2 = b2 + offset_n2 + threadIdx.x;
 
@@ -72,7 +73,7 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 		nbcoord_t	local_res_y = 0.0;
 		nbcoord_t	local_res_z = 0.0;
 
-		for(int n2 = 0; n2 != NBODY_DATA_BLOCK_SIZE; ++n2)
+		for(int n2 = 0; n2 != blockDim.x; ++n2)
 		{
 			nbcoord_t	dx = x1 - x2[n2];
 			nbcoord_t	dy = y1 - y2[n2];
@@ -113,10 +114,11 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
 							 int count, int block_size)
 {
-	dim3 grid(count / block_size);
-	dim3 block(block_size);
+	dim3	grid(count / block_size);
+	dim3	block(block_size);
+	size_t	shared_size(4 * sizeof(nbcoord_t) * block_size);
 
-	kfcompute <<< grid, block >>> (0, y, 0, f, 0, m, count, count);
+	kfcompute <<< grid, block, shared_size >>> (0, y, 0, f, 0, m, count, count);
 }
 
 #define MAX_STACK_SIZE 24
