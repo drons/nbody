@@ -96,11 +96,11 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 #define MAX_STACK_SIZE 64
 int left_idx(int idx)
 {
-	return 2 * idx + 1;
+	return 2 * idx;
 }
 int rght_idx(int idx)
 {
-	return 2 * idx + 2;
+	return 2 * idx + 1;
 }
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,

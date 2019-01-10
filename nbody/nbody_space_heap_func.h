@@ -5,34 +5,34 @@
 #define NB_CALL_TYPE
 #endif //NB_CALL_TYPE
 
-#define NBODY_HEAP_ROOT_INDEX 0
+#define NBODY_HEAP_ROOT_INDEX 1
 
 template<class index_t>
 struct nbody_heap_func
 {
 	static NB_CALL_TYPE index_t left_idx(index_t idx)
 	{
-		return (idx << 1) + 1;
+		return (idx << 1);
 	}
 
 	static NB_CALL_TYPE index_t rght_idx(index_t idx)
 	{
-		return (idx << 1) + 2;
+		return (idx << 1) + 1;
 	}
 
 	static NB_CALL_TYPE index_t parent_idx(index_t idx)
 	{
-		return (idx - 1) >> 1;
+		return (idx) >> 1;
 	}
 
 	static NB_CALL_TYPE bool is_left(index_t idx)
 	{
-		return idx & 1;
+		return (idx & 1) == 0;
 	}
 
 	static NB_CALL_TYPE bool is_right(index_t idx)
 	{
-		return (idx & 1) == 0;
+		return idx & 1;
 	}
 
 	static NB_CALL_TYPE index_t left2right(index_t idx)
