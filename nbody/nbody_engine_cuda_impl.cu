@@ -134,7 +134,7 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 								  const nbcoord_t* tree_crit_r2,
 								  const int* body_n)
 {
-	int		tree_offset = points_count - 1;
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
 	int		stride = points_count;
 	int		tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
 
@@ -151,7 +151,7 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 	int	stack = 0;
 	int	stack_head = stack;
 
-	stack_data[stack++] = 0;
+	stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
 	while(stack != stack_head)
 	{
 		int			curr = stack_data[--stack];
@@ -253,7 +253,7 @@ __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_
 									  const int* body_n)
 {
 	nb1Dfetch<nbcoord_t>	tex;
-	int		tree_offset = points_count - 1;
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
 	int		stride = points_count;
 	int		tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
 
@@ -270,7 +270,7 @@ __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_
 	int	stack = 0;
 	int	stack_head = stack;
 
-	stack_data[stack++] = 0;
+	stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
 	while(stack != stack_head)
 	{
 		int			curr = stack_data[--stack];
@@ -346,7 +346,7 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 											const int* body_n)
 {
 	nb1Dfetch<nbcoord_t>	tex;
-	int		tree_offset = points_count - 1;
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
 	int		stride = points_count;
 	int		tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
 
@@ -359,7 +359,7 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 	nbcoord_t	res_y = 0.0;
 	nbcoord_t	res_z = 0.0;
 
-	int	curr = 0;
+	int	curr = NBODY_HEAP_ROOT_INDEX;
 	do
 	{
 		nbcoord_t	dx = x1 - tex.fetch(tree_cmx, curr);
@@ -390,7 +390,7 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 			curr = nbody_heap_func<int>::next_up(curr, tree_size);
 		}
 	}
-	while(curr != 0);
+	while(curr != NBODY_HEAP_ROOT_INDEX);
 
 	f[n1 + 3 * stride] = res_x;
 	f[n1 + 4 * stride] = res_y;

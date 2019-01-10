@@ -15,7 +15,7 @@ void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	{
 		bodies_indites[i] = i;
 	}
-	size_t	heap_size = 2 * count - 1;
+	size_t	heap_size = 2 * count - 1 + NBODY_HEAP_ROOT_INDEX;
 	m_mass_center.resize(heap_size);
 	m_mass.resize(heap_size);
 	m_radius_sqr.resize(heap_size);
@@ -26,7 +26,7 @@ void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 
 	#pragma omp parallel
 	#pragma omp single
-	build(count, bodies_indites.data(), rx, ry, rz, mass, 0, 0);
+	build(count, bodies_indites.data(), rx, ry, rz, mass, NBODY_HEAP_ROOT_INDEX, DIM_NUM_X);
 
 	#pragma omp parallel for
 	for(size_t n = 0; n < m_radius_sqr.size(); ++n)
@@ -43,7 +43,7 @@ nbvertex_t nbody_space_heap::traverse(const nbody_data* data, const nbvertex_t& 
 	size_t*	stack = stack_data;
 	size_t*	stack_head = stack;
 
-	*stack++ = 0;
+	*stack++ = NBODY_HEAP_ROOT_INDEX;
 	while(stack != stack_head)
 	{
 		size_t				curr = *--stack;

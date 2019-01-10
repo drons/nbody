@@ -4,7 +4,7 @@ nbvertex_t nbody_space_heap_stackless::traverse(const nbody_data* data, const nb
 												const nbcoord_t mass1) const
 {
 	nbvertex_t	total_force;
-	size_t		curr = 0;
+	size_t		curr = NBODY_HEAP_ROOT_INDEX;
 	size_t		tree_size = m_mass_center.size();
 
 	do
@@ -22,7 +22,7 @@ nbvertex_t nbody_space_heap_stackless::traverse(const nbody_data* data, const nb
 			curr = next_up(curr, tree_size);
 		}
 	}
-	while(curr != 0);
+	while(curr != NBODY_HEAP_ROOT_INDEX);
 
 	return total_force;
 }

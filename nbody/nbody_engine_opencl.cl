@@ -140,7 +140,7 @@ __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 	int	stack = 0;
 	int	stack_head = stack;
 
-	stack_data[stack++] = 0;
+	stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
 	while(stack != stack_head)
 	{
 		int			curr = stack_data[--stack];
@@ -201,7 +201,7 @@ __kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
 							__global const nbcoord_t* tree_crit_r2,
 							__global const int* body_n)
 {
-	int		tree_offset = points_count - 1;
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
 	int		stride = points_count;
 	int		tn1 = get_global_id(0) + offset_n1 + tree_offset;
 
@@ -218,7 +218,7 @@ __kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
 	int	stack = 0;
 	int	stack_head = stack;
 
-	stack_data[stack++] = 0;
+	stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
 	while(stack != stack_head)
 	{
 		int			curr = stack_data[--stack];

@@ -5,6 +5,8 @@
 #define NB_CALL_TYPE
 #endif //NB_CALL_TYPE
 
+#define NBODY_HEAP_ROOT_INDEX 0
+
 template<class index_t>
 struct nbody_heap_func
 {
@@ -45,9 +47,9 @@ struct nbody_heap_func
 		{
 			index_t parent = parent_idx(idx);
 			// We at root again. Stop traverse.
-			if(parent == 0)
+			if(parent == NBODY_HEAP_ROOT_INDEX)
 			{
-				return 0;
+				return NBODY_HEAP_ROOT_INDEX;
 			}
 			idx = parent;
 		}
