@@ -10,11 +10,8 @@ class NBODY_DLL nbody_engine_cuda_bh_tex : public nbody_engine_cuda
 	e_tree_layout	m_tree_layout;
 	nbcoord_t		m_distance_to_node_radius_ratio;
 
-	smemory*		m_dev_tree_cmx;
-	smemory*		m_dev_tree_cmy;
-	smemory*		m_dev_tree_cmz;
+	smemory*		m_dev_tree_xyzr;
 	smemory*		m_dev_tree_mass;
-	smemory*		m_dev_tree_crit_r2;
 	smemory*		m_dev_indites;
 
 public:

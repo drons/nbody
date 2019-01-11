@@ -20,21 +20,15 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 
 __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
 								   nbcoord_t* f,
-								   cudaTextureObject_t tree_cmx,
-								   cudaTextureObject_t tree_cmy,
-								   cudaTextureObject_t tree_cmz,
+								   cudaTextureObject_t tree_xyzr,
 								   cudaTextureObject_t tree_mass,
-								   cudaTextureObject_t tree_crit_r2,
 								   const int* body_n,
 								   int block_size);
 
 __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count, int tree_size,
 										 nbcoord_t* f,
-										 cudaTextureObject_t tree_cmx,
-										 cudaTextureObject_t tree_cmy,
-										 cudaTextureObject_t tree_cmz,
+										 cudaTextureObject_t tree_xyzr,
 										 cudaTextureObject_t tree_mass,
-										 cudaTextureObject_t tree_crit_r2,
 										 const int* body_n,
 										 int block_size);
 //! a[i] = value

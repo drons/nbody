@@ -33,26 +33,57 @@ void* nbody_engine_cuda::smemory::data()
 }
 
 template<class T>
-void setup_texture_type(cudaResourceDesc&)
+bool setup_texture_type(cudaResourceDesc&, int)
 {
+	return false;
 }
 
 template<>
-void setup_texture_type<float>(cudaResourceDesc& res_desc)
+bool setup_texture_type<float>(cudaResourceDesc& res_desc, int vec_size)
 {
 	res_desc.res.linear.desc.f = cudaChannelFormatKindFloat;
-	res_desc.res.linear.desc.x = 32; // bits per channel
+	if(vec_size == 1)
+	{
+		res_desc.res.linear.desc.x = 32; // bits per channel
+	}
+	else if(vec_size == 4)
+	{
+		res_desc.res.linear.desc.x = 32; // bits per channel
+		res_desc.res.linear.desc.y = 32; // bits per channel
+		res_desc.res.linear.desc.z = 32; // bits per channel
+		res_desc.res.linear.desc.w = 32; // bits per channel
+	}
+	else
+	{
+		return false;
+	}
+	return true;
 }
 
 template<>
-void setup_texture_type<double>(cudaResourceDesc& res_desc)
+bool setup_texture_type<double>(cudaResourceDesc& res_desc, int vec_size)
 {
 	res_desc.res.linear.desc.f = cudaChannelFormatKindSigned;
-	res_desc.res.linear.desc.x = 32; // bits per channel
-	res_desc.res.linear.desc.y = 32; // bits per channel
+	if(vec_size == 1)
+	{
+		res_desc.res.linear.desc.x = 32; // bits per channel
+		res_desc.res.linear.desc.y = 32; // bits per channel
+	}
+	else if(vec_size == 4)
+	{
+		res_desc.res.linear.desc.x = 32; // bits per channel
+		res_desc.res.linear.desc.y = 32; // bits per channel
+		res_desc.res.linear.desc.z = 32; // bits per channel
+		res_desc.res.linear.desc.w = 32; // bits per channel
+	}
+	else
+	{
+		return false;
+	}
+	return true;
 }
 
-cudaTextureObject_t nbody_engine_cuda::smemory::tex()
+cudaTextureObject_t nbody_engine_cuda::smemory::tex(int vec_size)
 {
 	if(m_tex != 0)
 	{
@@ -67,7 +98,11 @@ cudaTextureObject_t nbody_engine_cuda::smemory::tex()
 	res_desc.res.linear.devPtr = data();
 	res_desc.res.linear.sizeInBytes = size();
 
-	setup_texture_type<nbcoord_t>(res_desc);
+	if(!setup_texture_type<nbcoord_t>(res_desc, vec_size))
+	{
+		qDebug() << "Failed to create texture with vec_size =" << vec_size;
+		return 0;
+	}
 
 	cudaTextureDesc tex_desc;
 	memset(&tex_desc, 0, sizeof(tex_desc));

@@ -14,7 +14,7 @@ public:
 	virtual ~smemory();
 	void* data();
 	const void* data() const;
-	cudaTextureObject_t tex();
+	cudaTextureObject_t tex(int vec_size = 1);
 	size_t size() const override;
 };
 

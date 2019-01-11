@@ -9,22 +9,16 @@ nbody_engine_cuda_bh_tex::nbody_engine_cuda_bh_tex(nbcoord_t distance_to_node_ra
 	m_cycle_traverse(false),
 	m_tree_layout(tl),
 	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio),
-	m_dev_tree_cmx(NULL),
-	m_dev_tree_cmy(NULL),
-	m_dev_tree_cmz(NULL),
+	m_dev_tree_xyzr(NULL),
 	m_dev_tree_mass(NULL),
-	m_dev_tree_crit_r2(NULL),
 	m_dev_indites(NULL)
 {
 }
 
 nbody_engine_cuda_bh_tex::~nbody_engine_cuda_bh_tex()
 {
-	delete m_dev_tree_cmx;
-	delete m_dev_tree_cmy;
-	delete m_dev_tree_cmz;
+	delete m_dev_tree_xyzr;
 	delete m_dev_tree_mass;
-	delete m_dev_tree_crit_r2;
 	delete m_dev_indites;
 }
 
@@ -72,10 +66,7 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 
 	if(m_dev_indites == NULL)
 	{
-		m_dev_tree_cmx = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
-		m_dev_tree_cmy = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
-		m_dev_tree_cmz = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
-		m_dev_tree_crit_r2 = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
+		m_dev_tree_xyzr = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t) * 4));
 		m_dev_tree_mass = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
 		m_dev_indites = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(int)));
 	}
@@ -84,36 +75,35 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 	nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data());
 	int*				dev_indites = static_cast<int*>(m_dev_indites->data());
 
-	std::vector<nbcoord_t>	host_tree_cmx(tree_size), host_tree_cmy(tree_size), host_tree_cmz(tree_size);
-	std::vector<int>		host_indites(tree_size);
+	static_assert(sizeof(vertex4<nbcoord_t>) == sizeof(nbcoord_t) * 4,
+				  "sizeof(vertex4) must be equal to sizeof(nbcoord_t)*4");
+
+	std::vector<vertex4<nbcoord_t>>	host_tree_xyzr(tree_size);
+	std::vector<int>				host_indites(tree_size);
 
 	for(size_t n = 0; n != tree_size; ++n)
 	{
-		host_tree_cmx[n] = heap.get_mass_center()[n].x;
-		host_tree_cmy[n] = heap.get_mass_center()[n].y;
-		host_tree_cmz[n] = heap.get_mass_center()[n].z;
+		host_tree_xyzr[n].x = heap.get_mass_center()[n].x;
+		host_tree_xyzr[n].y = heap.get_mass_center()[n].y;
+		host_tree_xyzr[n].z = heap.get_mass_center()[n].z;
+		host_tree_xyzr[n].w = heap.get_radius_sqr()[n];
 		host_indites[n] = static_cast<int>(heap.get_body_n()[n]);
 	}
 
-	write_buffer(m_dev_tree_cmx, host_tree_cmx.data());
-	write_buffer(m_dev_tree_cmy, host_tree_cmy.data());
-	write_buffer(m_dev_tree_cmz, host_tree_cmz.data());
+	write_buffer(m_dev_tree_xyzr, host_tree_xyzr.data());
 	write_buffer(m_dev_tree_mass, heap.get_mass().data());
-	write_buffer(m_dev_tree_crit_r2, heap.get_radius_sqr().data());
 	write_buffer(m_dev_indites, host_indites.data());
 
 	if(m_tree_layout == etl_heap)
 	{
 		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-							 m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
-							 m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
+							 m_dev_tree_xyzr->tex(4), m_dev_tree_mass->tex(),
 							 dev_indites, get_block_size());
 	}
 	else if(m_tree_layout == etl_heap_stackless)
 	{
 		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-								   m_dev_tree_cmx->tex(), m_dev_tree_cmy->tex(), m_dev_tree_cmz->tex(),
-								   m_dev_tree_mass->tex(), m_dev_tree_crit_r2->tex(),
+								   m_dev_tree_xyzr->tex(4), m_dev_tree_mass->tex(),
 								   dev_indites, get_block_size());
 	}
 
