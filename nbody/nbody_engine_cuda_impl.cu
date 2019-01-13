@@ -32,22 +32,40 @@ __host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int count, int bloc
 	kfcompute_xyz <<< grid, block >>> (y, 0, f, 0, count);
 }
 
+#define UNROLL_COUNT 4
+
 __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t* f, int foff,
 						  const nbcoord_t* mass, int points_count, int stride)
 {
-	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
+	int n1 = UNROLL_COUNT * blockDim.x * blockIdx.x + threadIdx.x;
 
 	const nbcoord_t*	rx = y + yoff;
 	const nbcoord_t*	ry = rx + stride;
 	const nbcoord_t*	rz = rx + 2 * stride;
 
-	nbcoord_t	x1 = rx[n1];
-	nbcoord_t	y1 = ry[n1];
-	nbcoord_t	z1 = rz[n1];
+	nbcoord_t	x1[UNROLL_COUNT];
+	nbcoord_t	y1[UNROLL_COUNT];
+	nbcoord_t	z1[UNROLL_COUNT];
 
-	nbcoord_t	res_x = 0.0;
-	nbcoord_t	res_y = 0.0;
-	nbcoord_t	res_z = 0.0;
+#pragma unroll
+	for(int u = 0; u != UNROLL_COUNT; ++u)
+	{
+		int	un = n1 + u * blockDim.x;
+		x1[u] = rx[un];
+		y1[u] = ry[un];
+		z1[u] = rz[un];
+	}
+
+	nbcoord_t	res_x[UNROLL_COUNT];
+	nbcoord_t	res_y[UNROLL_COUNT];
+	nbcoord_t	res_z[UNROLL_COUNT];
+#pragma unroll
+	for(int u = 0; u != UNROLL_COUNT; ++u)
+	{
+		res_x[u] = 0;
+		res_y[u] = 0;
+		res_z[u] = 0;
+	}
 
 	extern __shared__ nbcoord_t shared_xyzm_buf[];
 
@@ -69,52 +87,74 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 		// Synchronize local work-items copy operations
 		__syncthreads();
 
-		nbcoord_t	local_res_x = 0.0;
-		nbcoord_t	local_res_y = 0.0;
-		nbcoord_t	local_res_z = 0.0;
+		nbcoord_t	local_res_x[UNROLL_COUNT];
+		nbcoord_t	local_res_y[UNROLL_COUNT];
+		nbcoord_t	local_res_z[UNROLL_COUNT];
+		for(int u = 0; u != UNROLL_COUNT; ++u)
+		{
+			local_res_x[u] = 0;
+			local_res_y[u] = 0;
+			local_res_z[u] = 0;
+		}
 
 		for(int n2 = 0; n2 != blockDim.x; ++n2)
 		{
-			nbcoord_t	dx = x1 - x2[n2];
-			nbcoord_t	dy = y1 - y2[n2];
-			nbcoord_t	dz = z1 - z2[n2];
-			nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
-
-			if(r2 < NBODY_MIN_R)
+			nbcoord_t	x2n2 = x2[n2];
+			nbcoord_t	y2n2 = y2[n2];
+			nbcoord_t	z2n2 = z2[n2];
+			nbcoord_t	m2n2 = m2[n2];
+#pragma unroll
+			for(int u = 0; u != UNROLL_COUNT; ++u)
 			{
-				r2 = NBODY_MIN_R;
+				nbcoord_t	dx = x1[u] - x2n2;
+				nbcoord_t	dy = y1[u] - y2n2;
+				nbcoord_t	dz = z1[u] - z2n2;
+				nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
+
+				if(r2 < NBODY_MIN_R)
+				{
+					r2 = NBODY_MIN_R;
+				}
+
+				nbcoord_t	r = sqrt(r2);
+				nbcoord_t	coeff = (m2n2) / (r * r2);
+
+				dx *= coeff;
+				dy *= coeff;
+				dz *= coeff;
+
+				local_res_x[u] -= dx;
+				local_res_y[u] -= dy;
+				local_res_z[u] -= dz;
 			}
-
-			nbcoord_t	r = sqrt(r2);
-			nbcoord_t	coeff = (m2[n2]) / (r * r2);
-
-			dx *= coeff;
-			dy *= coeff;
-			dz *= coeff;
-
-			local_res_x -= dx;
-			local_res_y -= dy;
-			local_res_z -= dz;
 		}
 
 		// Synchronize local work-items computations
 		__syncthreads();
-
-		res_x += local_res_x;
-		res_y += local_res_y;
-		res_z += local_res_z;
+#pragma unroll
+		for(int u = 0; u != UNROLL_COUNT; ++u)
+		{
+			res_x[u] += local_res_x[u];
+			res_y[u] += local_res_y[u];
+			res_z[u] += local_res_z[u];
+		}
 	}
 
 	n1 += foff;
-	f[n1 + 3 * stride] = res_x;
-	f[n1 + 4 * stride] = res_y;
-	f[n1 + 5 * stride] = res_z;
+#pragma unroll
+	for(int u = 0; u != UNROLL_COUNT; ++u)
+	{
+		int	un = n1 + u * blockDim.x;
+		f[un + 3 * stride] = res_x[u];
+		f[un + 4 * stride] = res_y[u];
+		f[un + 5 * stride] = res_z[u];
+	}
 }
 
 __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
 							 int count, int block_size)
 {
-	dim3	grid(count / block_size);
+	dim3	grid(count / (block_size * UNROLL_COUNT));
 	dim3	block(block_size);
 	size_t	shared_size(4 * sizeof(nbcoord_t) * block_size);
 
