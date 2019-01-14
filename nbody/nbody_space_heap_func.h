@@ -42,6 +42,9 @@ struct nbody_heap_func
 
 	static NB_CALL_TYPE index_t next_down(index_t idx)
 	{
+#ifdef __CUDA_ARCH__
+		idx = (idx >> (__ffs(~idx) - 1));
+#else //__CUDA_ARCH__
 		// While index is 'right' -> go down
 		while(is_right(idx))
 		{
@@ -53,17 +56,12 @@ struct nbody_heap_func
 			}
 			idx = parent;
 		}
+#endif //__CUDA_ARCH__
 		return left2right(idx);
 	}
 
 	static NB_CALL_TYPE index_t skip_idx(index_t idx)
 	{
-		// Index is 'left' branch -> next index is 'right'.
-		// Simple take next one.
-		if(is_left(idx))
-		{
-			return left2right(idx);
-		}
 		return next_down(idx);
 	}
 
