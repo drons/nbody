@@ -19,7 +19,4 @@ LIBS += -lnbody
 
 SOURCES	+= test_nbody_engine.cpp
 
-#HEADERS	+=
-
-
 

@@ -5,6 +5,7 @@
 #include <omp.h>
 
 #include "nbody_engines.h"
+#include "nbody_space_heap_func.h"
 
 bool test_mem(nbody_engine* e)
 {
@@ -805,6 +806,85 @@ void test_nbody_engine_compare::compare()
 	QVERIFY(::test_fcompute(m_e1, m_e2, &m_data, m_eps));
 }
 
+class test_nbody_heap_func : public QObject
+{
+	Q_OBJECT
+	typedef nbody_heap_func<size_t>	hf;
+	static const size_t	s_tree_size = 16;
+	static size_t __ffs(size_t x)
+	{
+		if(x == 0)
+		{
+			return 0;
+		}
+		size_t t = 1;
+		size_t r = 1;
+		while((x & t) == 0)
+		{
+			t = t << 1;
+			r++;
+		}
+		return r;
+	}
+	static size_t cu_next_down(size_t idx)
+	{
+		idx = (idx >> (__ffs(~idx) - 1));
+		return hf::left2right(idx);
+	}
+
+public:
+	test_nbody_heap_func() {}
+	~test_nbody_heap_func() {}
+
+	// Heap-tree example:
+	// 8  9   10  11  12  13  14  15
+	//   4       5       6       7
+	//       2               3
+	//               1
+private slots:
+	void next_down()
+	{
+		for(size_t idx = NBODY_HEAP_ROOT_INDEX; idx != s_tree_size; ++idx)
+		{
+			QCOMPARE(cu_next_down(idx), hf::next_down(idx));
+		}
+		QCOMPARE(hf::next_down(8), static_cast<size_t>(9));
+		QCOMPARE(hf::next_down(9), static_cast<size_t>(5));
+	}
+	void skip_idx()
+	{
+		QCOMPARE(hf::skip_idx(8), static_cast<size_t>(9));
+		QCOMPARE(hf::skip_idx(9), static_cast<size_t>(5));
+		QCOMPARE(hf::skip_idx(5), static_cast<size_t>(3));
+		QCOMPARE(hf::skip_idx(11), static_cast<size_t>(3));
+		QCOMPARE(hf::skip_idx(3), static_cast<size_t>(1));
+		QCOMPARE(hf::skip_idx(7), static_cast<size_t>(1));
+		QCOMPARE(hf::skip_idx(15), static_cast<size_t>(1));
+	}
+	void next_up()
+	{
+		QCOMPARE(hf::next_up(1, s_tree_size), static_cast<size_t>(2));
+		QCOMPARE(hf::next_up(8, s_tree_size), static_cast<size_t>(9));
+		QCOMPARE(hf::next_up(9, s_tree_size), static_cast<size_t>(5));
+		QCOMPARE(hf::next_up(15, s_tree_size), static_cast<size_t>(1));
+	}
+	void parent_idx()
+	{
+		for(size_t idx = NBODY_HEAP_ROOT_INDEX; idx != s_tree_size; ++idx)
+		{
+			QCOMPARE(hf::parent_idx(hf::left_idx(idx)), idx);
+			QCOMPARE(hf::parent_idx(hf::rght_idx(idx)), idx);
+		}
+	}
+	void left2right()
+	{
+		for(size_t idx = NBODY_HEAP_ROOT_INDEX; idx != s_tree_size; ++idx)
+		{
+			QCOMPARE(hf::left2right(hf::left_idx(idx)), hf::rght_idx(idx));
+		}
+	}
+};
+
 int main(int argc, char* argv[])
 {
 	int res = 0;
@@ -1193,6 +1273,10 @@ int main(int argc, char* argv[])
 			res += 1;
 			delete e2;
 		}
+	}
+	{
+		test_nbody_heap_func	tc1;
+		res += QTest::qExec(&tc1, argc, argv);
 	}
 	return res;
 }
