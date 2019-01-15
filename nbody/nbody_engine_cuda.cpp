@@ -297,9 +297,12 @@ void nbody_engine_cuda::print_info() const
 	memset(&prop, 0, sizeof(prop));
 	cudaGetDeviceProperties(&prop, 0);
 	qDebug() << "\t" << prop.name;
-	qDebug() << "\t" << "Global memory" << prop.totalGlobalMem;
-	qDebug() << "\t" << "Const memory " << prop.totalConstMem;
-	qDebug() << "\t" << "Shared memory" << prop.sharedMemPerBlock << "/" << prop.sharedMemPerMultiprocessor;
+	qDebug() << "\t" << "Memory (Global/Const/L2)"
+			 << prop.totalGlobalMem << "/" << prop.totalConstMem << "/" << prop.l2CacheSize;
+	qDebug() << "\t" << "Shared memory (block/multiprocessor)"
+			 << prop.sharedMemPerBlock << "/" << prop.sharedMemPerMultiprocessor;
+	qDebug() << "\t" << "Registers (block/multiprocessor)"
+			 << prop.regsPerBlock << "/" << prop.regsPerMultiprocessor;
 	qDebug() << "\t" << "Compute Cap  " << prop.major << "." << prop.minor;
 	qDebug() << "\t" << "Block size   " << m_block_size;
 }
