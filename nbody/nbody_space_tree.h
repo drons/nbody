@@ -13,6 +13,8 @@ class nbody_space_tree
 		nbvertex_t				m_mass_center;
 		nbcoord_t				m_mass;
 		nbcoord_t				m_radius_sqr;
+		nbvertex_t				m_bmin;
+		nbvertex_t				m_bmax;
 		size_t					m_body_n;
 	public:
 		explicit node();

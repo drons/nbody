@@ -10,6 +10,8 @@ protected:
 	std::vector<nbvertex_t>	m_mass_center;
 	std::vector<nbcoord_t>	m_mass;
 	std::vector<nbcoord_t>	m_radius_sqr;
+	std::vector<nbvertex_t>	m_box_min;
+	std::vector<nbvertex_t>	m_box_max;
 	std::vector<size_t>		m_body_n;
 	nbcoord_t				m_distance_to_node_radius_ratio;
 public:

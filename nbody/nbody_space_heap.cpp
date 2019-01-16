@@ -19,6 +19,8 @@ void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	m_mass_center.resize(heap_size);
 	m_mass.resize(heap_size);
 	m_radius_sqr.resize(heap_size);
+	m_box_min.resize(heap_size);
+	m_box_max.resize(heap_size);
 	m_body_n.resize(heap_size);
 	std::fill(m_body_n.begin(), m_body_n.end(), std::numeric_limits<size_t>::max());
 
@@ -98,6 +100,8 @@ void nbody_space_heap::build(size_t count, size_t* indites, const nbcoord_t* rx,
 		m_mass_center[idx] = nbvertex_t(rx[*indites], ry[*indites], rz[*indites]);
 		m_mass[idx] = mass[*indites];
 		m_body_n[idx] = *indites;
+		m_box_min[idx] = m_mass_center[idx];
+		m_box_max[idx] = m_mass_center[idx];
 		return;
 	}
 
@@ -145,7 +149,14 @@ void nbody_space_heap::build(size_t count, size_t* indites, const nbcoord_t* rx,
 	m_mass[idx] = m_mass[left] + m_mass[rght];
 	m_mass_center[idx] = (m_mass_center[left] * m_mass[left] +
 						  m_mass_center[rght] * m_mass[rght]) / m_mass[idx];
-	m_radius_sqr[idx] = sqrt(m_radius_sqr[left]) + sqrt(m_radius_sqr[rght]) +
-						m_mass_center[left].distance(m_mass_center[rght]);
-	m_radius_sqr[idx] = m_radius_sqr[idx] * m_radius_sqr[idx];
+
+	m_box_min[idx] = nbvertex_t(std::min(m_box_min[left].x, m_box_min[rght].x),
+								std::min(m_box_min[left].y, m_box_min[rght].y),
+								std::min(m_box_min[left].z, m_box_min[rght].z));
+	m_box_max[idx] = nbvertex_t(std::max(m_box_max[left].x, m_box_max[rght].x),
+								std::max(m_box_max[left].y, m_box_max[rght].y),
+								std::max(m_box_max[left].z, m_box_max[rght].z));
+	nbcoord_t	r = (m_box_max[idx] - m_box_min[idx]).length() * static_cast<nbcoord_t>(0.5) +
+					((m_box_max[idx] + m_box_min[idx]) / 2 - m_mass_center[idx]).length();
+	m_radius_sqr[idx] = r * r;
 }

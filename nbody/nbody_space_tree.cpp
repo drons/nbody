@@ -36,6 +36,8 @@ void nbody_space_tree::node::build(size_t count, size_t* indites,
 		m_mass_center = nbvertex_t(rx[*indites], ry[*indites], rz[*indites]);
 		m_mass = mass[*indites];
 		m_body_n = *indites;
+		m_bmin = m_mass_center;
+		m_bmax = m_mass_center;
 		return;
 	}
 
@@ -83,12 +85,15 @@ void nbody_space_tree::node::build(size_t count, size_t* indites,
 	m_mass = m_left->m_mass + m_right->m_mass;
 	m_mass_center = (m_left->m_mass_center * m_left->m_mass +
 					 m_right->m_mass_center * m_right->m_mass) / m_mass;
-	m_radius_sqr = sqrt(m_left->m_radius_sqr) + sqrt(m_right->m_radius_sqr) +
-				   m_left->m_mass_center.distance(m_right->m_mass_center);
-	m_radius_sqr = m_radius_sqr * m_radius_sqr;
-
-	m_left->m_radius_sqr *= distance_to_node_radius_ratio;
-	m_right->m_radius_sqr *= distance_to_node_radius_ratio;
+	m_bmin = nbvertex_t(std::min(m_left->m_bmin.x, m_right->m_bmin.x),
+						std::min(m_left->m_bmin.y, m_right->m_bmin.y),
+						std::min(m_left->m_bmin.z, m_right->m_bmin.z));
+	m_bmax = nbvertex_t(std::max(m_left->m_bmax.x, m_right->m_bmax.x),
+						std::max(m_left->m_bmax.y, m_right->m_bmax.y),
+						std::max(m_left->m_bmax.z, m_right->m_bmax.z));
+	m_radius_sqr = (m_bmax - m_bmin).length() * static_cast<nbcoord_t>(0.5) +
+				   ((m_bmax + m_bmin) / 2 - m_mass_center).length();
+	m_radius_sqr = m_radius_sqr * m_radius_sqr * distance_to_node_radius_ratio;
 }
 
 nbvertex_t nbody_space_tree::traverse(const nbody_data* data,
@@ -142,6 +147,4 @@ void nbody_space_tree::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	#pragma omp parallel
 	#pragma omp single
 	m_root->build(count, bodies_indites.data(), rx, ry, rz, mass, 0, distance_to_node_radius_ratio);
-
-	m_root->m_radius_sqr *= distance_to_node_radius_ratio;
 }
