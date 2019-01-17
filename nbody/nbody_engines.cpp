@@ -20,25 +20,38 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 #ifdef HAVE_CUDA
 	else if(type == "cuda")
 	{
+		QString	devices(param.value("device", "0").toString());
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbody_engine_cuda*	engine = new nbody_engine_cuda();
 
+		if(0 != engine->select_devices(devices))
+		{
+			delete engine;
+			return NULL;
+		}
 		engine->set_block_size(block_size);
 
 		return engine;
 	}
 	else if(type == "cuda_bh")
 	{
+		QString	devices(param.value("device", "0").toString());
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
 		nbody_engine_cuda_bh*	engine = new nbody_engine_cuda_bh(distance_to_node_radius_ratio);
 
+		if(0 != engine->select_devices(devices))
+		{
+			delete engine;
+			return NULL;
+		}
 		engine->set_block_size(block_size);
 
 		return engine;
 	}
 	else if(type == "cuda_bh_tex")
 	{
+		QString	devices(param.value("device", "0").toString());
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
 		QString		strtl(param.value("tree_layout", "heap").toString());
@@ -50,7 +63,11 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 			return NULL;
 		}
 		nbody_engine_cuda_bh_tex*	engine = new nbody_engine_cuda_bh_tex(distance_to_node_radius_ratio, tl);
-
+		if(0 != engine->select_devices(devices))
+		{
+			delete engine;
+			return NULL;
+		}
 		engine->set_block_size(block_size);
 
 		return engine;

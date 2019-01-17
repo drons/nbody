@@ -1,6 +1,7 @@
 #include "nbody_engine_cuda_bh_tex.h"
 
 #include <QDebug>
+#include <omp.h>
 
 #include "nbody_engine_cuda_memory.h"
 #include "nbody_space_heap.h"
@@ -71,10 +72,6 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 		m_dev_indites = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(int)));
 	}
 
-	const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data());
-	nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data());
-	int*				dev_indites = static_cast<int*>(m_dev_indites->data());
-
 	static_assert(sizeof(vertex4<nbcoord_t>) == sizeof(nbcoord_t) * 4,
 				  "sizeof(vertex4) must be equal to sizeof(nbcoord_t)*4");
 
@@ -94,20 +91,48 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 	write_buffer(m_dev_tree_mass, heap.get_mass().data());
 	write_buffer(m_dev_indites, host_indites.data());
 
-	if(m_tree_layout == etl_heap)
+	if(m_device_ids.size() > 1)
 	{
-		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-							 m_dev_tree_xyzr->tex(4), m_dev_tree_mass->tex(),
-							 dev_indites, get_block_size());
-	}
-	else if(m_tree_layout == etl_heap_stackless)
-	{
-		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-								   m_dev_tree_xyzr->tex(4), m_dev_tree_mass->tex(),
-								   dev_indites, get_block_size());
+		synchronize_y(y);
 	}
 
-	fcompute_xyz(dev_y, dev_f, static_cast<int>(count), get_block_size());
+	#pragma omp parallel num_threads(m_device_ids.size())
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		size_t	dev_count(count / m_device_ids.size());
+		size_t	dev_off(dev_count * dev_n);
+		cudaSetDevice(m_device_ids[dev_n]);
+		nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data(dev_n));
+		int*				dev_indites = static_cast<int*>(m_dev_indites->data(dev_n));
+
+		if(m_tree_layout == etl_heap)
+		{
+			fcompute_heap_bh_tex(dev_off, dev_count, count, tree_size, dev_f,
+								 m_dev_tree_xyzr->tex(dev_n, smemory::evs4), m_dev_tree_mass->tex(dev_n),
+								 dev_indites, get_block_size());
+		}
+		else if(m_tree_layout == etl_heap_stackless)
+		{
+			fcompute_heap_bh_stackless(dev_off, dev_count, count, tree_size, dev_f,
+									   m_dev_tree_xyzr->tex(dev_n, smemory::evs4), m_dev_tree_mass->tex(dev_n),
+									   dev_indites, get_block_size());
+		}
+		cudaDeviceSynchronize();
+	}
+
+	if(m_device_ids.size() > 1)
+	{
+		synchronize_f_heap(f, host_indites.data());
+	}
+
+	#pragma omp parallel num_threads(m_device_ids.size())
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		cudaSetDevice(m_device_ids[dev_n]);
+		const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data(dev_n));
+		nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data(dev_n));
+		fcompute_xyz(dev_y, dev_f, count, count, get_block_size());
+	}
 }
 
 void nbody_engine_cuda_bh_tex::print_info() const

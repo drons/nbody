@@ -1,6 +1,7 @@
 #include "nbody_engine_cuda_bh.h"
 
 #include <QDebug>
+#include <omp.h>
 
 #include "nbody_engine_cuda_memory.h"
 #include "nbody_space_heap.h"
@@ -79,14 +80,6 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 		m_dev_indites = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(int)));
 	}
 
-	const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data());
-	nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data());
-	nbcoord_t*			dev_tree_cmx = static_cast<nbcoord_t*>(m_dev_tree_cmx->data());
-	nbcoord_t*			dev_tree_cmy = static_cast<nbcoord_t*>(m_dev_tree_cmy->data());
-	nbcoord_t*			dev_tree_cmz = static_cast<nbcoord_t*>(m_dev_tree_cmz->data());
-	nbcoord_t*			dev_tree_mass = static_cast<nbcoord_t*>(m_dev_tree_mass->data());
-	nbcoord_t*			dev_tree_crit_r2 = static_cast<nbcoord_t*>(m_dev_tree_crit_r2->data());
-	int*				dev_indites = static_cast<int*>(m_dev_indites->data());
 
 	std::vector<nbcoord_t>	host_tree_cmx(tree_size), host_tree_cmy(tree_size), host_tree_cmz(tree_size);
 	std::vector<int>		host_indites(tree_size);
@@ -106,12 +99,45 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 	write_buffer(m_dev_tree_crit_r2, heap.get_radius_sqr().data());
 	write_buffer(m_dev_indites, host_indites.data());
 
-	fcompute_heap_bh(0, static_cast<int>(count),
-					 static_cast<int>(tree_size), dev_f,
-					 dev_tree_cmx, dev_tree_cmy, dev_tree_cmz,
-					 dev_tree_mass, dev_tree_crit_r2,
-					 dev_indites, get_block_size());
-	fcompute_xyz(dev_y, dev_f, static_cast<int>(count), get_block_size());
+	if(m_device_ids.size() > 1)
+	{
+		synchronize_y(y);
+	}
+
+	#pragma omp parallel num_threads(m_device_ids.size())
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		size_t	dev_count(count / m_device_ids.size());
+		size_t	dev_off(dev_count * dev_n);
+		cudaSetDevice(m_device_ids[dev_n]);
+		nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data(dev_n));
+		nbcoord_t*			dev_tree_cmx = static_cast<nbcoord_t*>(m_dev_tree_cmx->data(dev_n));
+		nbcoord_t*			dev_tree_cmy = static_cast<nbcoord_t*>(m_dev_tree_cmy->data(dev_n));
+		nbcoord_t*			dev_tree_cmz = static_cast<nbcoord_t*>(m_dev_tree_cmz->data(dev_n));
+		nbcoord_t*			dev_tree_mass = static_cast<nbcoord_t*>(m_dev_tree_mass->data(dev_n));
+		nbcoord_t*			dev_tree_crit_r2 = static_cast<nbcoord_t*>(m_dev_tree_crit_r2->data(dev_n));
+		int*				dev_indites = static_cast<int*>(m_dev_indites->data(dev_n));
+
+		fcompute_heap_bh(dev_off, dev_count, count, tree_size, dev_f,
+						 dev_tree_cmx, dev_tree_cmy, dev_tree_cmz,
+						 dev_tree_mass, dev_tree_crit_r2,
+						 dev_indites, get_block_size());
+		cudaDeviceSynchronize();
+	}
+
+	if(m_device_ids.size() > 1)
+	{
+		synchronize_f_heap(f, host_indites.data());
+	}
+
+	#pragma omp parallel num_threads(m_device_ids.size())
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		cudaSetDevice(m_device_ids[dev_n]);
+		const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data(dev_n));
+		nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data(dev_n));
+		fcompute_xyz(dev_y, dev_f, count, count, get_block_size());
+	}
 }
 
 void nbody_engine_cuda_bh::print_info() const

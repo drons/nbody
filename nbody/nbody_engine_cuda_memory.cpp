@@ -1,52 +1,64 @@
 #include "nbody_engine_cuda_memory.h"
+#include <omp.h>
 
-nbody_engine_cuda::smemory::smemory(size_t s) :
-	m_data(NULL),
-	m_size(0),
-	m_tex(0)
+nbody_engine_cuda::smemory::smemory(size_t size, const std::vector<int>& dev_ids) :
+	m_data(dev_ids.size(), NULL),
+	m_tex(dev_ids.size(), 0),
+	m_size(size),
+	m_device_ids(dev_ids)
 {
-	cudaError_t res = cudaMalloc(&m_data, s);
-	if(res != cudaSuccess)
+	#pragma omp parallel num_threads(m_device_ids.size())
 	{
-		qDebug() << "Can't alloc " << s << "bytes. Err code" << res << cudaGetErrorString(res);
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		cudaSetDevice(m_device_ids[dev_n]);
+		cudaError_t res = cudaMalloc(&m_data[dev_n], size);
+		if(res != cudaSuccess)
+		{
+			qDebug() << "Can't alloc " << size << "bytes for dev_id " << m_device_ids[dev_n];
+			qDebug() << "Err code" << res << cudaGetErrorString(res);
+		}
 	}
-	m_size = s;
 }
 
 nbody_engine_cuda::smemory::~smemory()
 {
-	if(m_tex != 0)
+	#pragma omp parallel num_threads(m_device_ids.size())
 	{
-		cudaDestroyTextureObject(m_tex);
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		cudaSetDevice(m_device_ids[dev_n]);
+		if(m_tex[dev_n] != 0)
+		{
+			cudaDestroyTextureObject(m_tex[dev_n]);
+		}
+		cudaFree(m_data[dev_n]);
 	}
-	cudaFree(m_data);
 }
 
-const void* nbody_engine_cuda::smemory::data() const
+const void* nbody_engine_cuda::smemory::data(size_t dev_id) const
 {
-	return m_data;
+	return m_data[dev_id];
 }
 
-void* nbody_engine_cuda::smemory::data()
+void* nbody_engine_cuda::smemory::data(size_t dev_n)
 {
-	return m_data;
+	return m_data[dev_n];
 }
 
 template<class T>
-bool setup_texture_type(cudaResourceDesc&, int)
+bool setup_texture_type(cudaResourceDesc&, nbody_engine_cuda::smemory::evecsize)
 {
 	return false;
 }
 
 template<>
-bool setup_texture_type<float>(cudaResourceDesc& res_desc, int vec_size)
+bool setup_texture_type<float>(cudaResourceDesc& res_desc, nbody_engine_cuda::smemory::evecsize vec_size)
 {
 	res_desc.res.linear.desc.f = cudaChannelFormatKindFloat;
-	if(vec_size == 1)
+	if(vec_size == nbody_engine_cuda::smemory::evs1)
 	{
 		res_desc.res.linear.desc.x = 32; // bits per channel
 	}
-	else if(vec_size == 4)
+	else if(vec_size == nbody_engine_cuda::smemory::evs4)
 	{
 		res_desc.res.linear.desc.x = 32; // bits per channel
 		res_desc.res.linear.desc.y = 32; // bits per channel
@@ -61,15 +73,15 @@ bool setup_texture_type<float>(cudaResourceDesc& res_desc, int vec_size)
 }
 
 template<>
-bool setup_texture_type<double>(cudaResourceDesc& res_desc, int vec_size)
+bool setup_texture_type<double>(cudaResourceDesc& res_desc, nbody_engine_cuda::smemory::evecsize vec_size)
 {
 	res_desc.res.linear.desc.f = cudaChannelFormatKindSigned;
-	if(vec_size == 1)
+	if(vec_size == nbody_engine_cuda::smemory::evs1)
 	{
 		res_desc.res.linear.desc.x = 32; // bits per channel
 		res_desc.res.linear.desc.y = 32; // bits per channel
 	}
-	else if(vec_size == 4)
+	else if(vec_size == nbody_engine_cuda::smemory::evs4)
 	{
 		res_desc.res.linear.desc.x = 32; // bits per channel
 		res_desc.res.linear.desc.y = 32; // bits per channel
@@ -83,11 +95,11 @@ bool setup_texture_type<double>(cudaResourceDesc& res_desc, int vec_size)
 	return true;
 }
 
-cudaTextureObject_t nbody_engine_cuda::smemory::tex(int vec_size)
+cudaTextureObject_t nbody_engine_cuda::smemory::tex(size_t dev_n, evecsize vec_size)
 {
-	if(m_tex != 0)
+	if(m_tex[dev_n] != 0)
 	{
-		return m_tex;
+		return m_tex[dev_n];
 	}
 
 	cudaResourceDesc		res_desc;
@@ -95,7 +107,7 @@ cudaTextureObject_t nbody_engine_cuda::smemory::tex(int vec_size)
 	memset(&res_desc, 0, sizeof(res_desc));
 
 	res_desc.resType = cudaResourceTypeLinear;
-	res_desc.res.linear.devPtr = data();
+	res_desc.res.linear.devPtr = data(dev_n);
 	res_desc.res.linear.sizeInBytes = size();
 
 	if(!setup_texture_type<nbcoord_t>(res_desc, vec_size))
@@ -111,9 +123,9 @@ cudaTextureObject_t nbody_engine_cuda::smemory::tex(int vec_size)
 	tex_desc.filterMode = cudaFilterModePoint;
 	tex_desc.normalizedCoords = 0;
 
-	cudaCreateTextureObject(&m_tex, &res_desc, &tex_desc, NULL);
+	cudaCreateTextureObject(&m_tex[dev_n], &res_desc, &tex_desc, NULL);
 
-	return m_tex;
+	return m_tex[dev_n];
 }
 
 size_t nbody_engine_cuda::smemory::size() const

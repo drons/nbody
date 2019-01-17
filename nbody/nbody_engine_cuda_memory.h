@@ -6,15 +6,17 @@
 
 class nbody_engine_cuda::smemory : public nbody_engine::memory
 {
-	void*				m_data;
-	size_t				m_size;
-	cudaTextureObject_t	m_tex;
+	std::vector<void*>					m_data;
+	std::vector<cudaTextureObject_t>	m_tex;
+	size_t								m_size;
+	std::vector<int>					m_device_ids;
 public:
-	explicit smemory(size_t s);
+	enum evecsize {evs1 = 1, evs4 = 4};
+	explicit smemory(size_t size, const std::vector<int>& dev_ids);
 	virtual ~smemory();
-	void* data();
-	const void* data() const;
-	cudaTextureObject_t tex(int vec_size = 1);
+	void* data(size_t dev_n);
+	const void* data(size_t dev_id) const;
+	cudaTextureObject_t tex(size_t dev_n, evecsize vec_size = evs1);
 	size_t size() const override;
 };
 

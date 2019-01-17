@@ -398,13 +398,17 @@ bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data, const nb
 
 	{
 		double					tbegin = omp_get_wtime();
-		nbody_engine::memory*	fbuff;
-		fbuff = e0->create_buffer(sizeof(nbcoord_t) * e0->problem_size());
+		nbody_engine::memory*	fbuff = e0->create_buffer(sizeof(nbcoord_t) * e0->problem_size());
+		nbody_engine::memory*	y = e0->create_buffer(e0->get_y()->size());
+
 		e0->fill_buffer(fbuff, 1e10);
-		e0->fcompute(0, e0->get_y(), fbuff);
+		e0->copy_buffer(y, e0->get_y());
+		e0->fmadd_inplace(y, y, 0.01);// For check engines with distributed memory
+		e0->fcompute(0, y, fbuff);
 
 		e0->read_buffer(f0.data(), fbuff);
 		e0->free_buffer(fbuff);
+		e0->free_buffer(y);
 		qDebug() << "Time" << e0->type_name() << omp_get_wtime() - tbegin;
 	}
 
@@ -412,13 +416,17 @@ bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data, const nb
 
 	{
 		double					tbegin = omp_get_wtime();
-		nbody_engine::memory*	fbuff;
-		fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
+		nbody_engine::memory*	fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
+		nbody_engine::memory*	y = e->create_buffer(e->get_y()->size());
+
 		e->fill_buffer(fbuff, -1e10);
-		e->fcompute(0, e->get_y(), fbuff);
+		e->copy_buffer(y, e->get_y());
+		e->fmadd_inplace(y, y, 0.01);
+		e->fcompute(0, y, fbuff);
 
 		e->read_buffer(f.data(), fbuff);
 		e->free_buffer(fbuff);
+		e->free_buffer(y);
 		qDebug() << "Time" << e->type_name() << omp_get_wtime() - tbegin;
 	}
 
@@ -925,6 +933,24 @@ int main(int argc, char* argv[])
 		test_nbody_engine	tc1(nbody_create_engine(param), 128);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+	{
+		QVariantMap	param1(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", ""}}));
+		QVariantMap	param2(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "a"}}));
+		QVariantMap	param3(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "0,a"}}));
+		QVariantMap	param4(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "-1"}}));
+		QVariantMap	param5(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "9999"}}));
+		QVariantMap	params[] = {param1, param2, param3, param4, param5};
+		for(size_t n = 0; n != 5; ++n)
+		{
+			nbody_engine*	e(nbody_create_engine(params[n]));
+			if(e != NULL)
+			{
+				qDebug() << "Created engine with invalid device" << params[n];
+				res += 1;
+				delete e;
+			}
+		}
+	}
 #endif //HAVE_CUDA
 #ifdef HAVE_OPENCL
 	{
@@ -1152,6 +1178,18 @@ int main(int argc, char* argv[])
 	}
 #ifdef HAVE_CUDA
 	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "cuda"},
+			{"device", "0"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda"},
+			{"device", "0,0"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-15);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 10},
 			{"traverse_type", "nested_tree"},
@@ -1168,6 +1206,24 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "cuda_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"device", "0"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"device", "0,0"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-15);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 10},
 			{"traverse_type", "nested_tree"},
@@ -1181,6 +1237,24 @@ int main(int argc, char* argv[])
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
 									  128, 1e-13);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"device", "0"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"device", "0,0"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-15);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
@@ -1213,6 +1287,24 @@ int main(int argc, char* argv[])
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
 									  128, 1e-13);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap_stackless"},
+			{"device", "0"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
+			{"distance_to_node_radius_ratio", 10},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap_stackless"},
+			{"device", "0,0"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-15);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{

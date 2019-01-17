@@ -7,15 +7,15 @@
 #include <thrust/device_ptr.h>
 #include <thrust/extrema.h>
 
-__global__ void kfcompute_xyz(const nbcoord_t* y, int yoff, nbcoord_t* f, int foff, int stride)
+__global__ void kfcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int stride)
 {
 	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
 
-	const nbcoord_t*	vx = y + yoff + 3 * stride;
+	const nbcoord_t*	vx = y + 3 * stride;
 	const nbcoord_t*	vy = vx + stride;
 	const nbcoord_t*	vz = vx + 2 * stride;
 
-	nbcoord_t*	frx = f + foff;
+	nbcoord_t*	frx = f;
 	nbcoord_t*	fry = frx + stride;
 	nbcoord_t*	frz = frx + 2 * stride;
 
@@ -24,20 +24,20 @@ __global__ void kfcompute_xyz(const nbcoord_t* y, int yoff, nbcoord_t* f, int fo
 	frz[n1] = vz[n1];
 }
 
-__host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int count, int block_size)
+__host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, size_t count, size_t stride, int block_size)
 {
 	dim3 grid(count / block_size);
 	dim3 block(block_size);
 
-	kfcompute_xyz <<< grid, block >>> (y, 0, f, 0, count);
+	kfcompute_xyz <<< grid, block >>> (y, f, stride);
 }
 
-__global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t* f, int foff,
+__global__ void kfcompute(int offset_n1, const nbcoord_t* y, nbcoord_t* f,
 						  const nbcoord_t* mass, int points_count, int stride)
 {
-	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
+	int n1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1;
 
-	const nbcoord_t*	rx = y + yoff;
+	const nbcoord_t*	rx = y;
 	const nbcoord_t*	ry = rx + stride;
 	const nbcoord_t*	rz = rx + 2 * stride;
 
@@ -58,7 +58,7 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 
 	for(int b2 = 0; b2 < points_count; b2 += blockDim.x)
 	{
-		int			n2 = b2 + offset_n2 + threadIdx.x;
+		int			n2 = b2 + threadIdx.x;
 
 		// Copy data block to local memory
 		x2[ threadIdx.x ] = rx[n2];
@@ -105,27 +105,26 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 		res_z += local_res_z;
 	}
 
-	n1 += foff;
 	f[n1 + 3 * stride] = res_x;
 	f[n1 + 4 * stride] = res_y;
 	f[n1 + 5 * stride] = res_z;
 }
 
-__host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
-							 int count, int block_size)
+__host__ void fcompute_block(size_t off, const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
+							 size_t count, size_t total_count, int block_size)
 {
 	dim3	grid(count / block_size);
 	dim3	block(block_size);
 	size_t	shared_size(4 * sizeof(nbcoord_t) * block_size);
 
-	kfcompute <<< grid, block, shared_size >>> (0, y, 0, f, 0, m, count, count);
+	kfcompute <<< grid, block, shared_size >>> (off, y, f, m, total_count, total_count);
 }
 
 #define MAX_STACK_SIZE 24
 
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 // Traverse starts form a tree node
-__global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size,
+__global__ void kfcompute_heap_bh(int offset_n1, int points_count, int stride, int tree_size,
 								  nbcoord_t* f,
 								  const nbcoord_t* tree_cmx,
 								  const nbcoord_t* tree_cmy,
@@ -135,7 +134,6 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 								  const int* body_n)
 {
 	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
-	int		stride = points_count;
 	int		tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
 
 	int			n1 = body_n[tn1];
@@ -197,7 +195,7 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 	f[n1 + 5 * stride] = res_z;
 }
 
-__host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
+__host__ void fcompute_heap_bh(size_t offset_n1, size_t points_count, size_t total_count, size_t tree_size,
 							   nbcoord_t* f,
 							   const nbcoord_t* tree_cmx,
 							   const nbcoord_t* tree_cmy,
@@ -211,8 +209,7 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 	dim3 block(block_size);
 
 	cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1);
-
-	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, f,
+	kfcompute_heap_bh <<< grid, block >>> (offset_n1, total_count, total_count, tree_size, f,
 										   tree_cmx, tree_cmy, tree_cmz,
 										   tree_mass, tree_crit_r2, body_n);
 }
@@ -335,7 +332,7 @@ __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_
 	f[n1 + 5 * stride] = res_z;
 }
 
-__host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
+__host__ void fcompute_heap_bh_tex(size_t offset_n1, size_t points_count, size_t total_count, size_t tree_size,
 								   nbcoord_t* f,
 								   cudaTextureObject_t tree_xyzr,
 								   cudaTextureObject_t tree_mass,
@@ -346,8 +343,8 @@ __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count, int tree_siz
 	dim3 block(block_size);
 
 	cudaFuncSetCacheConfig(kfcompute_heap_bh_tex, cudaFuncCachePreferL1);
-
-	kfcompute_heap_bh_tex <<< grid, block >>> (offset_n1, points_count, tree_size, f,
+	//printf("offset_n1 %d, points_count %d, total_count %d, block_size %d\n", (int)offset_n1, (int)points_count, (int)total_count, (int)block_size);
+	kfcompute_heap_bh_tex <<< grid, block >>> (offset_n1, total_count, tree_size, f,
 											   tree_xyzr, tree_mass, body_n);
 }
 
@@ -411,7 +408,7 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 	f[n1 + 5 * stride] = res_z;
 }
 
-__host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count, int tree_size,
+__host__ void fcompute_heap_bh_stackless(size_t offset_n1, size_t points_count, size_t total_count, size_t tree_size,
 										 nbcoord_t* f,
 										 cudaTextureObject_t tree_xyzr,
 										 cudaTextureObject_t tree_mass,
@@ -423,7 +420,7 @@ __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count, int tr
 
 	cudaFuncSetCacheConfig(kfcompute_heap_bh_stackless, cudaFuncCachePreferL1);
 
-	kfcompute_heap_bh_stackless <<< grid, block >>> (offset_n1, points_count, tree_size, f,
+	kfcompute_heap_bh_stackless <<< grid, block >>> (offset_n1, total_count, tree_size, f,
 													 tree_xyzr, tree_mass, body_n);
 	//printf("%s\n", cudaGetErrorString(cudaGetLastError()));
 }
@@ -436,39 +433,38 @@ __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)
 }
 
 //! a[i] += b[i]*c
-__global__ void kfmadd_inplace(int offset, nbcoord_t* a, const nbcoord_t* b, nbcoord_t c)
+__global__ void kfmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c)
 {
-	int		i = blockDim.x * blockIdx.x + threadIdx.x + offset;
+	int		i = blockDim.x * blockIdx.x + threadIdx.x;
 	a[i] += b[i] * c;
 }
 
-__host__ void fmadd_inplace(int offset, nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count)
+__host__ void fmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, size_t count)
 {
 	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
-	kfmadd_inplace <<< grid, block >>> (offset, a, b, c);
+	kfmadd_inplace <<< grid, block >>> (a, b, c);
 }
 
-//! a[i+aoff] = b[i+boff] + c[i+coff]*d
-__global__ void kfmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
-					   nbcoord_t d, int aoff, int boff, int coff)
+//! a[i] = b[i] + c[i]*d
+__global__ void kfmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c, nbcoord_t d)
 {
 	int		i = blockDim.x * blockIdx.x + threadIdx.x;
-	a[i + aoff] = b[i + boff] + c[i + coff] * d;
+	a[i] = b[i] + c[i] * d;
 }
 
 __host__ void fmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
-					nbcoord_t d, int aoff, int boff, int coff, int count)
+					nbcoord_t d, size_t count)
 {
 	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
-	kfmadd <<< grid, block >>> (a, b, c, d, aoff, boff, coff);
+	kfmadd <<< grid, block >>> (a, b, c, d);
 }
 
 //! @result = max( fabs(a[k]), k=[0...asize) )
-__host__ void fmaxabs(const nbcoord_t* a, int asize, nbcoord_t& result)
+__host__ void fmaxabs(const nbcoord_t* a, size_t asize, nbcoord_t& result)
 {
 	thrust::device_ptr<const nbcoord_t>	ptr(thrust::device_pointer_cast(a));
 
