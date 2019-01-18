@@ -7,7 +7,7 @@ exists( /usr/local/cuda/bin ){
 	LIBS += -lcuda
 	LIBS += -lcudart
 	DEFINES += HAVE_CUDA
-	QMAKE_CUDA_SM=-gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37
+	QMAKE_CUDA_SM=-gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_61,code=sm_61
 
 	# CUDA compiler rule
 	cu.name = Cuda ${QMAKE_FILE_IN}
