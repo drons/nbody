@@ -7,7 +7,24 @@
 #include <QMouseEvent>
 #include <QPropertyAnimation>
 
-wgt_nbody_view::wgt_nbody_view(nbody_data* _data, nbcoord_t box_size)
+namespace {
+QGLFormat nb_glwidget_format()
+{
+	QGLFormat	f;
+	f.setSampleBuffers(true);
+	f.setSamples(16);
+	return f;
+}
+QGLFramebufferObjectFormat nb_framebuffer_format()
+{
+	QGLFramebufferObjectFormat	f;
+	f.setSamples(16);
+	f.setMipmap(false);
+	return f;
+}
+}
+wgt_nbody_view::wgt_nbody_view(nbody_data* _data, nbcoord_t box_size) :
+	QGLWidget(nb_glwidget_format())
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -105,7 +122,7 @@ void wgt_nbody_view::paint_color_box()
 
 void wgt_nbody_view::initializeGL()
 {
-	m_renderer = new QGLFramebufferObject(1920, 1080);
+	m_renderer = new QGLFramebufferObject(1920, 1080, nb_framebuffer_format());
 
 	GLfloat size_range[2] = {1, 1};
 	GLfloat size_step = 1;
