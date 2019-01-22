@@ -183,10 +183,18 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 	renderText(20, 20, QString("Step  = %1").arg(m_data->get_step()), QFont("Monospace"));
 	renderText(20, 40, QString("T     = %1").arg(m_data->get_time()), QFont("Monospace"));
 	renderText(20, 60, QString("Stars = %1").arg(m_data->get_count()), QFont("Monospace"));
-	renderText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2), QFont("Monospace"));
-	renderText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2), QFont("Monospace"));
-	renderText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2), QFont("Monospace"));
-
+	if(!qIsNaN(m_data->get_impulce_err()))
+	{
+		renderText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2), QFont("Monospace"));
+	}
+	if(!qIsNaN(m_data->get_impulce_err()))
+	{
+		renderText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2), QFont("Monospace"));
+	}
+	if(!qIsNaN(m_data->get_impulce_err()))
+	{
+		renderText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2), QFont("Monospace"));
+	}
 
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(1);
@@ -307,9 +315,18 @@ QImage wgt_nbody_view::render_to_image()
 		p.drawText(20, 20, QString("Step  = %1").arg(m_data->get_step()));
 		p.drawText(20, 40, QString("T     = %1").arg(m_data->get_time()));
 		p.drawText(20, 60, QString("Stars = %1").arg(m_data->get_count()));
-		p.drawText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2));
-		p.drawText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2));
-		p.drawText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2));
+		if(!qIsNaN(m_data->get_impulce_err()))
+		{
+			p.drawText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2));
+		}
+		if(!qIsNaN(m_data->get_impulce_moment_err()))
+		{
+			p.drawText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2));
+		}
+		if(!qIsNaN(m_data->get_energy_err()))
+		{
+			p.drawText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2));
+		}
 	}
 	return image;
 }
