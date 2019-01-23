@@ -269,6 +269,7 @@ void bench_solver()
 		{"engine", engine},
 		{"solver", "adams"},
 		{"rank", 2},
+		{"starter_solver", "rkdp"},
 		{"stars_count", stars_count}
 	}));
 	QVariantMap param02(std::map<QString, QVariant>(
@@ -277,6 +278,7 @@ void bench_solver()
 		{"engine", engine},
 		{"solver", "adams"},
 		{"rank", 3},
+		{"starter_solver", "rkdp"},
 		{"stars_count", stars_count}
 	}));
 	QVariantMap param03(std::map<QString, QVariant>(
@@ -285,6 +287,7 @@ void bench_solver()
 		{"engine", engine},
 		{"solver", "adams"},
 		{"rank", 5},
+		{"starter_solver", "rkdp"},
 		{"stars_count", stars_count}
 	}));
 	QVariantMap param04(std::map<QString, QVariant>(

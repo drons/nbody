@@ -19,7 +19,14 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 	nbody_solver*	solver = NULL;
 	if(type == "adams")
 	{
-		solver = new nbody_solver_adams(param.value("rank", 1).toInt());
+		QVariantMap	starter_param(param);
+		starter_param["solver"] = param.value("starter_solver", "euler");
+		nbody_solver*	starter = nbody_create_solver(starter_param);
+		if(starter == NULL)
+		{
+			return NULL;
+		}
+		solver = new nbody_solver_adams(starter, param.value("rank", 1).toInt());
 	}
 	else if(type == "euler")
 	{

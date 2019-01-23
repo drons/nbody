@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 
 	{
 		test_nbody_solvers_equality tc1(new nbody_engine_active(), new nbody_solver_euler(),
-										new nbody_engine_active(), new nbody_solver_adams(1));
+										new nbody_engine_active(), new nbody_solver_adams(new nbody_solver_euler(), 1));
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 

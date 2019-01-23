@@ -3,9 +3,10 @@
 #include "summation.h"
 #include <QDebug>
 
-nbody_solver_adams::nbody_solver_adams(size_t rank) : nbody_solver()
+nbody_solver_adams::nbody_solver_adams(nbody_solver* starter, size_t rank) :
+	nbody_solver()
 {
-	m_starter = new nbody_solver_euler();
+	m_starter = starter;
 	m_rank = rank;
 }
 
@@ -59,7 +60,13 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 	else
 	{
 		engine()->fcompute(t, y, m_f[fnum]);
-		engine()->fmadd_inplace(y, m_f[fnum], dt);
-		engine()->advise_time(dt);
+		m_starter->advise(dt);
 	}
+}
+
+void nbody_solver_adams::print_info() const
+{
+	nbody_solver::print_info();
+	qDebug() << "\trank" << m_rank;
+	qDebug() << "\tstarter" << m_starter->type_name();
 }
