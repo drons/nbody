@@ -459,11 +459,11 @@ void bench_solver(const QString& format)
 	}));
 
 	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07, param08, param09, param10, param11, param12, param13, param14};
-	std::vector<QVariant>					steps = {0.1, 0.05, 0.025, 0.01, 0.005, 0.0025, 0.001, 0.0001};
+	std::vector<QVariant>					steps = {0.1, 0.1 / 8, 0.1 / (8 * 8), 0.1 / (8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8 * 8)};
 	QString									variable_field = "max_step";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
 
-	run_bench(params, steps, result, variable_field, "PLVE", 1);
+	run_bench(params, steps, result, variable_field, "PLVE", 25);
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dE", format);
 }
 
