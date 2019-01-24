@@ -80,14 +80,13 @@ QVariantMap run(const QVariantMap& param, const QString& check_list, nbcoord_t m
 	return bench_res;
 }
 
-void print_table(const std::vector<QVariantMap>& params,
-				 const std::vector<QVariant>& variable,
-				 const std::vector<std::vector<QVariantMap>>& result,
-				 const QString& param_header, const QStringList& result_field)
+void print_table_txt(const std::vector<QVariantMap>& params,
+					 const std::vector<QVariant>& variable,
+					 const std::vector<std::vector<QVariantMap>>& result,
+					 const QString& param_header, const QStringList& result_field)
 {
 	using std::cout;
 	{
-//		cout << std::fixed(6);
 		cout << std::setw(10);
 		cout << std::setprecision(4);
 		cout << std::setfill(' ');
@@ -100,7 +99,6 @@ void print_table(const std::vector<QVariantMap>& params,
 	}
 	for(size_t i = 0; i < result.size(); ++i)
 	{
-//		cout << std::fixed(6);
 		cout << std::setw(10);
 		cout << std::setprecision(4);
 		cout << std::setfill(' ');
@@ -130,6 +128,74 @@ void print_table(const std::vector<QVariantMap>& params,
 	}
 }
 
+void print_table_pgfplots(const std::vector<QVariantMap>& params,
+						  const std::vector<QVariant>& variable,
+						  const std::vector<std::vector<QVariantMap>>& result,
+						  const QString& param_header, const QStringList& result_field)
+{
+	using std::cout;
+	if(result_field.size() != 2)
+	{
+		qDebug() << "Result size must be 2";
+		return;
+	}
+
+	for(size_t i = 0; i < result.size(); ++i)
+	{
+		cout << std::setw(10);
+		cout << std::setprecision(4);
+		cout << "\\addplot coordinates {" << std::endl << "\t";
+		for(size_t j = 0; j < variable.size(); ++j)
+		{
+			cout << "(";
+			for(int r = 0; r != result_field.size(); ++r)
+			{
+				if(r != 0)
+				{
+					cout << ", ";
+				}
+				cout << result[i][j][result_field[r]].toDouble();
+			}
+			cout << ") ";
+		}
+		cout << std::endl;
+		cout << "};" << std::endl;
+	}
+
+	cout << "\\legend{" << std::endl;
+
+	for(size_t i = 0; i < result.size(); ++i)
+	{
+		cout << "\t$" << params[i][param_header].toByteArray().data() << "$";
+		if(i != result.size() - 1)
+		{
+			cout << ",";
+		}
+		cout << std::endl;
+	}
+	cout << "};" << std::endl;
+}
+
+void print_table(const std::vector<QVariantMap>& params,
+				 const std::vector<QVariant>& variable,
+				 const std::vector<std::vector<QVariantMap>>& result,
+				 const QString& param_header, const QStringList& result_field,
+				 const QString& format)
+{
+	if(format == "txt")
+	{
+		print_table_txt(params, variable, result, param_header, result_field);
+	}
+	else if(format == "pgfplots")
+	{
+		print_table_pgfplots(params, variable, result, param_header, result_field);
+	}
+	else
+	{
+		qDebug() << "Unknown table format" << format;
+	}
+}
+
 int run_bench(const std::vector<QVariantMap>& params,
 			  const std::vector<QVariant>& variable,
 			  std::vector<std::vector<QVariantMap>>& result,
@@ -154,7 +220,7 @@ int run_bench(const std::vector<QVariantMap>& params,
 	return 0;
 }
 
-void bench_cpu()
+void bench_cpu(const QString& format)
 {
 	QVariantMap param1(std::map<QString, QVariant>(
 	{
@@ -178,10 +244,10 @@ void bench_cpu()
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(stars_counts.size()));
 
 	run_bench(params, stars_counts, result, variable_field, "PLV", 1);
-	print_table(params, stars_counts, result, "engine", QStringList() << "time");
+	print_table(params, stars_counts, result, "engine", QStringList() << "time", format);
 }
 
-void bench_gpu()
+void bench_gpu(const QString& format)
 {
 	QVariantMap param1(std::map<QString, QVariant>(
 	{
@@ -209,10 +275,10 @@ void bench_gpu()
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(stars_counts.size()));
 
 	run_bench(params, stars_counts, result, variable_field, "PLV", 1);
-	print_table(params, stars_counts, result, "engine", QStringList() << "time");
+	print_table(params, stars_counts, result, "engine", QStringList() << "time", format);
 }
 
-void bench_cuda_tree()
+void bench_cuda_tree(const QString& format)
 {
 	int		stars_count = 1024 * 256;
 	QVariantMap param1(std::map<QString, QVariant>(
@@ -256,10 +322,10 @@ void bench_cuda_tree()
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(block_sizes.size()));
 
 	run_bench(params, block_sizes, result, variable_field, "PLV", 0.03);
-	print_table(params, block_sizes, result, "name", QStringList() << "time");
+	print_table(params, block_sizes, result, "name", QStringList() << "time", format);
 }
 
-void bench_solver()
+void bench_solver(const QString& format)
 {
 	int		stars_count = 512;
 	QString	engine("block");
@@ -385,29 +451,31 @@ void bench_solver()
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
 
 	run_bench(params, steps, result, variable_field, "PLVE", 1);
-	print_table(params, steps, result, "name", QStringList() << "CC" << "dE");
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dE", format);
 }
 
 int main(int argc, char* argv[])
 {
 	QCoreApplication	a(argc, argv);
 	QVariantMap			param(nbody_parse_arguments(argc, argv));
+	const QString		bench(param.value("bench", "cpu").toString());
+	const QString		format(param.value("format", "txt").toString());
 
-	if(param["bench"].toString() == "cpu")
+	if(bench == "cpu")
 	{
-		bench_cpu();
+		bench_cpu(format);
 	}
-	else if(param["bench"].toString() == "gpu")
+	else if(bench == "gpu")
 	{
-		bench_gpu();
+		bench_gpu(format);
 	}
-	else if(param["bench"].toString() == "cuda_tree")
+	else if(bench == "cuda_tree")
 	{
-		bench_cuda_tree();
+		bench_cuda_tree(format);
 	}
-	else if(param["bench"].toString() == "solver")
+	else if(bench == "solver")
 	{
-		bench_solver();
+		bench_solver(format);
 	}
 
 	return 0;
