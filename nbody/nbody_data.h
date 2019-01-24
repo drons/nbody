@@ -19,17 +19,17 @@ class NBODY_DLL nbody_data
 	std::vector< nbcoord_t >	m_mass;
 
 	QString						m_check_list;
-	nbvertex_t					m_total_impulce;
-	nbvertex_t					m_total_impulce_moment;
-	nbvertex_t					m_mass_center;
-	nbcoord_t					m_total_kinetic_energy;
-	nbcoord_t					m_total_potential_energy;
+	nbvertex_t					m_initial_impulce;
+	nbvertex_t					m_initial_impulce_moment;
+	nbvertex_t					m_initial_mass_center;
+	nbcoord_t					m_initial_kinetic_energy;
+	nbcoord_t					m_initial_potential_energy;
 	nbvertex_t					m_last_total_impulce;
 	nbvertex_t					m_last_total_impulce_moment;
 	nbvertex_t					m_last_mass_center;
 	nbcoord_t					m_last_total_kinetic_energy;
 	nbcoord_t					m_last_total_potential_energy;
-	bool						m_last_values_computed;
+	bool						m_initial_values_computed;
 	double						m_timer_start;
 	size_t						m_timer_step;
 
@@ -66,10 +66,10 @@ public:
 					const nbcolor_t& color);
 	void make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz);
 
-	nbvertex_t get_total_impulce() const;
-	nbvertex_t get_total_impulce_moment() const;
-	nbvertex_t get_mass_center() const;
-	nbcoord_t get_total_energy() const;
+	nbvertex_t get_initial_impulce() const;
+	nbvertex_t get_initial_impulce_moment() const;
+	nbvertex_t get_initial_mass_center() const;
+	nbcoord_t get_initial_energy() const;
 	nbvertex_t get_last_total_impulce() const;
 	nbvertex_t get_last_total_impulce_moment() const;
 	nbvertex_t get_last_mass_center() const;

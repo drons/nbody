@@ -20,11 +20,11 @@ nbody_data::nbody_data() :
 	m_step(0),
 	m_box_size(0),
 	m_check_list("PLV"),
-	m_total_kinetic_energy(0),
-	m_total_potential_energy(0),
+	m_initial_kinetic_energy(0),
+	m_initial_potential_energy(0),
 	m_last_total_kinetic_energy(0),
 	m_last_total_potential_energy(0),
-	m_last_values_computed(false),
+	m_initial_values_computed(false),
 	m_timer_start(omp_get_wtime()),
 	m_timer_step(0)
 {
@@ -90,14 +90,14 @@ void nbody_data::print_statistics(nbody_engine* engine)
 		mass_center /= total_mass;
 	}
 
-	if(!m_last_values_computed)
+	if(!m_initial_values_computed)
 	{
-		m_total_impulce = total_impulce;
-		m_total_impulce_moment = total_impulce_moment;
-		m_mass_center = mass_center;
-		m_total_kinetic_energy = total_kinetic_energy;
-		m_total_potential_energy = total_potential_energy;
-		m_last_values_computed = true;
+		m_initial_impulce = total_impulce;
+		m_initial_impulce_moment = total_impulce_moment;
+		m_initial_mass_center = mass_center;
+		m_initial_kinetic_energy = total_kinetic_energy;
+		m_initial_potential_energy = total_potential_energy;
+		m_initial_values_computed = true;
 	}
 
 	QDebug	g(qDebug());
@@ -109,19 +109,19 @@ void nbody_data::print_statistics(nbody_engine* engine)
 	if(m_check_list.contains("P"))
 	{
 		m_last_total_impulce = total_impulce;
-		total_impulce -= m_total_impulce;
+		total_impulce -= m_initial_impulce;
 		g << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3);
 	}
 	if(m_check_list.contains("L"))
 	{
 		m_last_total_impulce_moment = total_impulce_moment;
-		total_impulce_moment -= m_total_impulce_moment;
+		total_impulce_moment -= m_initial_impulce_moment;
 		g << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3);
 	}
 	if(m_check_list.contains("V"))
 	{
 		m_last_mass_center = mass_center;
-		nbvertex_t	mass_center_vel((get_last_mass_center() - get_mass_center()) / m_time);
+		nbvertex_t	mass_center_vel((get_last_mass_center() - get_initial_mass_center()) / m_time);
 		g << "Vcm" << QString("%1").arg((mass_center_vel).length(), 4, 'e', 3);
 	}
 	if(m_check_list.contains("E"))
@@ -321,24 +321,24 @@ void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nb
 	m_box_size = static_cast<size_t>(std::max(std::max(static_cast<nbcoord_t>(1), sx), std::max(sy, sz)));
 }
 
-nbvertex_t nbody_data::get_total_impulce() const
+nbvertex_t nbody_data::get_initial_impulce() const
 {
-	return m_total_impulce;
+	return m_initial_impulce;
 }
 
-nbvertex_t nbody_data::get_total_impulce_moment() const
+nbvertex_t nbody_data::get_initial_impulce_moment() const
 {
-	return m_total_impulce_moment;
+	return m_initial_impulce_moment;
 }
 
-nbvertex_t nbody_data::get_mass_center() const
+nbvertex_t nbody_data::get_initial_mass_center() const
 {
-	return m_mass_center;
+	return m_initial_mass_center;
 }
 
-nbcoord_t nbody_data::get_total_energy() const
+nbcoord_t nbody_data::get_initial_energy() const
 {
-	return m_total_kinetic_energy + m_total_potential_energy;
+	return m_initial_kinetic_energy + m_initial_potential_energy;
 }
 
 nbvertex_t nbody_data::get_last_total_impulce() const
@@ -363,19 +363,19 @@ nbcoord_t nbody_data::get_last_total_energy() const
 
 nbcoord_t nbody_data::get_impulce_err() const
 {
-	return fabs(100.0 * (get_last_total_impulce() - get_total_impulce()).length() /
-				get_total_impulce().length());
+	return fabs(100.0 * (get_last_total_impulce() - get_initial_impulce()).length() /
+				get_initial_impulce().length());
 }
 
 nbcoord_t nbody_data::get_impulce_moment_err() const
 {
-	return fabs(100.0 * (get_last_total_impulce_moment() - get_total_impulce_moment()).length() /
-				get_total_impulce_moment().length());
+	return fabs(100.0 * (get_last_total_impulce_moment() - get_initial_impulce_moment()).length() /
+				get_initial_impulce_moment().length());
 }
 
 nbcoord_t nbody_data::get_energy_err() const
 {
-	return fabs(100.0 * (get_last_total_energy() - get_total_energy()) / get_total_energy());
+	return fabs(100.0 * (get_last_total_energy() - get_initial_energy()) / get_initial_energy());
 }
 
 bool nbody_data::is_equal(const nbody_data& other, const nbcoord_t eps) const
