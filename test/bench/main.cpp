@@ -22,9 +22,9 @@ int run(nbody_solver* solver, nbody_data* data, const QString& check_list, QVari
 	solver->engine()->print_info();
 	data->print_statistics(solver->engine());
 	solver->run(data, NULL, max_time, dump_step, check_step);
-	bench_res["dP"] = data->get_impulce_err();
-	bench_res["dL"] = data->get_impulce_moment_err();
-	bench_res["dE"] = data->get_energy_err();
+	bench_res["dP"] = data->get_impulce_err() / 100;
+	bench_res["dL"] = data->get_impulce_moment_err() / 100;
+	bench_res["dE"] = data->get_energy_err() / 100;
 	bench_res["CC"] = static_cast<qulonglong>(solver->engine()->get_compute_count());
 	return 0;
 }
