@@ -139,12 +139,27 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 		qDebug() << "Result size must be 2";
 		return;
 	}
+	std::vector<std::string>	plotcolors = {"red", "blue", "teal", "black"};
+	std::vector<std::string>	plotmarks = {"*", "triangle*", "diamond*", "square*", "+", "x"};
+	std::vector<std::string>	plotlines = {"solid", "dotted", "dashed"};
+	std::vector<std::string>	styles;
 
+	for(auto line : plotlines)
+	{
+		for(auto mark : plotmarks)
+		{
+			for(auto color : plotcolors)
+			{
+				styles.push_back(color + ",mark=" + mark + "," + line);
+			}
+		}
+	}
+	qDebug() << result_field;
 	for(size_t i = 0; i < result.size(); ++i)
 	{
 		cout << std::setw(10);
 		cout << std::setprecision(4);
-		cout << "\\addplot coordinates {" << std::endl << "\t";
+		cout << "\\addplot [" << styles[i % result.size()] << "] coordinates { ";
 		for(size_t j = 0; j < variable.size(); ++j)
 		{
 			cout << "(";
@@ -158,20 +173,18 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 			}
 			cout << ") ";
 		}
-		cout << std::endl;
 		cout << "};" << std::endl;
 	}
 
-	cout << "\\legend{" << std::endl;
+	cout << "\\legend{";
 
 	for(size_t i = 0; i < result.size(); ++i)
 	{
-		cout << "\t$" << params[i][param_header].toByteArray().data() << "$";
+		cout << "$" << params[i][param_header].toByteArray().data() << "$";
 		if(i != result.size() - 1)
 		{
 			cout << ",";
 		}
-		cout << std::endl;
 	}
 	cout << "};" << std::endl;
 }
