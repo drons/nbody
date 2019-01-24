@@ -30,10 +30,11 @@ void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	#pragma omp single
 	build(count, bodies_indites.data(), rx, ry, rz, mass, NBODY_HEAP_ROOT_INDEX, DIM_NUM_X);
 
+	nbcoord_t	distance_to_node_radius_ratio_sqr(distance_to_node_radius_ratio * distance_to_node_radius_ratio);
 	#pragma omp parallel for
 	for(size_t n = 0; n < m_radius_sqr.size(); ++n)
 	{
-		m_radius_sqr[n] *= distance_to_node_radius_ratio;
+		m_radius_sqr[n] *= distance_to_node_radius_ratio_sqr;
 	}
 }
 

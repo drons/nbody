@@ -22,10 +22,9 @@ class nbody_space_tree
 		void build(size_t count, size_t* indites,
 				   const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 				   const nbcoord_t* mass, size_t dimension,
-				   nbcoord_t distance_to_node_radius_ratio);
+				   nbcoord_t distance_to_node_radius_ratio_sqr);
 	};
 	node*		m_root;
-	nbcoord_t	m_distance_to_node_radius_ratio;
 public:
 	nbody_space_tree();
 	~nbody_space_tree();

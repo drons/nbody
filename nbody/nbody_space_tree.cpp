@@ -1,8 +1,7 @@
 #include "nbody_space_tree.h"
 
 nbody_space_tree::nbody_space_tree() :
-	m_root(nullptr),
-	m_distance_to_node_radius_ratio(0)
+	m_root(nullptr)
 {
 }
 
@@ -29,7 +28,7 @@ nbody_space_tree::node::~node()
 void nbody_space_tree::node::build(size_t count, size_t* indites,
 								   const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 								   const nbcoord_t* mass, size_t dimension,
-								   nbcoord_t distance_to_node_radius_ratio)
+								   nbcoord_t distance_to_node_radius_ratio_sqr)
 {
 	if(count == 1) // It is a leaf
 	{
@@ -71,15 +70,15 @@ void nbody_space_tree::node::build(size_t count, size_t* indites,
 	if(count > NBODY_DATA_BLOCK_SIZE)
 	{
 		#pragma omp task
-		m_left->build(left_size, indites, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio);
+		m_left->build(left_size, indites, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio_sqr);
 		#pragma omp task
-		m_right->build(right_size, median, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio);
+		m_right->build(right_size, median, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio_sqr);
 		#pragma omp taskwait
 	}
 	else
 	{
-		m_left->build(left_size, indites, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio);
-		m_right->build(right_size, median, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio);
+		m_left->build(left_size, indites, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio_sqr);
+		m_right->build(right_size, median, rx, ry, rz, mass, next_dimension, distance_to_node_radius_ratio_sqr);
 	}
 
 	m_mass = m_left->m_mass + m_right->m_mass;
@@ -93,7 +92,7 @@ void nbody_space_tree::node::build(size_t count, size_t* indites,
 						std::max(m_left->m_bmax.z, m_right->m_bmax.z));
 	m_radius_sqr = (m_bmax - m_bmin).length() * static_cast<nbcoord_t>(0.5) +
 				   ((m_bmax + m_bmin) / 2 - m_mass_center).length();
-	m_radius_sqr = m_radius_sqr * m_radius_sqr * distance_to_node_radius_ratio;
+	m_radius_sqr = m_radius_sqr * m_radius_sqr * distance_to_node_radius_ratio_sqr;
 }
 
 nbvertex_t nbody_space_tree::traverse(const nbody_data* data,
@@ -143,8 +142,8 @@ void nbody_space_tree::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	}
 
 	m_root = new node();
-	m_distance_to_node_radius_ratio = distance_to_node_radius_ratio;
 	#pragma omp parallel
 	#pragma omp single
-	m_root->build(count, bodies_indites.data(), rx, ry, rz, mass, 0, distance_to_node_radius_ratio);
+	m_root->build(count, bodies_indites.data(), rx, ry, rz, mass, 0,
+				  distance_to_node_radius_ratio * distance_to_node_radius_ratio);
 }

@@ -971,7 +971,7 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl_bh"},
 			{"verbose", "1"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"oclprof", "1"}
 		}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
@@ -980,7 +980,7 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl_bh"},
 			{"verbose", "1"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"}
 		}));
 		test_nbody_engine	tc1(nbody_create_engine(param));
@@ -988,12 +988,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "opencl_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
@@ -1018,7 +1018,7 @@ int main(int argc, char* argv[])
 
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "tree"}
 		}));
@@ -1027,7 +1027,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
@@ -1036,7 +1036,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "tree"}
 		}));
@@ -1045,7 +1045,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
@@ -1054,7 +1054,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "tree"}
 		}));
@@ -1063,7 +1063,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
@@ -1072,12 +1072,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "tree"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
@@ -1088,12 +1088,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "tree"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "tree"}
 		}));
@@ -1104,12 +1104,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
@@ -1120,12 +1120,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap_stackless"}
 		}));
@@ -1136,12 +1136,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap_stackless"}
 		}));
@@ -1153,12 +1153,12 @@ int main(int argc, char* argv[])
 #ifdef HAVE_CUDA
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
@@ -1169,12 +1169,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
@@ -1185,12 +1185,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap_stackless"}
 		}));
@@ -1201,12 +1201,12 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 1e16},
+			{"distance_to_node_radius_ratio", 1e8},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap_stackless"}
 		}));
@@ -1217,7 +1217,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "tree"}
 		}));
@@ -1233,12 +1233,12 @@ int main(int argc, char* argv[])
 #ifdef HAVE_OPENCL
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
 			{"tree_layout", "heap"}
 		}));
@@ -1250,12 +1250,12 @@ int main(int argc, char* argv[])
 #endif // HAVE_OPENCL
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "invalid"}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 10},
+			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "invalid"},
 			{"tree_layout", "heap"}
 		}));

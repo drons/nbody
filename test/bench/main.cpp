@@ -547,7 +547,7 @@ void bench_cpu_tree(const QString& format)
 	}));
 
 	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06};
-	std::vector<QVariant>					ratio = {1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 400, 900, 10000, 1000000};
+	std::vector<QVariant>					ratio = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 100, 1000};
 	QString									variable_field = "distance_to_node_radius_ratio";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(ratio.size()));
 
