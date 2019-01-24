@@ -465,6 +465,8 @@ void bench_solver(const QString& format)
 
 	run_bench(params, steps, result, variable_field, "PLVE", 25);
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dE", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dL", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dP", format);
 }
 
 int main(int argc, char* argv[])
