@@ -61,7 +61,7 @@ QVariantMap run(const QVariantMap& param, const QString& check_list, nbcoord_t m
 	}
 	engine->init(&data);
 	solver->set_engine(engine);
-	QVariantMap	bench_res;
+	QVariantMap	bench_res(param);
 
 	double wtime = omp_get_wtime();
 	int res = run(solver, &data, check_list, bench_res, max_time);
@@ -469,6 +469,93 @@ void bench_solver(const QString& format)
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dP", format);
 }
 
+void bench_cpu_tree(const QString& format)
+{
+	int		stars_count = 1024 * 16;
+
+	QVariantMap param01(std::map<QString, QVariant>(
+	{
+		{"name", "cycle+tree"},
+		{"engine", "simple_bh"},
+		{"traverse_type", "cycle"},
+		{"tree_layout", "tree"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+	QVariantMap param02(std::map<QString, QVariant>(
+	{
+		{"name", "cycle+heap"},
+		{"engine", "simple_bh"},
+		{"traverse_type", "cycle"},
+		{"tree_layout", "heap"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+	QVariantMap param03(std::map<QString, QVariant>(
+	{
+		{"name", "cycle+heap stackless"},
+		{"engine", "simple_bh"},
+		{"traverse_type", "cycle"},
+		{"tree_layout", "heap_stackless"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+	QVariantMap param04(std::map<QString, QVariant>(
+	{
+		{"name", "nested tree+tree"},
+		{"engine", "simple_bh"},
+		{"traverse_type", "nested_tree"},
+		{"tree_layout", "tree"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+	QVariantMap param05(std::map<QString, QVariant>(
+	{
+		{"name", "nested tree+heap"},
+		{"engine", "simple_bh"},
+		{"traverse_type", "nested_tree"},
+		{"tree_layout", "heap"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+	QVariantMap param06(std::map<QString, QVariant>(
+	{
+		{"name", "nested tree+heap stackless"},
+		{"engine", "simple_bh"},
+		{"traverse_type", "nested_tree"},
+		{"tree_layout", "heap_stackless"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+
+	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06};
+	std::vector<QVariant>					ratio = {1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 400, 900, 10000, 1000000};
+	QString									variable_field = "distance_to_node_radius_ratio";
+	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(ratio.size()));
+
+	run_bench(params, ratio, result, variable_field, "PLVE", 1);
+	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "dE", format);
+	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "time", format);
+}
+
 int main(int argc, char* argv[])
 {
 	QCoreApplication	a(argc, argv);
@@ -491,6 +578,10 @@ int main(int argc, char* argv[])
 	else if(bench == "solver")
 	{
 		bench_solver(format);
+	}
+	else if(bench == "cpu_tree")
+	{
+		bench_cpu_tree(format);
 	}
 
 	return 0;
