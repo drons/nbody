@@ -25,7 +25,7 @@ public:
 	{
 		size_t	size = m_body_n.size();
 		#pragma omp parallel for schedule(dynamic, 4)
-		for(size_t idx = size/2; idx < size; ++idx)
+		for(size_t idx = size / 2; idx < size; ++idx)
 		{
 			size_t	body_n(m_body_n[idx]);
 			visit(body_n, m_mass_center[idx], m_mass[idx]);

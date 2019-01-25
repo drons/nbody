@@ -44,7 +44,9 @@ struct nbody_heap_func
 	{
 #ifdef __CUDA_ARCH__
 		idx = (idx >> (__ffs(~idx) - 1));
-#else //__CUDA_ARCH__
+#elif defined(__GNUC__)
+		idx = idx >> (__builtin_ffs(~idx) - 1);
+#else
 		// While index is 'right' -> go down
 		while(is_right(idx))
 		{
