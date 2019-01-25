@@ -568,13 +568,22 @@ void bench_cpu_tree(const QString& format)
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
-
-	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06};
-	std::vector<QVariant>					ratio = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 100, 1000};
+	QVariantMap param07(std::map<QString, QVariant>(
+	{
+		{"name", "openmp+block+optimization"},
+		{"engine", "block"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rk4"},
+		{"stars_count", stars_count},
+		{"max_step", "0.01"}
+	}));
+	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07};
+	std::vector<QVariant>					ratio = {1, 4, 16, 64, 256, 1024};
 	QString									variable_field = "distance_to_node_radius_ratio";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(ratio.size()));
 
-	run_bench(params, ratio, result, variable_field, "PLVE", 1);
+	run_bench(params, ratio, result, variable_field, "PLVE", 0.1);
 	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "dE",
 				QStringList() << "$Distance/Node_{radius}$" << "$dE/E_0$", format);
 	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "time",
