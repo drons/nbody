@@ -131,7 +131,8 @@ void print_table_txt(const std::vector<QVariantMap>& params,
 void print_table_pgfplots(const std::vector<QVariantMap>& params,
 						  const std::vector<QVariant>& variable,
 						  const std::vector<std::vector<QVariantMap>>& result,
-						  const QString& param_header, const QStringList& result_field)
+						  const QString& param_header, const QStringList& result_field,
+						  const QStringList& axis_label)
 {
 	using std::cout;
 	if(result_field.size() != 2)
@@ -154,7 +155,18 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 			}
 		}
 	}
-	qDebug() << result_field;
+
+	std::string	axistype = "loglogaxis";
+	std::string	height = "6in";
+	std::string	width = "6in";
+	cout << "\\begin{tikzpicture}" << std::endl;
+	cout << "\\begin{" << axistype << "}[" << std::endl;
+	cout << "    height=" << height << "," << std::endl;
+	cout << "    width=" << width << "," << std::endl;
+	cout << "    xlabel=" << axis_label[0].toLocal8Bit().data() << "," << std::endl;
+	cout << "    ylabel=" << axis_label[1].toLocal8Bit().data() << std::endl;
+	cout << "]" << std::endl;
+
 	for(size_t i = 0; i < result.size(); ++i)
 	{
 		cout << std::setw(10);
@@ -187,21 +199,29 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 		}
 	}
 	cout << "};" << std::endl;
+	cout << "\\end{" << axistype << "}" << std::endl;
+	cout << "\\end{tikzpicture}" << std::endl;
 }
 
 void print_table(const std::vector<QVariantMap>& params,
 				 const std::vector<QVariant>& variable,
 				 const std::vector<std::vector<QVariantMap>>& result,
 				 const QString& param_header, const QStringList& result_field,
-				 const QString& format)
+				 const QStringList& _axis_labels, const QString& format)
 {
+	QStringList	axis_labels(_axis_labels);
+	if(axis_labels.isEmpty())
+	{
+		axis_labels = result_field;
+	}
+
 	if(format == "txt")
 	{
 		print_table_txt(params, variable, result, param_header, result_field);
 	}
 	else if(format == "pgfplots")
 	{
-		print_table_pgfplots(params, variable, result, param_header, result_field);
+		print_table_pgfplots(params, variable, result, param_header, result_field, axis_labels);
 	}
 	else
 	{
@@ -257,7 +277,7 @@ void bench_cpu(const QString& format)
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(stars_counts.size()));
 
 	run_bench(params, stars_counts, result, variable_field, "PLV", 1);
-	print_table(params, stars_counts, result, "engine", QStringList() << "time", format);
+	print_table(params, stars_counts, result, "engine", QStringList() << "time", QStringList(), format);
 }
 
 void bench_gpu(const QString& format)
@@ -288,7 +308,7 @@ void bench_gpu(const QString& format)
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(stars_counts.size()));
 
 	run_bench(params, stars_counts, result, variable_field, "PLV", 1);
-	print_table(params, stars_counts, result, "engine", QStringList() << "time", format);
+	print_table(params, stars_counts, result, "engine", QStringList() << "time", QStringList(), format);
 }
 
 void bench_cuda_tree(const QString& format)
@@ -335,7 +355,7 @@ void bench_cuda_tree(const QString& format)
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(block_sizes.size()));
 
 	run_bench(params, block_sizes, result, variable_field, "PLV", 0.03);
-	print_table(params, block_sizes, result, "name", QStringList() << "time", format);
+	print_table(params, block_sizes, result, "name", QStringList() << "time", QStringList(), format);
 }
 
 void bench_solver(const QString& format)
@@ -464,9 +484,12 @@ void bench_solver(const QString& format)
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
 
 	run_bench(params, steps, result, variable_field, "PLVE", 25);
-	print_table(params, steps, result, "name", QStringList() << "CC" << "dE", format);
-	print_table(params, steps, result, "name", QStringList() << "CC" << "dL", format);
-	print_table(params, steps, result, "name", QStringList() << "CC" << "dP", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dE",
+				QStringList() << "$f_n$ compute count" << "$dE/E_0$", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dL",
+				QStringList() << "$f_n$ compute count" << "$dL/L_0$", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dP",
+				QStringList() << "$f_n$ compute count" << "$dP/P_0$", format);
 }
 
 void bench_cpu_tree(const QString& format)
@@ -552,8 +575,10 @@ void bench_cpu_tree(const QString& format)
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(ratio.size()));
 
 	run_bench(params, ratio, result, variable_field, "PLVE", 1);
-	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "dE", format);
-	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "time", format);
+	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "dE",
+				QStringList() << "$Distance/Node_{radius}$" << "$dE/E_0$", format);
+	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "time",
+				QStringList() << "$Distance/Node_{radius}$" << "Step time (s)", format);
 }
 
 int main(int argc, char* argv[])
