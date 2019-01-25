@@ -23,13 +23,12 @@ public:
 	template<class Visitor>
 	void traverse(Visitor visit) const
 	{
-		for(size_t idx = 0; idx != m_body_n.size(); ++idx)
+		size_t	size = m_body_n.size();
+		#pragma omp parallel for schedule(dynamic, 4)
+		for(size_t idx = size/2; idx < size; ++idx)
 		{
 			size_t	body_n(m_body_n[idx]);
-			if(body_n != std::numeric_limits<size_t>::max())
-			{
-				visit(body_n, m_mass_center[idx], m_mass[idx]);
-			}
+			visit(body_n, m_mass_center[idx], m_mass[idx]);
 		}
 	}
 	const std::vector<nbvertex_t>& get_mass_center() const;
