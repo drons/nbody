@@ -30,6 +30,7 @@ class NBODY_DLL nbody_data
 	nbcoord_t					m_last_total_kinetic_energy;
 	nbcoord_t					m_last_total_potential_energy;
 	bool						m_initial_values_computed;
+	size_t						m_prev_compute_count;
 	double						m_timer_start;
 	size_t						m_timer_step;
 

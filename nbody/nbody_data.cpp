@@ -25,6 +25,7 @@ nbody_data::nbody_data() :
 	m_last_total_kinetic_energy(0),
 	m_last_total_potential_energy(0),
 	m_initial_values_computed(false),
+	m_prev_compute_count(0),
 	m_timer_start(omp_get_wtime()),
 	m_timer_step(0)
 {
@@ -106,7 +107,10 @@ void nbody_data::print_statistics(nbody_engine* engine)
 #endif
 	g << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
 	  << "t" << QString("%1").arg(m_time, 6, 'f', 6, QChar(' '))
-	  << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'));
+	  << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'))
+	  << "SC" << QString("%1").arg(compute_count - m_prev_compute_count, 8, 10,  QChar(' '));
+
+	m_prev_compute_count = compute_count;
 
 	if(m_check_list.contains("P"))
 	{
