@@ -101,7 +101,9 @@ void nbody_data::print_statistics(nbody_engine* engine)
 	}
 
 	QDebug	g(qDebug());
-
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 3, 0))
+	g.noquote();
+#endif
 	g << "#" << QString("%1").arg(m_step, 8, 10,  QChar('0'))
 	  << "t" << QString("%1").arg(m_time, 6, 'f', 6, QChar(' '))
 	  << "CC" << QString("%1").arg(compute_count, 8, 10,  QChar('0'));
