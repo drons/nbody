@@ -642,7 +642,8 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 
 	std::vector<nbcoord_t>	tree_cmx_host(tree_size), tree_cmy_host(tree_size), tree_cmz_host(tree_size);
 
-	for(size_t n = 0; n != tree_size; ++n)
+	#pragma omp parallel for
+	for(size_t n = 0; n < tree_size; ++n)
 	{
 		tree_cmx_host[n] = heap.get_mass_center()[n].x;
 		tree_cmy_host[n] = heap.get_mass_center()[n].y;
@@ -676,7 +677,8 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 	else
 	{
 		std::vector<cl_int>	indites_host(tree_size);
-		for(size_t n = 0; n != tree_size; ++n)
+		#pragma omp parallel for
+		for(size_t n = 0; n < tree_size; ++n)
 		{
 			indites_host[n] = static_cast<cl_int>(heap.get_body_n()[n]);
 		}

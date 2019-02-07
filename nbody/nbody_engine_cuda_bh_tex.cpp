@@ -81,7 +81,8 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 	std::vector<vertex4<nbcoord_t>>	host_tree_xyzr(tree_size);
 	std::vector<int>				host_indites(tree_size);
 
-	for(size_t n = 0; n != tree_size; ++n)
+	#pragma omp parallel for
+	for(size_t n = 0; n < tree_size; ++n)
 	{
 		host_tree_xyzr[n].x = heap.get_mass_center()[n].x;
 		host_tree_xyzr[n].y = heap.get_mass_center()[n].y;
