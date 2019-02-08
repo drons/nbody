@@ -121,7 +121,7 @@ __host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* 
 	kfcompute <<< grid, block, shared_size >>> (0, y, 0, f, 0, m, count, count);
 }
 
-#define MAX_STACK_SIZE 24
+#define MAX_STACK_SIZE 64
 
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 // Traverse starts form a tree node
