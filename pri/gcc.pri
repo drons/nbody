@@ -21,6 +21,7 @@ QMAKE_CXXFLAGS += -Werror=logical-op
 QMAKE_CXXFLAGS += -fpermissive
 QMAKE_CXXFLAGS += -Werror=maybe-uninitialized
 #QMAKE_CXXFLAGS += -Werror=switch-enum
+QMAKE_CXXFLAGS += -pedantic-errors
 
 release:equals(QT_MAJOR_VERSION,4){
 	QMAKE_CXXFLAGS += -Wno-unused-variable

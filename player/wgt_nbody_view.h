@@ -8,7 +8,7 @@
 class wgt_nbody_view : public QGLWidget
 {
 	Q_OBJECT
-	Q_PROPERTY(QPointF m_split_point READ get_split_point WRITE set_split_point);
+	Q_PROPERTY(QPointF m_split_point READ get_split_point WRITE set_split_point)
 	nbody_data*				m_data;
 	nbcoord_t				m_mesh_sx;
 	nbcoord_t				m_mesh_sy;
