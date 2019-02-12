@@ -25,6 +25,7 @@ TEST_DATA += \
     ../data/rk4.txt \
     ../data/rkck.txt \
     ../data/rkdp.txt \
+    ../data/rkdverk.txt \
     ../data/rkf.txt \
     ../data/rkgl.txt \
     ../data/rklc.txt \

@@ -6,6 +6,7 @@
 #include "nbody_solver_rk4.h"
 #include "nbody_solver_rkck.h"
 #include "nbody_solver_rkdp.h"
+#include "nbody_solver_rkdverk.h"
 #include "nbody_solver_rkf.h"
 #include "nbody_solver_rkgl.h"
 #include "nbody_solver_rklc.h"

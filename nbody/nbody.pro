@@ -32,10 +32,11 @@ SOURCES	+= \
 	nbody_solver_rk_butcher.cpp \
 	nbody_solver_rk4.cpp \
 	nbody_solver_rkck.cpp \
-    nbody_solver_rkdp.cpp \
+	nbody_solver_rkdp.cpp \
+	nbody_solver_rkdverk.cpp \
 	nbody_solver_rkf.cpp \
 	nbody_solver_rkgl.cpp \
-    nbody_solver_rklc.cpp \
+	nbody_solver_rklc.cpp \
 	nbody_solver_stormer.cpp \
 	nbody_solver_trapeze.cpp \
 	nbody_solvers.cpp \
@@ -66,6 +67,7 @@ HEADERS	+= \
 	nbody_solver_rk4.h \
 	nbody_solver_rkck.h \
 	nbody_solver_rkdp.h \
+	nbody_solver_rkdverk.h \
 	nbody_solver_rkf.h \
 	nbody_solver_rkgl.h \
 	nbody_solver_rklc.h \

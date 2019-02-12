@@ -421,13 +421,21 @@ void bench_solver(const QString& format)
 	}));
 	QVariantMap param08(std::map<QString, QVariant>(
 	{
+		{"name", "rkdverk"},
+		{"engine", engine},
+		{"solver", "rkdverk"},
+		{"stars_count", stars_count},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param09(std::map<QString, QVariant>(
+	{
 		{"name", "rkf"},
 		{"engine", engine},
 		{"solver", "rkf"},
 		{"stars_count", stars_count},
 		{"min_step", "-1"}
 	}));
-	QVariantMap param09(std::map<QString, QVariant>(
+	QVariantMap param10(std::map<QString, QVariant>(
 	{
 		{"name", "rkgl_1s"},
 		{"engine", engine},
@@ -435,7 +443,7 @@ void bench_solver(const QString& format)
 		{"refine_steps_count", 1},
 		{"stars_count", stars_count}
 	}));
-	QVariantMap param10(std::map<QString, QVariant>(
+	QVariantMap param11(std::map<QString, QVariant>(
 	{
 		{"name", "rkgl_3s"},
 		{"engine", engine},
@@ -443,7 +451,7 @@ void bench_solver(const QString& format)
 		{"refine_steps_count", 3},
 		{"stars_count", stars_count}
 	}));
-	QVariantMap param11(std::map<QString, QVariant>(
+	QVariantMap param12(std::map<QString, QVariant>(
 	{
 		{"name", "rklc_1s"},
 		{"engine", engine},
@@ -452,7 +460,7 @@ void bench_solver(const QString& format)
 		{"stars_count", stars_count},
 		{"min_step", "-1"}
 	}));
-	QVariantMap param12(std::map<QString, QVariant>(
+	QVariantMap param13(std::map<QString, QVariant>(
 	{
 		{"name", "rklc_3s"},
 		{"engine", engine},
@@ -461,7 +469,7 @@ void bench_solver(const QString& format)
 		{"stars_count", stars_count},
 		{"min_step", "-1"}
 	}));
-	QVariantMap param13(std::map<QString, QVariant>(
+	QVariantMap param14(std::map<QString, QVariant>(
 	{
 		{"name", "rklc_5s"},
 		{"engine", engine},
@@ -470,7 +478,7 @@ void bench_solver(const QString& format)
 		{"stars_count", stars_count},
 		{"min_step", "-1"}
 	}));
-	QVariantMap param14(std::map<QString, QVariant>(
+	QVariantMap param15(std::map<QString, QVariant>(
 	{
 		{"name", "trapeze"},
 		{"engine", engine},
@@ -478,7 +486,7 @@ void bench_solver(const QString& format)
 		{"stars_count", stars_count}
 	}));
 
-	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07, param08, param09, param10, param11, param12, param13, param14};
+	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07, param08, param09, param10, param11, param12, param13, param14, param15};
 	std::vector<QVariant>					steps = {0.1, 0.1 / 8, 0.1 / (8 * 8), 0.1 / (8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8 * 8)};
 	QString									variable_field = "max_step";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
