@@ -500,6 +500,78 @@ void bench_solver(const QString& format)
 				QStringList() << "$f_n$ compute count" << "$dP/P_0$", format);
 }
 
+void bench_solver_quad(const QString& format)
+{
+	int		stars_count = 512;
+	double	error_threshold = 1e-4;
+	QString	engine("block");
+
+	QVariantMap param01(std::map<QString, QVariant>(
+	{
+		{"name", "adams5"},
+		{"engine", engine},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"starter_solver", "rkdp"},
+		{"error_threshold", error_threshold},
+		{"stars_count", stars_count}
+	}));
+	QVariantMap param02(std::map<QString, QVariant>(
+	{
+		{"name", "euler"},
+		{"engine", engine},
+		{"solver", "euler"},
+		{"stars_count", stars_count}
+	}));
+	QVariantMap param03(std::map<QString, QVariant>(
+	{
+		{"name", "rk4"},
+		{"engine", engine},
+		{"solver", "rk4"},
+		{"stars_count", stars_count}
+	}));
+	QVariantMap param04(std::map<QString, QVariant>(
+	{
+		{"name", "rkck"},
+		{"engine", engine},
+		{"solver", "rkck"},
+		{"error_threshold", error_threshold},
+		{"stars_count", stars_count},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param05(std::map<QString, QVariant>(
+	{
+		{"name", "rkdp"},
+		{"engine", engine},
+		{"solver", "rkdp"},
+		{"error_threshold", error_threshold},
+		{"stars_count", stars_count},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param06(std::map<QString, QVariant>(
+	{
+		{"name", "rkdverk"},
+		{"engine", engine},
+		{"solver", "rkdverk"},
+		{"error_threshold", error_threshold},
+		{"stars_count", stars_count},
+		{"min_step", "-1"}
+	}));
+	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06};
+	std::vector<QVariant>					steps = {0.1, 0.1 / 8, 0.1 / (8 * 8), 0.1 / (8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8 * 8)};
+	QString									variable_field = "max_step";
+	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
+
+	run_bench(params, steps, result, variable_field, "PLVE", 2.5);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dE",
+				QStringList() << "$f_n$ compute count" << "$dE/E_0$", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dL",
+				QStringList() << "$f_n$ compute count" << "$dL/L_0$", format);
+	print_table(params, steps, result, "name", QStringList() << "CC" << "dP",
+				QStringList() << "$f_n$ compute count" << "$dP/P_0$", format);
+}
+
+
 void bench_cpu_tree(const QString& format)
 {
 	int		stars_count = 1024 * 16;
@@ -620,6 +692,10 @@ int main(int argc, char* argv[])
 	else if(bench == "solver")
 	{
 		bench_solver(format);
+	}
+	else if(bench == "solver_quad")
+	{
+		bench_solver_quad(format);
 	}
 	else if(bench == "cpu_tree")
 	{
