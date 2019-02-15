@@ -1,13 +1,21 @@
 #ifndef NBTYPE_H
 #define NBTYPE_H
 
+#ifndef NB_COORD_PRECISION
+#define NB_COORD_PRECISION 2
+#endif
+
+#if NB_COORD_PRECISION == 1
+typedef float nbcoord_t;
+#elif NB_COORD_PRECISION == 2
+typedef double nbcoord_t;
+#elif NB_COORD_PRECISION == 4
+#include "nbtype_quad.h"
+typedef __float128 nbcoord_t;
+#endif
+
 #include "vertex.h"
 
-#ifdef NB_COORD_TYPE
-typedef NB_COORD_TYPE			nbcoord_t;
-#else
-typedef double					nbcoord_t;
-#endif
 typedef vertex3<nbcoord_t>		nbvertex_t;
 typedef vertex4<float>			nbcolor_t;
 typedef vertex3<float>			nb3f_t;

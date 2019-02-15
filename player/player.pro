@@ -1,7 +1,5 @@
 include( ../pri/nbody.pri )
-include( ../pri/opencl.pri )
 include( ../pri/opencv.pri )
-include( ../pri/vectorize.pri )
 
 TEMPLATE	= app
 TARGET		= nbody-player

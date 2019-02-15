@@ -266,7 +266,9 @@ void test_nbody_stream::negative_branch()
 		{
 			QFile	f(m_tmp + "/nbody_test/7/stream.idx");
 			f.open(QFile::WriteOnly);
-			f.write(QByteArray("#coord_size 8\n"));
+			f.write(QByteArray("#coord_size " +
+							   QByteArray::number(static_cast<int>(sizeof(nbcoord_t))) +
+							   "\n"));
 			f.write(QByteArray("#body_count 256\n"));
 			f.write(QByteArray("#box_size 100\n"));
 			f.write(QByteArray("1\t1\t0\t0\n"));

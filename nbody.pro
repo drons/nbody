@@ -4,10 +4,12 @@ TEMPLATE = subdirs
 
 SUBDIRS += nbody
 
-!contains(CONFIG, NO_UI){
-    SUBDIRS += player
-    player.subdir = player
-    player.depends = nbody
+!contains(DEFINES,NB_COORD_PRECISION=4){
+    !contains(CONFIG, NO_UI){
+        SUBDIRS += player
+        player.subdir = player
+        player.depends = nbody
+    }
 }
 
 SUBDIRS += test

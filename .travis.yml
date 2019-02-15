@@ -27,6 +27,29 @@ matrix:
       dist: xenial
       sudo: required
       compiler: gcc
+      env: NAME="gcc5 + Qt4 + release + quad"
+      addons:
+        apt:
+          packages:
+          - libqt4-dev
+          - libqt4-opengl-dev
+          - libopencv-dev
+          - ocl-icd-opencl-dev
+          - oclgrind
+      script:
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+      - mkdir build-release
+      - cd build-release
+      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release DEFINES+=NB_COORD_PRECISION=4
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: xenial
+      sudo: required
+      compiler: gcc
       env: NAME="gcc5 + Qt4 + release + cuda9"
       addons:
         apt:
@@ -70,7 +93,7 @@ matrix:
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-debug-cuda
       - cd build-debug-cuda
-      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=NO_UI DEFINES+=NB_COORD_TYPE=float
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=NO_UI DEFINES+=NB_COORD_PRECISION=1
       - make -j2
     - os: linux
       dist: xenial
@@ -88,7 +111,7 @@ matrix:
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release
       - cd build-release
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release DEFINES+=NB_COORD_TYPE=float
+      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release DEFINES+=NB_COORD_PRECISION=1
       - make -j2
     - os: linux
       dist: xenial
@@ -361,8 +384,9 @@ matrix:
           packages:
           - cppcheck
       script:
-          - cppcheck -DNB_COORD_TYPE=double --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
-          - cppcheck -DNB_COORD_TYPE=float  --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_PRECISION=4 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_PRECISION=2 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_PRECISION=1 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
 language:
   - cpp
 

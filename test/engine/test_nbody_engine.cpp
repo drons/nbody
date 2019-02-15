@@ -385,7 +385,7 @@ bool test_fmaxabs(nbody_engine* e)
 	std::for_each(a.begin(), a.end(), [](nbcoord_t& x) {x = fabs(x);});
 	nbcoord_t testmax = *std::max_element(a.begin(), a.end());
 
-	bool	ret = (fabs(result - testmax) < eps);
+	bool	ret = (fabs(result - testmax) <= eps);
 
 	e->free_buffer(mem_a);
 
