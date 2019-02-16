@@ -95,8 +95,10 @@ Other parameters controlled via UI.
 
 ### Gallery
 
-[![Galaxy crash simulation](http://img.youtube.com/vi/AYzgTC0qqV0/0.jpg)](https://www.youtube.com/watch?v=AYzgTC0qqV0 "Galaxy crash simulation")
-
+[![GCS](http://img.youtube.com/vi/AYzgTC0qqV0/1.jpg)](https://youtu.be/AYzgTC0qqV0 "Galaxy crash simulation")
+[![GCS](http://img.youtube.com/vi/ZPyM6PRXjkY/1.jpg)](https://youtu.be/ZPyM6PRXjkY "512 stars Runge-Kutta-Dormand–Prince method h=1e-5...1e-9")
+[![GCS](http://img.youtube.com/vi/s6pXYqwO0wc/1.jpg)](https://youtu.be/s6pXYqwO0wc "512 stars Adams–Bashforth method h=1e-6")
+[![GCS](http://img.youtube.com/vi/0_8nZCrVqWI/1.jpg)](https://youtu.be/0_8nZCrVqWI "Million stars Adams–Bashforth method h=1e-3")
 
 ## Refs
 1) [Hairer, Ernst; Nørsett, Syvert Paul; Wanner, Gerhard (1993), Solving ordinary differential equations I: Nonstiff problems, Berlin, New York](http://www.hds.bme.hu/~fhegedus/00%20-%20Numerics/B1993%20Solving%20Ordinary%20Differential%20Equations%20I%20-%20Nonstiff%20Problems.pdf)
