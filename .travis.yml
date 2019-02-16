@@ -138,6 +138,7 @@ matrix:
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
       - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE"
+      - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --initial_state=./test/data/zeno_ascii.txt
       - cd nbody
       - gcov ./*
       after_success:

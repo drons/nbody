@@ -84,6 +84,7 @@ public:
 	void clear();
 	bool save(const QString& fn) const;
 	bool load(const QString& fn);
+	bool load_zeno_ascii(const QString& fn);
 };
 
 #endif // NBODY_DATA_H

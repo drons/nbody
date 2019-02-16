@@ -480,3 +480,107 @@ bool nbody_data::load(const QString& fn)
 
 	return true;
 }
+
+bool nbody_data::load_zeno_ascii(const QString& fn)
+{
+	QFile			file(fn);
+	const size_t	ZENO_DIM = 3;
+	if(!file.open(QFile::ReadOnly))
+	{
+		qDebug() << "Can't open file" << fn << file.errorString();
+		return false;
+	}
+
+	clear();
+
+	QTextStream	s(&file);
+	size_t		count;
+	{
+		QString line_count(s.readLine());
+		bool	ok = false;
+		count = static_cast<size_t>(line_count.toULongLong(&ok));
+		if(!ok)
+		{
+			qDebug() << "Can't read body count from" << fn;
+			return false;
+		}
+	}
+	{
+		QString line_dim(s.readLine());
+		bool	ok = false;
+		size_t	dim = static_cast<size_t>(line_dim.toULongLong(&ok));
+		if(!ok)
+		{
+			qDebug() << "Can't read body dimensions from" << fn;
+			return false;
+		}
+		if(dim != ZENO_DIM)
+		{
+			qDebug() << "Invalid dimension count" << dim << "in" << fn;
+			return false;
+		}
+	}
+	{
+		QString line_skip(s.readLine());
+		if(line_skip.isEmpty())
+		{
+			return false;
+		}
+	}
+	if(!resize(count))
+	{
+		qDebug() << "Can't resize data to count" << count;
+		return 0;
+	}
+
+	qDebug() << "Zeno stars count is" << count;
+
+	for(size_t i = 0; i != count; ++i)
+	{
+		if(s.atEnd())
+		{
+			qDebug() << "Unexpected data stream end";
+			return false;
+		}
+		QString	mass_line(s.readLine());
+		get_mass()[i] = mass_line.toDouble();
+	}
+	for(size_t i = 0; i != count; ++i)
+	{
+		if(s.atEnd())
+		{
+			qDebug() << "Unexpected data stream end";
+			return false;
+		}
+		QStringList	pos_line(s.readLine().split(QChar(' '), QString::SkipEmptyParts));
+		if(pos_line.size() != ZENO_DIM)
+		{
+			qDebug() << "Invalid vector dimensions" << pos_line;
+			return false;
+		}
+		get_vertites()[i] = nbvertex_t(pos_line[0].toDouble(),
+									   pos_line[1].toDouble(),
+									   pos_line[2].toDouble());
+	}
+
+	for(size_t i = 0; i != count; ++i)
+	{
+		if(s.atEnd())
+		{
+			qDebug() << "Unexpected data stream end";
+			return false;
+		}
+		QStringList	vel_line(s.readLine().split(QChar(' '), QString::SkipEmptyParts));
+		if(vel_line.size() != ZENO_DIM)
+		{
+			qDebug() << "Invalid vector dimensions" << vel_line;
+			return false;
+		}
+		get_velosites()[i] = nbvertex_t(vel_line[0].toDouble(),
+										vel_line[1].toDouble(),
+										vel_line[2].toDouble());
+	}
+	std::fill(m_color.begin(), m_color.end(), nbcolor_t(1, 1, 1, 1));
+	m_box_size = 1;
+	return true;
+}

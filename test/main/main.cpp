@@ -53,9 +53,21 @@ int main(int argc, char* argv[])
 	QVariantMap		param(nbody_parse_arguments(argc, argv));
 	nbody_data		data;
 	nbcoord_t		box_size = param.value("box_size", 100).toDouble();
-	size_t			stars_count = param.value("stars_count", "64").toUInt();
+	QString			initial_state(param.value("initial_state", QString()).toString());
 
-	data.make_universe(stars_count, box_size, box_size, box_size);
+	if(initial_state.isEmpty())
+	{
+		size_t		stars_count = param.value("stars_count", "64").toUInt();
+		data.make_universe(stars_count, box_size, box_size, box_size);
+	}
+	else
+	{
+		if(!data.load_zeno_ascii(initial_state))
+		{
+			qDebug() << "Can't load initial state" << initial_state;
+			return -1;
+		}
+	}
 
 	nbody_engine*	engine = nbody_create_engine(param);
 	if(engine == NULL)

@@ -1,6 +1,7 @@
 #include <QString>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QtTest>
 
 #include "nbody_solvers.h"
@@ -327,10 +328,53 @@ void test_nbody_stream::negative_branch()
 	}
 }
 
+class test_nbody_data_io : public QObject
+{
+	Q_OBJECT
+	QString	m_apppath;
+public:
+	explicit test_nbody_data_io(const QString& apppath):
+		m_apppath(QFileInfo(apppath).absolutePath())
+	{}
+	~test_nbody_data_io() {}
+private Q_SLOTS:
+	void save_load();
+	void load_zeno_ascii();
+};
+
+void test_nbody_data_io::save_load()
+{
+	nbody_data	data1;
+	QVERIFY(data1.load(m_apppath + "/../data/initial_state.txt"));
+	QVERIFY(data1.save(m_apppath + "/../data/test_save.txt"));
+
+	nbody_data	data2;
+	QVERIFY(data2.load(m_apppath + "/../data/test_save.txt"));
+	QVERIFY(data2.is_equal(data1, 1e-16));
+}
+
+void test_nbody_data_io::load_zeno_ascii()
+{
+	nbody_data	data1;
+	QVERIFY(data1.load_zeno_ascii(m_apppath + "/../data/zeno_ascii.txt"));
+
+	nbody_data	data2;
+	QVERIFY(data2.load(m_apppath + "/../data/zeno_table.txt"));
+	QVERIFY(data2.is_equal(data1, 1e-16));
+}
+
 int main(int argc, char* argv[])
 {
-	test_nbody_stream tc1;
-	return QTest::qExec(&tc1, argc, argv);
+	int	res = 0;
+	{
+		test_nbody_stream tc1;
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		test_nbody_data_io tc1(argv[0]);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	return res;
 }
 
 #include "test_nbody_stream.moc"

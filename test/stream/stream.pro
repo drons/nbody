@@ -15,3 +15,8 @@ LIBS += -L../../lib
 LIBS += -lnbody
 
 SOURCES += test_nbody_stream.cpp
+
+TEST_DATA += \
+	../data/zeno_ascii.txt \
+	../data/zeno_table.txt
+include( ../../pri/testdata.pri )
