@@ -39,7 +39,7 @@ void nbody_frame_compressor_opencv::push_frame(const QImage& frame, size_t)
 		}
 	}
 
-	QImage			rgb(frame.convertToFormat(QImage::Format_RGB888));
+	QImage			rgb(frame.convertToFormat(QImage::Format_RGB888).rgbSwapped());
 	const cv::Mat	img(size, CV_8UC3, const_cast<uchar*>(rgb.bits()));
 
 	d->m_writer.write(img);
