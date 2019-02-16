@@ -15,7 +15,8 @@
 #include <QTime>
 #include <QFileDialog>
 
-wgt_nbody_player::wgt_nbody_player(nbody_data_stream_reader* stream)
+wgt_nbody_player::wgt_nbody_player(nbody_data_stream_reader* stream,
+								   const QString& check_list)
 {
 	QVBoxLayout*	layout = new QVBoxLayout(this);
 
@@ -23,6 +24,7 @@ wgt_nbody_player::wgt_nbody_player(nbody_data_stream_reader* stream)
 	setMinimumSize(320, 240);
 
 	m_data = new nbody_data;
+	m_data->set_check_list(check_list);
 	m_stream = stream;
 	m_view = new wgt_nbody_view(m_data);
 	m_data->resize(m_stream->get_body_count());

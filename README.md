@@ -85,7 +85,12 @@ Argument | Description
 
 #### Player
 To view simulation results run 'nbody-player' programm.
-For now only one argument supported: `--input=<input stream name>`.
+
+Argument | Description
+---------|-------------
+`--input` | Input stream name.
+`--check_list` | List of fundamental laws of physics to check. For example `--check_list=PL` to check only conservation of impulse [P] and angular momentum [L].
+
 Other parameters controlled via UI.
 
 ### Gallery

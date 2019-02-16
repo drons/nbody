@@ -18,7 +18,8 @@ class wgt_nbody_player : public QWidget
 	nbody_data_stream_reader*	m_stream;
 	nbody_data*					m_data;
 public:
-	explicit wgt_nbody_player(nbody_data_stream_reader* stream);
+	explicit wgt_nbody_player(nbody_data_stream_reader* stream,
+							  const QString& check_list);
 	~wgt_nbody_player();
 public slots:
 	void on_update_data();

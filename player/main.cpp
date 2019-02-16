@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
 	QApplication				app(argc, argv);
 	QVariantMap					param(nbody_parse_arguments(argc, argv));
 	QString						stream_name(param.value("input", "/tmp/nbody/main-stream").toString());
+	QString						check_list(param.value("check_list", "PLV").toString());
 	nbody_data_stream_reader	stream;
 
 	if(0 != stream.load(stream_name))
@@ -26,7 +27,7 @@ int main(int argc, char* argv[])
 	qDebug() << "Star count: " << stream.get_body_count();
 	qDebug() << "Frame count:" << stream.get_frame_count();
 
-	wgt_nbody_player*	nbv = new wgt_nbody_player(&stream);
+	wgt_nbody_player*	nbv = new wgt_nbody_player(&stream, check_list);
 
 	nbv->show();
 
