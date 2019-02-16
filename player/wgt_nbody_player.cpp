@@ -24,7 +24,7 @@ wgt_nbody_player::wgt_nbody_player(nbody_data_stream_reader* stream)
 
 	m_data = new nbody_data;
 	m_stream = stream;
-	m_view = new wgt_nbody_view(m_data, m_stream->get_box_size());
+	m_view = new wgt_nbody_view(m_data);
 	m_data->resize(m_stream->get_body_count());
 	m_control = new wgt_nbody_player_control(this, m_stream);
 	layout->addWidget(m_view, 1000);

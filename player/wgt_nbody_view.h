@@ -10,9 +10,10 @@ class wgt_nbody_view : public QGLWidget
 	Q_OBJECT
 	Q_PROPERTY(QPointF m_split_point READ get_split_point WRITE set_split_point)
 	nbody_data*				m_data;
-	nbcoord_t				m_mesh_sx;
-	nbcoord_t				m_mesh_sy;
-	nbcoord_t				m_mesh_sz;
+	nb3d_t					m_box_min;
+	nb3d_t					m_box_max;
+	nb3d_t					m_vel_min;
+	nb3d_t					m_vel_max;
 	QGLFramebufferObject*	m_renderer;
 	QPointF					m_split_point;
 	int						m_stereo_base;
@@ -20,7 +21,7 @@ class wgt_nbody_view : public QGLWidget
 	double					m_star_size;
 	bool					m_color_from_velosity;
 public:
-	wgt_nbody_view(nbody_data*, nbcoord_t box_size);
+	explicit wgt_nbody_view(nbody_data*);
 	~wgt_nbody_view();
 
 	QPointF get_split_point() const;
@@ -33,6 +34,7 @@ public:
 	void paintGL() override;
 	void paintGL(GLsizei width, GLsizei height);
 	void paintGL(GLint x, GLint y,	GLsizei width, GLsizei height, const nbvertex_t& camera_position, const nbvertex_t& up);
+	void setup_view_box();
 	void setup_projection(GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position,
 						  const nbvertex_t& up);
 	QImage render_to_image();

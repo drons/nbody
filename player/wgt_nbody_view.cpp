@@ -23,16 +23,12 @@ QGLFramebufferObjectFormat nb_framebuffer_format()
 	return f;
 }
 }
-wgt_nbody_view::wgt_nbody_view(nbody_data* _data, nbcoord_t box_size) :
+wgt_nbody_view::wgt_nbody_view(nbody_data* _data) :
 	QGLWidget(nb_glwidget_format())
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	m_split_point = QPointF(0.5, 0.5);
-	m_mesh_sx = box_size;
-	m_mesh_sy = box_size;
-	m_mesh_sz = box_size;
-
 	m_data = _data;
 	m_renderer = NULL;
 	m_stereo_base = 0;
@@ -55,15 +51,15 @@ void wgt_nbody_view::paint_color_box()
 	const nb3d_t	cube_vrt[8] =
 	{
 		//Floor
-		nb3d_t(0, 0, 0),
-		nb3d_t(m_mesh_sx, 0, 0),
-		nb3d_t(m_mesh_sx, m_mesh_sy, 0),
-		nb3d_t(0, m_mesh_sy, 0),
+		nb3d_t(m_box_min),
+		nb3d_t(m_box_max.x, m_box_min.y, m_box_min.z),
+		nb3d_t(m_box_max.x, m_box_max.y, m_box_min.z),
+		nb3d_t(m_box_min.x, m_box_max.y, m_box_min.z),
 		//Roof
-		nb3d_t(0, 0, m_mesh_sz),
-		nb3d_t(m_mesh_sx, 0, m_mesh_sz),
-		nb3d_t(m_mesh_sx, m_mesh_sy, m_mesh_sz),
-		nb3d_t(0, m_mesh_sy, m_mesh_sz)
+		nb3d_t(m_box_min.x, m_box_min.y, m_box_max.z),
+		nb3d_t(m_box_max.x, m_box_min.y, m_box_max.z),
+		nb3d_t(m_box_max.x, m_box_max.y, m_box_max.z),
+		nb3d_t(m_box_min.x, m_box_max.y, m_box_max.z)
 	};
 
 	const nb3d_t	cube_col[8] =
@@ -165,9 +161,8 @@ static nbcolor_t get_color(nbcoord_t x)
 	return lut[lut_len - 1];
 }
 
-static void compute_color_from_velosity(const nbvertex_t* vel, nbcolor_t* color, size_t count)
+static void compute_color_from_velosity(const nbvertex_t* vel, nbcolor_t* color, size_t count, nbcoord_t max_velosity)
 {
-	nbcoord_t	max_velosity = 20;
 	for(size_t i = 0; i != count; ++i)
 	{
 		color[i] = get_color(vel[i].length() / max_velosity);
@@ -202,7 +197,7 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 	glEnable(GL_POINT_SMOOTH);
 	glEnable(GL_BLEND);
 
-	nbvertex_t	center(m_mesh_sx * 0.5, m_mesh_sy * 0.5, m_mesh_sz * 0.5);
+	nbvertex_t	center((m_box_max + m_box_min) * 0.5);
 	GLfloat		factor(static_cast<GLfloat>(m_star_intensity) / 255.0f);
 
 	if(m_stereo_base == 0)
@@ -221,7 +216,8 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 		{
 			cbuf.resize(m_data->get_count());
 			color = cbuf.data();
-			compute_color_from_velosity(m_data->get_velosites(), color, m_data->get_count());
+			compute_color_from_velosity(m_data->get_velosites(), color, m_data->get_count(),
+										(m_vel_max - m_vel_min).length());
 		}
 
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -264,9 +260,44 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 	glBlendFunc(GL_ONE, GL_ONE);
 }
 
+static void get_box(const nbvertex_t* vrt, size_t count, nb3d_t& out_box_min, nb3d_t& out_box_max)
+{
+	nbvertex_t	bmin(+1e30, +1e30, +1e30);
+	nbvertex_t	bmax(-1e30, -1e30, -1e30);
+	for(size_t i = 0; i != count; ++i)
+	{
+		const nbvertex_t&	v(vrt[i]);
+		bmin.x = std::min(bmin.x, v.x);
+		bmin.y = std::min(bmin.y, v.y);
+		bmin.z = std::min(bmin.z, v.z);
+		bmax.x = std::max(bmax.x, v.x);
+		bmax.y = std::max(bmax.y, v.y);
+		bmax.z = std::max(bmax.z, v.z);
+	}
+
+	out_box_min = bmin;
+	out_box_max = bmax;
+}
+
+void wgt_nbody_view::setup_view_box()
+{
+	if(m_box_min != m_box_max || m_data->get_count() == 0)
+	{
+		return;
+	}
+
+	get_box(m_data->get_vertites(), m_data->get_count(), m_box_min, m_box_max);
+	get_box(m_data->get_velosites(), m_data->get_count(), m_vel_min, m_vel_max);
+
+	nb3d_t	margin = (m_box_max - m_box_min) * 0.5;
+	m_box_min -= margin;
+	m_box_max += margin;
+}
+
 void wgt_nbody_view::setup_projection(GLsizei width, GLsizei height, const nbvertex_t& center,
 									  const nbvertex_t& camera_position, const nbvertex_t& up)
 {
+	setup_view_box();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
@@ -337,8 +368,8 @@ void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
 	qglClearColor(Qt::black);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	nbvertex_t	center(m_mesh_sx * 0.5, m_mesh_sy * 0.5, m_mesh_sz * 0.5);
-	nbcoord_t	dist = 200;
+	nbvertex_t	center((m_box_max + m_box_min) * 0.5);
+	nbcoord_t	dist = (m_box_max - m_box_min).length();
 	GLint		x = static_cast<GLint>(width * m_split_point.x());
 	GLint		y = static_cast<GLint>(height * m_split_point.y());
 
