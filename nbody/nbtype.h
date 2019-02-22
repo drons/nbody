@@ -26,4 +26,9 @@ typedef vertex4<double>			nb4d_t;
 #define NBODY_DATA_BLOCK_SIZE	64
 #define NBODY_MIN_R				1e-8
 
+constexpr nbcoord_t operator"" _f(unsigned long long int x)
+{
+	return static_cast<nbcoord_t>(x);
+}
+
 #endif // NBTYPE_H

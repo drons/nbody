@@ -45,7 +45,7 @@ const nbcoord_t* nbody_butcher_table_rk4::get_b2() const
 
 const nbcoord_t* nbody_butcher_table_rk4::get_c() const
 {
-	static const nbcoord_t	c[]  = { 0, 0.5, 0.5, 1.0 };
+	static const nbcoord_t	c[]  = { 0, 1_f / 2_f, 1_f / 2_f, 1_f };
 
 	return c;
 }

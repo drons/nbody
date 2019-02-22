@@ -23,11 +23,11 @@ const char* nbody_solver_adams::type_name() const
 
 void nbody_solver_adams::advise(nbcoord_t dt)
 {
-	const nbcoord_t		a1[1] = { 1.0 };
-	const nbcoord_t		a2[2] = { 3.0 / 2.0, -1.0 / 2.0 };
-	const nbcoord_t		a3[3] = { 23.0 / 12.0, -4.0 / 3.0, 5.0 / 12.0 };
-	const nbcoord_t		a4[4] = { 55.0 / 24.0, -59.0 / 24.0, 37.0 / 24.0, -3.0 / 8.0 };
-	const nbcoord_t		a5[5] = { 1901.0 / 720.0, -1387.0 / 360.0, 109.0 / 30.0, -637.0 / 360.0, 251.0 / 720.0 };
+	const nbcoord_t		a1[1] = { 1_f };
+	const nbcoord_t		a2[2] = { 3_f / 2_f, -1_f / 2_f };
+	const nbcoord_t		a3[3] = { 23_f / 12_f, -4_f / 3_f, 5_f / 12_f };
+	const nbcoord_t		a4[4] = { 55_f / 24_f, -59_f / 24_f, 37_f / 24_f, -3_f / 8_f };
+	const nbcoord_t		a5[5] = { 1901_f / 720_f, -1387_f / 360_f, 109_f / 30_f, -637_f / 360_f, 251_f / 720_f };
 	const nbcoord_t*	ar[] = { NULL, a1, a2, a3, a4, a5 };
 	const nbcoord_t*	a = ar[m_rank];
 

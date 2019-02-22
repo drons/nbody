@@ -31,13 +31,13 @@ size_t nbody_butcher_table_rkdverk::get_steps() const
 const nbcoord_t** nbody_butcher_table_rkdverk::get_a() const
 {
 	static const nbcoord_t	a1[] = { 0 };
-	static const nbcoord_t	a2[] = { 1.0 / 6.0 };
-	static const nbcoord_t	a3[] = { 4.0 / 75.0, 16.0 / 75.0};
-	static const nbcoord_t	a4[] = { 5.0 / 6.0, -8.0 / 3.0, 5.0 / 2.0 };
-	static const nbcoord_t	a5[] = { -165.0 / 64.0, 55.0 / 6.0, -425.0 / 64.0, 85.0 / 96.0 };
-	static const nbcoord_t	a6[] = { 12.0 / 5.0, -8.0, 4015.0 / 612.0, -11.0 / 36.0, 88.0 / 255.0 };
-	static const nbcoord_t	a7[] = { -8263.0 / 15000.0, 124.0 / 75.0, -643.0 / 680.0, -81.0 / 250.0, 2484.0 / 10625.0, 0 };
-	static const nbcoord_t	a8[] = { 3501.0 / 1720.0, -300.0 / 43.0, 297275.0 / 52632.0, -319.0 / 2322.0, 24068.0 / 84065.0, 0.0, 3850.0 / 26703.0  };
+	static const nbcoord_t	a2[] = { 1_f / 6_f };
+	static const nbcoord_t	a3[] = { 4_f / 75_f, 16_f / 75_f};
+	static const nbcoord_t	a4[] = { 5_f / 6_f, -8_f / 3_f, 5_f / 2_f };
+	static const nbcoord_t	a5[] = { -165_f / 64_f, 55_f / 6_f, -425_f / 64_f, 85_f / 96_f };
+	static const nbcoord_t	a6[] = { 12_f / 5_f, -8_f, 4015_f / 612_f, -11_f / 36_f, 88_f / 255_f };
+	static const nbcoord_t	a7[] = { -8263_f / 15000_f, 124_f / 75_f, -643_f / 680_f, -81_f / 250_f, 2484_f / 10625_f, 0 };
+	static const nbcoord_t	a8[] = { 3501_f / 1720_f, -300_f / 43_f, 297275_f / 52632_f, -319_f / 2322_f, 24068_f / 84065_f, 0_f, 3850_f / 26703_f  };
 	static const nbcoord_t*	a[] = { a1, a2, a3, a4, a5, a6, a7, a8 };
 
 	return a;
@@ -45,21 +45,21 @@ const nbcoord_t** nbody_butcher_table_rkdverk::get_a() const
 
 const nbcoord_t* nbody_butcher_table_rkdverk::get_b1() const
 {
-	static const nbcoord_t	b1[] = { 3.0 / 40.0, 0.0, 875.0 / 2244.0, 23.0 / 72.0, 264.0 / 1955.0, 0, 125.0 / 11592.0, 43.0 / 616.0 };
+	static const nbcoord_t	b1[] = { 3_f / 40_f, 0_f, 875_f / 2244_f, 23_f / 72_f, 264_f / 1955_f, 0, 125_f / 11592_f, 43_f / 616_f };
 
 	return b1;
 }
 
 const nbcoord_t* nbody_butcher_table_rkdverk::get_b2() const
 {
-	static const nbcoord_t	b2[] = { 13.0 / 160.0, 0.0, 2375.0 / 5984.0, 5.0 / 16.0, 12.0 / 85.0, 3.0 / 44.0, 0.0, 0.0 };
+	static const nbcoord_t	b2[] = { 13_f / 160_f, 0_f, 2375_f / 5984_f, 5_f / 16_f, 12_f / 85_f, 3_f / 44_f, 0_f, 0_f };
 
 	return b2;
 }
 
 const nbcoord_t* nbody_butcher_table_rkdverk::get_c() const
 {
-	static const nbcoord_t	c[]  = { 0, 1.0 / 6.0, 4.0 / 15.0, 2.0 / 3.0, 5.0 / 6.0, 1.0, 1.0 / 15.0, 1.0 };
+	static const nbcoord_t	c[]  = { 0, 1_f / 6_f, 4_f / 15_f, 2_f / 3_f, 5_f / 6_f, 1_f, 1_f / 15_f, 1_f };
 
 	return c;
 }

@@ -1,6 +1,6 @@
 DEFINES += HAVE_OPENMP
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=gnu++11
 QMAKE_CXXFLAGS += -Werror=all
 QMAKE_CXXFLAGS += -Werror=extra
 QMAKE_CXXFLAGS += -Werror=unused
