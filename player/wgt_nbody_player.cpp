@@ -83,7 +83,12 @@ void wgt_nbody_player::on_start_record()
 	QString			selected;
 	QString			out(QFileDialog::getSaveFileName(this, "Select output video stream",
 													 QDir::homePath(), filters.join("\n"),
-													 &selected));
+													 &selected, QFileDialog::DontUseNativeDialog));
+	if(out.isEmpty())
+	{
+		qDebug() << "Record cancelled";
+		return;
+	}
 
 	std::shared_ptr<nbody_frame_compressor>	compressor;
 	if(selected == filters[0])
