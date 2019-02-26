@@ -115,13 +115,11 @@ void nbody_data::print_statistics(nbody_engine* engine)
 	if(m_check_list.contains("P"))
 	{
 		m_last_total_impulce = total_impulce;
-		total_impulce -= m_initial_impulce;
 		g << "dP" << QString("%1").arg(get_impulce_err(), 4, 'e', 3);
 	}
 	if(m_check_list.contains("L"))
 	{
 		m_last_total_impulce_moment = total_impulce_moment;
-		total_impulce_moment -= m_initial_impulce_moment;
 		g << "dL" << QString("%1").arg(get_impulce_moment_err(), 4, 'e', 3);
 	}
 	if(m_check_list.contains("V"))
