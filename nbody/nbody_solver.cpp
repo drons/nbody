@@ -38,14 +38,14 @@ nbcoord_t nbody_solver::get_max_step() const
 	return m_max_step;
 }
 
-int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max_time, nbcoord_t dump_dt,
-					  nbcoord_t check_dt)
+int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max_time,
+					  nbcoord_t dump_dt, nbcoord_t check_dt)
 {
 	nbcoord_t	dt = get_max_step();
-	nbcoord_t   last_check = 0;
-	nbcoord_t   last_dump = 0;
+	nbcoord_t   last_check = data->get_time();
+	nbcoord_t   last_dump = data->get_time();
 
-	if(stream != NULL)
+	if(stream != NULL && dump_dt > 0 && last_dump <= 0)
 	{
 		m_engine->get_data(data);
 		if(0 != stream->write(data))

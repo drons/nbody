@@ -5,6 +5,7 @@
 #include "nbody_export.h"
 
 class nbody_data;
+class nbody_data_stream_reader;
 class QString;
 class QChar;
 
@@ -19,7 +20,8 @@ public:
 	nbody_data_stream();
 	virtual ~nbody_data_stream();
 	virtual int write(const nbody_data* bdata);
-	int open(const QString& file_base_name, qint64 max_part_size);
+	int open(const QString& file_base_name, qint64 max_part_size,
+			 const nbody_data_stream_reader* append_to = NULL);
 	void close();
 
 	static QString make_idx_name(const QString& file_base_name);

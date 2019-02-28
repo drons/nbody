@@ -1,4 +1,5 @@
 #include "nbody_data_stream.h"
+#include "nbody_data_stream_reader.h"
 #include "nbody_engine.h"
 #include <QFile>
 #include <QFileInfo>
@@ -23,14 +24,15 @@ struct nbody_data_stream::data
 	{
 	}
 
-	int open_data_file()
+	int open_data_file(bool append = false)
 	{
 		if(m_data.isOpen())
 		{
 			m_data.close();
 		}
 		m_data.setFileName(make_dat_name(m_base_name, m_file_n));
-		if(!m_data.open(QFile::WriteOnly))
+		QFile::OpenMode openmode = append ? QFile::Append : QFile::WriteOnly;
+		if(!m_data.open(openmode))
 		{
 			qDebug() << "Can't open file" << m_data.fileName() << m_data.errorString();
 			return -1;
@@ -38,14 +40,15 @@ struct nbody_data_stream::data
 		return 0;
 	}
 
-	int open_index_file()
+	int open_index_file(bool append)
 	{
 		if(m_idx.isOpen())
 		{
 			m_idx.close();
 		}
 		m_idx.setFileName(make_idx_name(m_base_name));
-		if(!m_idx.open(QFile::WriteOnly))
+		QFile::OpenMode openmode = append ? QFile::Append : QFile::WriteOnly;
+		if(!m_idx.open(openmode))
 		{
 			qDebug() << "Can't open file" << m_idx.fileName() << m_idx.errorString();
 			return -1;
@@ -162,22 +165,32 @@ int nbody_data_stream::write(const nbody_data* bdata)
 	return 0;
 }
 
-int nbody_data_stream::open(const QString& name, qint64 max_part_size)
+int nbody_data_stream::open(const QString& name, qint64 max_part_size,
+							const nbody_data_stream_reader* append_to)
 {
 	QFileInfo	finfo(name);
 	finfo.dir().mkpath(".");
 
 	d->m_base_name = name;
-	d->m_file_n = 0;
 	d->m_max_part_size = max_part_size;
 
-	if(0 != d->open_data_file())
+	if(append_to == NULL)
+	{
+		d->m_file_n = 0;
+	}
+	else
+	{
+		d->m_file_n = append_to->get_last_file_n();
+		d->m_header_written = true;
+	}
+
+	if(0 != d->open_data_file(append_to != NULL))
 	{
 		qDebug() << "Can't d->open_data_file()";
 		return -1;
 	}
 
-	if(0 != d->open_index_file())
+	if(0 != d->open_index_file(append_to != NULL))
 	{
 		qDebug() << "Can't d->open_index_file()";
 		return -1;

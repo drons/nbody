@@ -363,6 +363,120 @@ void test_nbody_data_io::load_zeno_ascii()
 	QVERIFY(data2.is_equal(data1, 1e-16));
 }
 
+class test_nbody_stream_restart : public QObject
+{
+	Q_OBJECT
+
+	const QString		m_tmp;
+public:
+	test_nbody_stream_restart();
+	~test_nbody_stream_restart();
+private Q_SLOTS:
+	void initTestCase() {}
+	void cleanupTestCase() {}
+	void run();
+};
+
+test_nbody_stream_restart::test_nbody_stream_restart() :
+	m_tmp(QDir::tempPath())
+{
+}
+
+test_nbody_stream_restart::~test_nbody_stream_restart()
+{
+}
+
+void test_nbody_stream_restart::run()
+{
+	const QString		expected_stream_name(m_tmp + "/stream-test/restart1_");
+	const QString		stream_name(m_tmp + "/stream-test/restart2_");
+
+	const nbcoord_t		box_size = 100;
+	const nbcoord_t		max_time = 0.2;
+
+	{
+		nbody_data			data;
+		nbody_engine_simple	e;
+		nbody_solver_euler	s;
+
+		data.make_universe(128, box_size, box_size, box_size);
+
+		e.init(&data);
+		s.set_time_step(0.01, 0.01);
+		s.set_engine(&e);
+		nbody_data_stream	stream;
+
+		QVERIFY(0 == stream.open(expected_stream_name, 74000));
+		QVERIFY(0 == s.run(&data, &stream, max_time, 0.01, 0.1));
+		stream.close();
+	}
+	qDebug() << "Write half";
+	{
+		nbody_data			data;
+		nbody_engine_simple	e;
+		nbody_solver_euler	s;
+
+		data.make_universe(128, box_size, box_size, box_size);
+
+		e.init(&data);
+		s.set_time_step(0.01, 0.01);
+		s.set_engine(&e);
+		nbody_data_stream	half_stream;
+
+		QVERIFY(0 == half_stream.open(stream_name, 74000));
+		QVERIFY(0 == s.run(&data, &half_stream, max_time / 2, 0.01, 0.1));
+		half_stream.close();
+	}
+	qDebug() << "Restart";
+	{
+		nbody_data_stream_reader	append_to;
+		nbody_data					data;
+
+		QVERIFY(0 == append_to.load(stream_name));
+		QVERIFY(0 == append_to.seek(append_to.get_frame_count() - 1));
+		data.resize(append_to.get_body_count());
+		QVERIFY(0 == append_to.read(&data));
+
+		nbody_engine_simple	e;
+		nbody_solver_euler	s;
+
+		e.init(&data);
+		s.set_time_step(0.01, 0.01);
+		s.set_engine(&e);
+		nbody_data_stream			half_stream;
+		QVERIFY(0 == half_stream.open(stream_name, 74000, &append_to));
+		append_to.close();
+		QVERIFY(0 == s.run(&data, &half_stream, max_time, 0.01, 0.1));
+		half_stream.close();
+	}
+
+	{
+		nbody_data_stream_reader	expected_stream;
+		nbody_data_stream_reader	stream;
+		nbody_data					expected_data;
+		nbody_data					data;
+
+		QVERIFY(0 == expected_stream.load(expected_stream_name));
+		QVERIFY(0 == stream.load(stream_name));
+
+		data.resize(stream.get_body_count());
+		expected_data.resize(expected_stream.get_body_count());
+
+		QVERIFY(expected_stream.get_frame_count() == stream.get_frame_count());
+		size_t frame_count = std::min(expected_stream.get_frame_count(), stream.get_frame_count());
+
+		for(size_t frame_n = 0; frame_n < frame_count; ++frame_n)
+		{
+			qDebug() << frame_n;
+			QVERIFY(0 == expected_stream.seek(frame_n));
+			QVERIFY(0 == stream.seek(frame_n));
+			QVERIFY(0 == expected_stream.read(&expected_data));
+			QVERIFY(0 == stream.read(&data));
+			QVERIFY(expected_data.is_equal(data, 1e-16));
+		}
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	int	res = 0;
@@ -372,6 +486,10 @@ int main(int argc, char* argv[])
 	}
 	{
 		test_nbody_data_io tc1(argv[0]);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		test_nbody_stream_restart tc1;
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	return res;

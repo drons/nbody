@@ -197,8 +197,7 @@ int nbody_data_stream_reader::seek(size_t frame)
 
 	const data::item&	i(d->m_frames[frame]);
 
-	if(d->m_file_n != i.file_n ||
-			!d->m_file.isOpen())
+	if(d->m_file_n != i.file_n || !d->m_file.isOpen())
 	{
 		d->m_file.close();
 		d->m_file.setFileName(nbody_data_stream::make_dat_name(d->m_file_base_name, i.file_n));
@@ -240,6 +239,15 @@ size_t nbody_data_stream_reader::get_coord_size() const
 nbcoord_t nbody_data_stream_reader::get_box_size() const
 {
 	return d->m_box_size;
+}
+
+size_t nbody_data_stream_reader::get_last_file_n() const
+{
+	if(d->m_frames.empty())
+	{
+		return 0;
+	}
+	return d->m_frames.back().file_n;
 }
 
 int nbody_data_stream_reader::read(nbody_data* bdata)

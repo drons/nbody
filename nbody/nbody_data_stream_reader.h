@@ -70,6 +70,11 @@ public:
 	nbcoord_t get_box_size() const;
 
 	/*!
+	   \return last written file number
+	*/
+	size_t get_last_file_n() const;
+
+	/*!
 	   \brief read stream data to nbody_engine
 	   \param e - destination engine
 	   \return 0 on success
