@@ -43,7 +43,7 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 {
 	nbcoord_t	dt = get_max_step();
 	nbcoord_t   last_check = data->get_time();
-	nbcoord_t   last_dump = data->get_time();
+	nbcoord_t   last_dump = last_check;
 
 	if(stream != NULL && dump_dt > 0 && last_dump <= 0)
 	{
