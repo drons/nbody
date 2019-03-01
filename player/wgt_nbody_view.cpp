@@ -36,6 +36,7 @@ wgt_nbody_view::wgt_nbody_view(nbody_data* _data) :
 	m_star_size = 1;
 	m_color_from_velosity = true;
 	m_show_box = true;
+	m_scale = 1.0;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
@@ -373,7 +374,7 @@ void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	nbvertex_t	center((m_box_max + m_box_min) * 0.5);
-	nbcoord_t	dist = (m_box_max - m_box_min).length();
+	nbcoord_t	dist = (m_box_max - m_box_min).length() * m_scale;
 	GLint		x = static_cast<GLint>(width * m_split_point.x());
 	GLint		y = static_cast<GLint>(height * m_split_point.y());
 
@@ -464,4 +465,9 @@ void wgt_nbody_view::set_color_from_velosity(bool color_from_velosity)
 void wgt_nbody_view::set_show_box(bool show_box)
 {
 	m_show_box = show_box;
+}
+
+void wgt_nbody_view::set_scale(double scale)
+{
+	m_scale = scale;
 }

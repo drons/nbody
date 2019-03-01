@@ -37,6 +37,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_stereo_base = new QSlider(this);
 	m_stars_intensity = new QSpinBox(this);
 	m_stars_size = new QDoubleSpinBox(this);
+	m_scale = new QDoubleSpinBox(this);
 	m_frame_number = new QLabel(this);
 	m_timeline->setOrientation(Qt::Horizontal);
 	m_stereo_base->setOrientation(Qt::Horizontal);
@@ -50,11 +51,16 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_stars_size->setSingleStep(size_step);
 	m_stars_size->setValue(size_range[0]);
 
+	m_scale->setRange(0, 10000);
+	m_scale->setValue(100);
+	m_scale->setSuffix("%");
+
 	layout->addWidget(bar);
 	layout->addWidget(m_timeline);
 	layout->addWidget(m_stereo_base);
 	layout->addWidget(m_stars_intensity);
 	layout->addWidget(m_stars_size);
+	layout->addWidget(m_scale);
 	layout->addWidget(m_frame_number);
 	m_frame_number->setFixedWidth(fontMetrics().width("000:000:000"));
 
@@ -83,6 +89,8 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 			this, SIGNAL(star_intensity_updated()));
 	connect(m_stars_size, SIGNAL(valueChanged(double)),
 			this, SIGNAL(star_size_updated()));
+	connect(m_scale, SIGNAL(valueChanged(double)),
+			this, SIGNAL(scale_changed()));
 
 	connect(m_act_start, SIGNAL(triggered(bool)), this, SLOT(on_start()));
 	connect(m_act_pause, SIGNAL(triggered(bool)), this, SLOT(on_pause()));
@@ -131,6 +139,11 @@ bool wgt_nbody_player_control::get_color_from_velosity() const
 bool wgt_nbody_player_control::get_show_box() const
 {
 	return m_show_box->isChecked();
+}
+
+double wgt_nbody_player_control::get_scale() const
+{
+	return 100.0 / m_scale->value();
 }
 
 void wgt_nbody_player_control::on_start()

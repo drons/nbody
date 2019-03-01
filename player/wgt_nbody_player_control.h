@@ -17,6 +17,7 @@ class wgt_nbody_player_control : public QWidget
 	QSlider*			m_stereo_base;
 	QSpinBox*			m_stars_intensity;
 	QDoubleSpinBox*		m_stars_size;
+	QDoubleSpinBox*		m_scale;
 	QLabel*				m_frame_number;
 	QPropertyAnimation*	m_animation;
 	QAction*			m_act_start;
@@ -36,6 +37,7 @@ public:
 	void set_star_size_range(double, double, double);
 	bool get_color_from_velosity() const;
 	bool get_show_box() const;
+	double get_scale() const;
 public slots:
 	void on_start();
 	void on_pause();
@@ -54,6 +56,7 @@ signals:
 	void start_record();
 	void color_from_velosity_changed();
 	void show_box_changed();
+	void scale_changed();
 };
 
 #endif // WGT_NBODY_PLAYER_CONTROL_H

@@ -21,6 +21,7 @@ class wgt_nbody_view : public QGLWidget
 	double					m_star_size;
 	bool					m_color_from_velosity;
 	bool					m_show_box;
+	double					m_scale;
 public:
 	explicit wgt_nbody_view(nbody_data*);
 	~wgt_nbody_view();
@@ -43,6 +44,7 @@ public:
 	bool get_color_from_velosity() const;
 	void set_color_from_velosity(bool color_from_velosity);
 	void set_show_box(bool show_box);
+	void set_scale(double scale);
 signals:
 	void stars_size_range_changed(double, double, double);
 };
