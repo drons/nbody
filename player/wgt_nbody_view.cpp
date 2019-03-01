@@ -302,7 +302,6 @@ void wgt_nbody_view::setup_view_box()
 void wgt_nbody_view::setup_projection(GLsizei width, GLsizei height, const nbvertex_t& center,
 									  const nbvertex_t& camera_position, const nbvertex_t& up)
 {
-	setup_view_box();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
@@ -369,6 +368,7 @@ QImage wgt_nbody_view::render_to_image()
 
 void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
 {
+	setup_view_box();
 	glViewport(0, 0, width, height);
 	qglClearColor(Qt::black);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
