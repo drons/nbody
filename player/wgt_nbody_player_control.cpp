@@ -25,9 +25,13 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_act_forward = bar->addAction(QIcon::fromTheme("media-seek-forward"), tr("Forward>"));
 	m_act_record = bar->addAction(QIcon::fromTheme("media-record"), tr("Record*"));
 	m_color_from_velosity = bar->addAction(QIcon::fromTheme("emblem-generic"), tr("Color from velosity"));
+	m_show_box = bar->addAction(QIcon::fromTheme("x-package-repository"), tr("Show box"));
 
 	m_color_from_velosity->setCheckable(true);
 	m_color_from_velosity->setChecked(true);
+
+	m_show_box->setCheckable(true);
+	m_show_box->setChecked(true);
 
 	m_timeline = new QSlider(this);
 	m_stereo_base = new QSlider(this);
@@ -87,6 +91,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	connect(m_act_forward, SIGNAL(triggered(bool)), this, SLOT(on_forward()));
 	connect(m_act_record, SIGNAL(triggered(bool)), this, SIGNAL(start_record()));
 	connect(m_color_from_velosity, SIGNAL(triggered(bool)), this, SIGNAL(color_from_velosity_changed()));
+	connect(m_show_box, SIGNAL(triggered(bool)), this, SIGNAL(show_box_changed()));
 
 	on_finished();
 }
@@ -121,6 +126,11 @@ void wgt_nbody_player_control::set_star_size_range(double size_range_min, double
 bool wgt_nbody_player_control::get_color_from_velosity() const
 {
 	return m_color_from_velosity->isChecked();
+}
+
+bool wgt_nbody_player_control::get_show_box() const
+{
+	return m_show_box->isChecked();
 }
 
 void wgt_nbody_player_control::on_start()

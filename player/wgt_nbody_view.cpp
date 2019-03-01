@@ -35,6 +35,7 @@ wgt_nbody_view::wgt_nbody_view(nbody_data* _data) :
 	m_star_intensity = 255;
 	m_star_size = 1;
 	m_color_from_velosity = true;
+	m_show_box = true;
 }
 
 wgt_nbody_view::~wgt_nbody_view()
@@ -203,7 +204,10 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 	if(m_stereo_base == 0)
 	{
 		setup_projection(width, height, center, camera_position, up);
-		paint_color_box();
+		if(m_show_box)
+		{
+			paint_color_box();
+		}
 
 		glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE);
 #ifdef Q_OS_LINUX
@@ -455,4 +459,9 @@ bool wgt_nbody_view::get_color_from_velosity() const
 void wgt_nbody_view::set_color_from_velosity(bool color_from_velosity)
 {
 	m_color_from_velosity = color_from_velosity;
+}
+
+void wgt_nbody_view::set_show_box(bool show_box)
+{
+	m_show_box = show_box;
 }

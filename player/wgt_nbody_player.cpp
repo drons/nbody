@@ -44,6 +44,8 @@ wgt_nbody_player::wgt_nbody_player(nbody_data_stream_reader* stream,
 			this, SLOT(on_start_record()));
 	connect(m_control, SIGNAL(color_from_velosity_changed()),
 			this, SLOT(on_update_view()));
+	connect(m_control, SIGNAL(show_box_changed()),
+			this, SLOT(on_update_view()));
 	connect(m_view, SIGNAL(stars_size_range_changed(double, double, double)),
 			m_control, SLOT(on_stars_size_range_changed(double, double, double)));
 }
@@ -74,6 +76,7 @@ void wgt_nbody_player::on_update_view()
 	m_view->set_star_intensity(m_control->get_star_intensity());
 	m_view->set_star_size(m_control->get_star_size());
 	m_view->set_color_from_velosity(m_control->get_color_from_velosity());
+	m_view->set_show_box(m_control->get_show_box());
 	m_view->updateGL();
 }
 
