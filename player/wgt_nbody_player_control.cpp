@@ -43,6 +43,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_stereo_base->setOrientation(Qt::Horizontal);
 	m_stars_intensity->setRange(1, 255);
 	m_stars_intensity->setValue(255);
+	m_stars_intensity->setToolTip(tr("Stars intensity"));
 
 	GLfloat size_range[2] = {1, 1};
 	GLfloat size_step = 1;
@@ -50,10 +51,12 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_stars_size->setRange(size_range[0], size_range[1]);
 	m_stars_size->setSingleStep(size_step);
 	m_stars_size->setValue(size_range[0]);
+	m_stars_size->setToolTip(tr("Stars size"));
 
 	m_scale->setRange(0, 10000);
 	m_scale->setValue(100);
 	m_scale->setSuffix("%");
+	m_scale->setToolTip(tr("View scale"));
 
 	layout->addWidget(bar);
 	layout->addWidget(m_timeline);
@@ -65,7 +68,10 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	m_frame_number->setFixedWidth(fontMetrics().width("000:000:000"));
 
 	m_timeline->setRange(0, static_cast<int>(stream->get_frame_count()) - 1);
+	m_timeline->setToolTip(tr("Timeline"));
+
 	m_stereo_base->setRange(0, 100);
+	m_stereo_base->setToolTip(tr("Stereo base"));
 
 	m_animation = new QPropertyAnimation(this);
 	m_animation->setDuration(5000);
