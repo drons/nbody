@@ -29,12 +29,16 @@ struct nbody_data_stream_reader::data
 	size_t						m_coord_size;
 	size_t						m_body_count;
 	size_t						m_box_size;
+	bool						m_colors_read;
+	bool						m_masses_read;
 	data() :
 		m_file_n(std::numeric_limits<size_t>::max()),
 		m_current_frame(std::numeric_limits<size_t>::max()),
 		m_coord_size(0),
 		m_body_count(0),
-		m_box_size(0)
+		m_box_size(0),
+		m_colors_read(false),
+		m_masses_read(false)
 	{
 	}
 
@@ -65,6 +69,40 @@ struct nbody_data_stream_reader::data
 		{
 			m_box_size = value;
 		}
+	}
+
+	int read_colors(nbody_data* bdata)
+	{
+		QFile	col(nbody_data_stream::make_col_name(m_file_base_name));
+		if(!col.open(QFile::ReadOnly))
+		{
+			qDebug() << "Can't open file" << col.fileName() << col.errorString();
+			return -1;
+		}
+		qint64		col_sz(sizeof(nbcolor_t)*bdata->get_count());
+		if(col_sz != col.read(reinterpret_cast<char*>(bdata->get_color()), col_sz))
+		{
+			qDebug() << "Can't read file" << col.fileName() << col.errorString();
+			return -1;
+		}
+		return 0;
+	}
+
+	int read_masses(nbody_data* bdata)
+	{
+		QFile	mass(nbody_data_stream::make_mass_name(m_file_base_name));
+		if(!mass.open(QFile::ReadOnly))
+		{
+			qDebug() << "Can't open file" << mass.fileName() << mass.errorString();
+			return -1;
+		}
+		qint64		mass_sz(sizeof(nbcoord_t)*bdata->get_count());
+		if(mass_sz != mass.read(reinterpret_cast<char*>(bdata->get_mass()), mass_sz))
+		{
+			qDebug() << "Can't read file" << mass.fileName() << mass.errorString();
+			return -1;
+		}
+		return 0;
 	}
 };
 
@@ -292,34 +330,20 @@ int nbody_data_stream_reader::read(nbody_data* bdata)
 	{
 		seek(d->m_current_frame + 1);
 	}
+
+	if(!d->m_colors_read)
 	{
-		QFile	col(nbody_data_stream::make_col_name(d->m_file_base_name));
-		if(!col.open(QFile::ReadOnly))
-		{
-			qDebug() << "Can't open file" << col.fileName() << col.errorString();
-			return -1;
-		}
-		qint64		col_sz(sizeof(nbcolor_t)*bdata->get_count());
-		if(col_sz != col.read(reinterpret_cast<char*>(bdata->get_color()), col_sz))
-		{
-			qDebug() << "Can't read file" << col.fileName() << col.errorString();
-			return -1;
-		}
+		d->m_colors_read = (0 == d->read_colors(bdata));
 	}
+
+	if(!d->m_masses_read)
 	{
-		QFile	mass(nbody_data_stream::make_mass_name(d->m_file_base_name));
-		if(!mass.open(QFile::ReadOnly))
-		{
-			qDebug() << "Can't open file" << mass.fileName() << mass.errorString();
-			return -1;
-		}
-		qint64		mass_sz(sizeof(nbcoord_t)*bdata->get_count());
-		if(mass_sz != mass.read(reinterpret_cast<char*>(bdata->get_mass()), mass_sz))
-		{
-			qDebug() << "Can't read file" << mass.fileName() << mass.errorString();
-			return -1;
-		}
+		d->m_masses_read = (0 == d->read_masses(bdata));
 	}
+
 
 	return 0;
 }
+
+
+
