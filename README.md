@@ -46,6 +46,7 @@ Argument | Description
 `--stars_count` | Stars count
 `--box_size` | 'Universe' box size.
 `--output` | Output stream name.
+`--resume` | Stream name to resume (in this case `output` and `initial_state` are ignored).
 `--initial_state` | Optional initial state file in ['Zeno'](https://github.com/joshuabarnes/zeno) format. Can be created with [snapascii](https://github.com/joshuabarnes/zeno/blob/master/src/nbody/tools/snapascii.c) tool.
 `--max_part_size` | Max stream file size (splits a stream into multiple files).
 `--max_time` | Max simulation time.
