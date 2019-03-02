@@ -3,12 +3,20 @@
 
 #include "nbody_data.h"
 
+//! ODE order
+enum e_ode_order
+{
+	eode_first_order = 1,	// y' = f(t, y)
+	eode_second_order = 1,	// y" = f(t, y)
+};
+
 /*!
-	Compute engine for ODE y' = f(t, y)
+	Compute engine for ODE y' = f(t, y) or y" = f(t, y)
 */
 class NBODY_DLL nbody_engine
 {
 	size_t	m_compute_count;
+	e_ode_order	m_ode_order;
 	nbody_engine(const nbody_engine&) = delete;
 	nbody_engine& operator = (const nbody_engine&) = delete;
 public:
@@ -74,6 +82,10 @@ public:
 
 	void advise_compute_count();
 	size_t get_compute_count() const;
+	//! Set engine's ODE order
+	void set_ode_order(e_ode_order);
+	//! ODE order
+	e_ode_order get_ode_order() const;
 };
 
 #endif // NBODY_ENGINE_H

@@ -15,6 +15,7 @@ nbody_solver::~nbody_solver()
 void nbody_solver::set_engine(nbody_engine* e)
 {
 	m_engine = e;
+	m_engine->set_ode_order(get_ode_order());
 }
 
 nbody_engine* nbody_solver::engine()
@@ -84,7 +85,13 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 
 void nbody_solver::print_info() const
 {
-	qDebug() << "\tmin_step" << m_min_step;
-	qDebug() << "\tmax_step" << m_max_step;
+	qDebug() << "\tmin_step " << m_min_step;
+	qDebug() << "\tmax_step " << m_max_step;
+	qDebug() << "\tODE order" << get_ode_order();
+}
+
+e_ode_order nbody_solver::get_ode_order() const
+{
+	return eode_first_order;
 }
 

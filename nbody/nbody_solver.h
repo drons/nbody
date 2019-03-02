@@ -26,6 +26,7 @@ public:
 	virtual const char* type_name() const = 0;
 	virtual void advise(nbcoord_t dt) = 0;
 	virtual void print_info() const;
+	virtual e_ode_order get_ode_order() const;
 };
 
 #endif // NBODY_SOLVER_H
