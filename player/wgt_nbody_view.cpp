@@ -46,8 +46,6 @@ wgt_nbody_view::~wgt_nbody_view()
 
 void wgt_nbody_view::paint_color_box()
 {
-	glEnable(GL_DEPTH_TEST);
-	glShadeModel(GL_SMOOTH);
 	//! Draw Cube
 	glLineWidth(1);
 	const nb3d_t	cube_vrt[8] =
@@ -198,6 +196,7 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 	glPointSize(static_cast<GLfloat>(m_star_size));
 	glEnable(GL_POINT_SMOOTH);
 	glEnable(GL_BLEND);
+	glShadeModel(GL_SMOOTH);
 
 	nbvertex_t	center((m_box_max + m_box_min) * 0.5);
 	GLfloat		factor(static_cast<GLfloat>(m_star_intensity) / 255.0f);
@@ -207,7 +206,9 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 		setup_projection(width, height, center, camera_position, up);
 		if(m_show_box)
 		{
+			glEnable(GL_DEPTH_TEST);
 			paint_color_box();
+			glDisable(GL_DEPTH_TEST);
 		}
 
 		glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE);
