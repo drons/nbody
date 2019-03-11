@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
 	if(0 != stream.load(stream_name))
 	{
-		qDebug() << "can't open stream" << stream_name;
+		qDebug() << "Can't open stream" << stream_name;
 		return -1;
 	}
 

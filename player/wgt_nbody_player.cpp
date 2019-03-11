@@ -112,7 +112,7 @@ void wgt_nbody_player::on_start_record()
 
 	if((compressor == NULL) || (!compressor->set_destination(out)))
 	{
-		qDebug() << "can't setup compressor" << out;
+		qDebug() << "Can't setup compressor" << out;
 		return;
 	}
 
