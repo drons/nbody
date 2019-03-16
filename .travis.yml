@@ -389,6 +389,18 @@ matrix:
           - cppcheck -DNB_COORD_PRECISION=4 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
           - cppcheck -DNB_COORD_PRECISION=2 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
           - cppcheck -DNB_COORD_PRECISION=1 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      env: NAME="codespell"
+      addons:
+        apt:
+          packages:
+          - codespell
+      script:
+      - codespell 
+      - git diff --exit-code
+
 language:
   - cpp
 
