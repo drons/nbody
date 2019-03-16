@@ -76,7 +76,7 @@ Argument | Description
 ---------|-------------
 `--solver` | Solver [type](#integration-methods).
 `--max_step`| Solvers max time step
-`--min_step`| Embeded solvers min time step
+`--min_step`| Embedded solvers min time step
 `--rank`   | Adams–Bashforth solver rank (1...5).
 `--starter_solver`   | Adams–Bashforth starter solver.
 `--refine_steps_count` | Refine step count for __implicit__ solvers.
