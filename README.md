@@ -105,3 +105,4 @@ Other parameters controlled via UI.
 ## Refs
 1) [Hairer, Ernst; Nørsett, Syvert Paul; Wanner, Gerhard (1993), Solving ordinary differential equations I: Nonstiff problems, Berlin, New York](http://www.hds.bme.hu/~fhegedus/00%20-%20Numerics/B1993%20Solving%20Ordinary%20Differential%20Equations%20I%20-%20Nonstiff%20Problems.pdf)
 2) [A Numerical Integration Scheme  for the N-Body Gravitational Problem	A. AHMAD AND L. COHEN 1973](https://courses.physics.ucsd.edu/2016/Winter/physics141/Lectures/Lecture8/AhmadCohen.pdf)
+3) [Задача N тел или как взорвать галактику не выходя из кухни](https://habr.com/ru/post/437014/)
