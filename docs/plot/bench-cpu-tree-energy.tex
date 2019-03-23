@@ -1,0 +1,31 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.14}
+
+% stars_count = 1024 * 32;
+% max_time = 1
+% max_step = 0.01
+% ratio = {0.1, 0.5, 1, 2, 4, 16, 64, 256, 1024};
+
+\begin{document}
+
+\begin{tikzpicture}
+\begin{loglogaxis}[
+    height=6in,
+    width=6in,
+    xlabel=$\lambda_{crit}$,
+    ylabel=$dE/E_0$
+]
+\addplot [red,mark=*,solid] coordinates { (0.1, 0.06292) (0.5, 0.0001933) (1, 4.98e-05) (2, 4.725e-05) (4, 4.729e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\addplot [blue,mark=*,solid] coordinates { (0.1, 0.06292) (0.5, 0.0001933) (1, 4.98e-05) (2, 4.725e-05) (4, 4.729e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\addplot [teal,mark=*,solid] coordinates { (0.1, 0.06292) (0.5, 0.0001933) (1, 4.98e-05) (2, 4.725e-05) (4, 4.729e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\addplot [black,mark=*,solid] coordinates { (0.1, 0.06292) (0.5, 0.0001933) (1, 4.98e-05) (2, 4.725e-05) (4, 4.729e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\addplot [red,mark=triangle*,solid] coordinates { (0.1, 0.06292) (0.5, 0.0001933) (1, 4.98e-05) (2, 4.725e-05) (4, 4.729e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\addplot [blue,mark=triangle*,solid] coordinates { (0.1, 0.06292) (0.5, 0.0001933) (1, 4.98e-05) (2, 4.725e-05) (4, 4.729e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\addplot [teal,mark=triangle*,solid] coordinates { (0.1, 4.737e-05) (0.5, 4.737e-05) (1, 4.737e-05) (2, 4.737e-05) (4, 4.737e-05) (16, 4.737e-05) (64, 4.737e-05) (256, 4.737e-05) (1024, 4.737e-05) };
+\legend{$cycle+tree$,$cycle+heap$,$cycle+heap stackless$,$nested tree+tree$,$nested tree+heap$,$nested tree+heap stackless$,$openmp+block+optimization$};
+\end{loglogaxis}
+\end{tikzpicture}
+
+\end{document}

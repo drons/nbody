@@ -276,7 +276,7 @@ void bench_cpu(const QString& format)
 	QString									variable_field = "stars_count";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(stars_counts.size()));
 
-	run_bench(params, stars_counts, result, variable_field, "PLV", 1);
+	run_bench(params, stars_counts, result, variable_field, QString(), 1);
 	print_table(params, stars_counts, result, "engine", QStringList() << "time", QStringList(), format);
 }
 
@@ -307,55 +307,159 @@ void bench_gpu(const QString& format)
 	QString									variable_field = "stars_count";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(stars_counts.size()));
 
-	run_bench(params, stars_counts, result, variable_field, "PLV", 1);
+	run_bench(params, stars_counts, result, variable_field, QString(), 1);
 	print_table(params, stars_counts, result, "engine", QStringList() << "time", QStringList(), format);
 }
 
-void bench_cuda_tree(const QString& format)
+void bench_gpu_tree_block(const QString& format, const QVariantMap& param)
 {
-	int		stars_count = 1024 * 256;
+	int		stars_count = param.value("stars_count", 131072).toInt();
+	double	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
 	QVariantMap param1(std::map<QString, QVariant>(
 	{
-		{"name", "dense"},
-		{"engine", "cuda"},
+		{"name", "opencl+dense"},
+		{"engine", "opencl"},
 		{"solver", "euler"},
 		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
 		{"max_step", 0.01}
 	}));
 	QVariantMap param2(std::map<QString, QVariant>(
 	{
-		{"name", "cuda_bh"},
-		{"engine", "cuda_bh"},
+		{"name", "cuda+dense"},
+		{"engine", "cuda"},
 		{"solver", "euler"},
 		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
 		{"max_step", 0.01}
 	}));
 	QVariantMap param3(std::map<QString, QVariant>(
 	{
-		{"name", "cuda_heap"},
-		{"engine", "cuda_bh_tex"},
-		{"tree_layout", "heap"},
+		{"name", "opencl+heap+cycle"},
+		{"engine", "opencl_bh"},
+		{"traverse_type", "cycle"},
 		{"solver", "euler"},
 		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
 		{"max_step", 0.01}
 	}));
 	QVariantMap param4(std::map<QString, QVariant>(
 	{
-		{"name", "cuda_stackless"},
+		{"name", "opencl+heap+nested"},
+		{"engine", "opencl_bh"},
+		{"traverse_type", "nested_tree"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param5(std::map<QString, QVariant>(
+	{
+		{"name", "cuda+heap+nested"},
+		{"engine", "cuda_bh"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param6(std::map<QString, QVariant>(
+	{
+		{"name", "cuda+heap+nested+tex"},
+		{"engine", "cuda_bh_tex"},
+		{"tree_layout", "heap"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param7(std::map<QString, QVariant>(
+	{
+		{"name", "cuda+heap+nested+tex+stackless"},
 		{"engine", "cuda_bh_tex"},
 		{"tree_layout", "heap_stackless"},
 		{"solver", "euler"},
 		{"stars_count", stars_count},
+		{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
 		{"max_step", 0.01}
 	}));
 
-	std::vector<QVariantMap>				params = {param1, param2, param3, param4};
-	std::vector<QVariant>					block_sizes = {64, 128, 256, 512, 1024};
+	std::vector<QVariantMap>				params = {param1, param2, param3, param4, param5, param6, param7};
+	std::vector<QVariant>					block_sizes = {8, 16, 32, 64, 128, 256, 512, 1024};
 	QString									variable_field = "block_size";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(block_sizes.size()));
 
-	run_bench(params, block_sizes, result, variable_field, "PLV", 0.03);
+	run_bench(params, block_sizes, result, variable_field, QString(), 0.1);
 	print_table(params, block_sizes, result, "name", QStringList() << "time", QStringList(), format);
+}
+
+void bench_gpu_tree_ratio(const QString& format, const QVariantMap& param)
+{
+	int		stars_count = param.value("stars_count", 131072).toInt();
+	size_t		ratio_count = param.value("ratio_count", 0).toUInt();
+	QVariantMap param1(std::map<QString, QVariant>(
+	{
+		{"name", "opencl+heap+cycle"},
+		{"engine", "opencl_bh"},
+		{"traverse_type", "cycle"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"block_size", 8},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param2(std::map<QString, QVariant>(
+	{
+		{"name", "opencl+heap+nested"},
+		{"engine", "opencl_bh"},
+		{"traverse_type", "nested_tree"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"block_size", 32},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param3(std::map<QString, QVariant>(
+	{
+		{"name", "cuda+heap+nested"},
+		{"engine", "cuda_bh"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"block_size", 32},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param4(std::map<QString, QVariant>(
+	{
+		{"name", "cuda+heap+nested+tex"},
+		{"engine", "cuda_bh_tex"},
+		{"tree_layout", "heap"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"block_size", 64},
+		{"max_step", 0.01}
+	}));
+	QVariantMap param5(std::map<QString, QVariant>(
+	{
+		{"name", "cuda+heap+nested+tex+stackless"},
+		{"engine", "cuda_bh_tex"},
+		{"tree_layout", "heap_stackless"},
+		{"solver", "euler"},
+		{"stars_count", stars_count},
+		{"block_size", 256},
+		{"max_step", 0.01}
+	}));
+
+	std::vector<QVariantMap>				params = {param1, param2, param3, param4, param5};
+	std::vector<QVariant>					ratio = {0.1, 0.5, 1, 2, 4, 16, 64, 256, 1024};
+
+	if(ratio_count > 0 && ratio_count < ratio.size())
+	{
+		ratio = std::vector<QVariant>(ratio.begin(), ratio.begin() + ratio_count);
+	}
+
+	QString									variable_field = "distance_to_node_radius_ratio";
+	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(ratio.size()));
+
+	run_bench(params, ratio, result, variable_field, QString(), 0.1);
+	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "time",
+				QStringList() << "$\\lambda_{crit}$" << "Step time (s)", format);
 }
 
 void bench_solver(const QString& format)
@@ -491,7 +595,7 @@ void bench_solver(const QString& format)
 	QString									variable_field = "max_step";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
 
-	run_bench(params, steps, result, variable_field, "PLVE", 25);
+	run_bench(params, steps, result, variable_field, "PLVE", 2.5);
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dE",
 				QStringList() << "$f_n$ compute count" << "$dE/E_0$", format);
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dL",
@@ -574,7 +678,7 @@ void bench_solver_quad(const QString& format)
 
 void bench_cpu_tree(const QString& format)
 {
-	int		stars_count = 1024 * 16;
+	int		stars_count = 1024 * 32;
 
 	QVariantMap param01(std::map<QString, QVariant>(
 	{
@@ -582,9 +686,7 @@ void bench_cpu_tree(const QString& format)
 		{"engine", "simple_bh"},
 		{"traverse_type", "cycle"},
 		{"tree_layout", "tree"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
@@ -594,9 +696,7 @@ void bench_cpu_tree(const QString& format)
 		{"engine", "simple_bh"},
 		{"traverse_type", "cycle"},
 		{"tree_layout", "heap"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
@@ -606,9 +706,7 @@ void bench_cpu_tree(const QString& format)
 		{"engine", "simple_bh"},
 		{"traverse_type", "cycle"},
 		{"tree_layout", "heap_stackless"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
@@ -618,9 +716,7 @@ void bench_cpu_tree(const QString& format)
 		{"engine", "simple_bh"},
 		{"traverse_type", "nested_tree"},
 		{"tree_layout", "tree"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
@@ -630,9 +726,7 @@ void bench_cpu_tree(const QString& format)
 		{"engine", "simple_bh"},
 		{"traverse_type", "nested_tree"},
 		{"tree_layout", "heap"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
@@ -642,9 +736,7 @@ void bench_cpu_tree(const QString& format)
 		{"engine", "simple_bh"},
 		{"traverse_type", "nested_tree"},
 		{"tree_layout", "heap_stackless"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
@@ -652,22 +744,21 @@ void bench_cpu_tree(const QString& format)
 	{
 		{"name", "openmp+block+optimization"},
 		{"engine", "block"},
-		{"solver", "adams"},
-		{"rank", 5},
-		{"starter_solver", "rk4"},
+		{"solver", "euler"},
 		{"stars_count", stars_count},
 		{"max_step", "0.01"}
 	}));
 	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07};
-	std::vector<QVariant>					ratio = {1, 4, 16, 64, 256, 1024};
+	std::vector<QVariant>					ratio = {0.1, 0.5, 1, 2, 4, 16, 64, 256, 1024};
 	QString									variable_field = "distance_to_node_radius_ratio";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(ratio.size()));
 
-	run_bench(params, ratio, result, variable_field, "PLVE", 0.1);
+	run_bench(params, ratio, result, variable_field, "PLVE", 1);
 	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "dE",
-				QStringList() << "$Distance/Node_{radius}$" << "$dE/E_0$", format);
+				QStringList() << "$\\lambda_{crit}$" << "$dE/E_0$", format);
+	run_bench(params, ratio, result, variable_field, QString(), 1);
 	print_table(params, ratio, result, "name", QStringList() << "distance_to_node_radius_ratio" << "time",
-				QStringList() << "$Distance/Node_{radius}$" << "Step time (s)", format);
+				QStringList() << "$\\lambda_{crit}$" << "Step time (s)", format);
 }
 
 int main(int argc, char* argv[])
@@ -685,9 +776,13 @@ int main(int argc, char* argv[])
 	{
 		bench_gpu(format);
 	}
-	else if(bench == "cuda_tree")
+	else if(bench == "gpu_tree_block")
 	{
-		bench_cuda_tree(format);
+		bench_gpu_tree_block(format, param);
+	}
+	else if(bench == "gpu_tree_ratio")
+	{
+		bench_gpu_tree_ratio(format, param);
 	}
 	else if(bench == "solver")
 	{

@@ -1,0 +1,28 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+\usepgfplotslibrary{external}
+\pgfplotsset{compat=1.14}
+
+\begin{document}
+
+\begin{tikzpicture}
+\begin{axis}[
+    xmin=0, xmax=300,
+    ymode = log,
+    height=4in,
+    width=8in,
+    xlabel=Evolve time,
+    ylabel=Relative loss,
+    legend style={at={(0.99,0.02)},anchor=south east}
+]
+\addplot [red,mark=none,solid] table[x=T, y=dE] {evolve-512-300-1e-5-rkdverk.csv};
+\addplot [teal,mark=none,solid] table[x=T, y=dL] {evolve-512-300-1e-5-rkdverk.csv};
+\addplot [magenta,mark=none,solid] table[x=T, y=dP] {evolve-512-300-1e-5-rkdverk.csv};
+
+\legend{$dE/E_0$, $dL/L_0$, $dP/P_0$};
+
+\end{axis}
+\end{tikzpicture}
+
+\end{document}

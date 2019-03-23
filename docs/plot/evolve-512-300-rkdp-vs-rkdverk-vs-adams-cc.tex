@@ -1,0 +1,26 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+\usepgfplotslibrary{external}
+\pgfplotsset{compat=1.14}
+
+\begin{document}
+
+\begin{tikzpicture}
+\begin{axis}[
+    xmin=0, xmax=300,
+    height=4in,
+    width=8in,
+    xlabel=Evolve time,
+    ylabel=Total $f_n$ compute count
+]
+\addplot [red,mark=none,solid] table[x=T, y=CC] {evolve-512-300-1e-5-rkdp.csv};
+\addplot [magenta,mark=none,solid] table[x=T, y=CC] {evolve-512-300-1e-5-rkdverk.csv};
+\addplot [blue,mark=none,solid] table[x=T, y=CC] {evolve-512-300-1e-6-adams.csv};
+
+\legend{$rkdp$ $(h=10^{-5}\dots 10^{-9})$, $rkdverk$ $(h=10^{-5}\dots 10^{-9})$, $adams5$ $(h=10^{-6})$};
+
+\end{axis}
+\end{tikzpicture}
+
+\end{document}

@@ -1,0 +1,1641 @@
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<img src="https://habrastorage.org/webt/ke/eo/en/keeoenv3rtuxqu19szhk5hzfb7q.png"/>
+
+Не так давно я прочёл фантастический роман <a href="https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%B4%D0%B0%D1%87%D0%B0_%D1%82%D1%80%D1%91%D1%85_%D1%82%D0%B5%D0%BB_(%D1%80%D0%BE%D0%BC%D0%B0%D0%BD)">"Задача трёх тел" Лю Цысиня</a>. В нём у одних инопланетян была проблема - они не умели, с достаточной для них точностью, вычислять траекторию своей родной планеты. В отличии от нас, они жили в системе из трёх звёзд, и от их взаимного расположения сильно зависела "погода" на планете - от испепеляющей жары до леденящего мороза. И я решил проверить, можем ли мы решать подобные задачи.
+<habracut>
+<h2>Физика явления</h2>
+Для понимания задачи необходимо разобраться с физикой явления. В рамках классической теории сила притяжения двух тел определяется законом <a href="https://ru.wikipedia.org/wiki/%D0%9A%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D1%82%D0%B5%D0%BE%D1%80%D0%B8%D1%8F_%D1%82%D1%8F%D0%B3%D0%BE%D1%82%D0%B5%D0%BD%D0%B8%D1%8F_%D0%9D%D1%8C%D1%8E%D1%82%D0%BE%D0%BD%D0%B0 ">Ньютона</a>:
+
+$$display$$
+\vec{F}(\vec{r}_1, \vec{r}_2)=-G m_1 m_2 \frac{\vec{r}_1 - \vec{r}_2}{|\vec{r}_1 - \vec{r}_2|^3},
+$$display$$
+
+где  $inline$\vec{r}_1, \vec{r}_2$inline$ - положение тел в пространстве, $inline$m_1, m_2$inline$ - массы тел, $inline$G$inline$ - гравитационная постоянная.
+В системе из $inline$N$inline$ тел на каждое из них будет действовать сила притяжения от остальных, что выражается уравнением:
+
+$$display$$
+\vec{F}_n=-G \sum_{k \neq n} m_n m_k \frac{\vec{r}_n - \vec{r}_k}{|\vec{r}_n - \vec{r}_k|^3}.
+$$display$$
+
+Воспользовавшись <a href="https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%BA%D0%BE%D0%BD%D1%8B_%D0%9D%D1%8C%D1%8E%D1%82%D0%BE%D0%BD%D0%B0#%D0%92%D1%82%D0%BE%D1%80%D0%BE%D0%B9_%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD_%D0%9D%D1%8C%D1%8E%D1%82%D0%BE%D0%BD%D0%B0">вторым законом Ньютона</a> запишем ускорение для каждой частицы:
+$$display$$
+\vec{a}_n = \vec{F}_n/m_n = -G \sum_{k \neq n} m_k \frac{\vec{r}_n - \vec{r}_k}{|\vec{r}_n - \vec{r}_k|^3}.
+$$display$$
+
+Вспоминая, что ускорение - это вторая производная координаты по времени, получим дифференциальное уравнение второго порядка в частных производных, которое необходимо решить для получения траектории каждого тела:
+$$display$$
+\frac{\partial^2 \vec{r}_n }{\partial t^2} = f_n =-G \sum_{k \neq n} m_k \frac{\vec{r}_n - \vec{r}_k}{|\vec{r}_n - \vec{r}_k|^3}.
+$$display$$
+Здесь важно заметить, что сложность вычисления функции $inline$f_n$inline$ равна $inline$O(N^2)$inline$ и сильно возрастает с увеличением количества взаимодействующих тел.
+
+<h2>Математика</h2>
+Первым и простейшим методом решения дифференциальных уравнений является <a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%B5%D1%82%D0%BE%D0%B4_%D0%AD%D0%B9%D0%BB%D0%B5%D1%80%D0%B0">метод Эйлера</a>, который предназначен для решения уравнений вида:
+$$display$$
+\frac{dy}{dx}=f(x,y).
+$$display$$
+При переходе в дискретную область получим:
+$$display$$
+y_{i}=y_{i-1}+h f(x_{i-1},y_{i-1}),\quad i=1,2,3,\dots ,m,
+$$display$$
+где $inline$h$inline$ - шаг интегрирования, а $inline$m$inline$ - число шагов интегрирования. Таким образом, ести нам необходимо произвести вычисление положения тел на момент времени $inline$T$inline$, то нам следует сделать $inline$m=T/h$inline$ шагов интегрирования. Тут видна первая проблема - если $inline$T$inline$ велико, то нам нужно сделать большое количество шагов интегрирования.
+
+Для применения метода Эйлера к нашей задаче её следует свести к системе первого порядка. Для этого введём дополнительную переменную - скорость частицы:
+$$display$$
+\frac{\partial \vec{v}_n }{\partial t} = f_n,\\
+\frac{\partial \vec{r}_n }{\partial t} = \vec{v}_n.
+$$display$$
+
+Второй проблемой в решении систем дифференциальных уравнений является точность решения и её контроль. Точность можно повышать двумя способами: уменьшением шага интегрирования и выбором метода с более высоким порядком точности. Оба способа ведут к увеличению вычислительной сложности, но разными путями. Например, можно использовать классический метод <a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%B5%D1%82%D0%BE%D0%B4_%D0%A0%D1%83%D0%BD%D0%B3%D0%B5_%E2%80%94_%D0%9A%D1%83%D1%82%D1%82%D1%8B">Рунге-Кутты четвертого порядка</a>, он требует четырёх вычислений функции $inline$f_n$inline$ на каждом шаге, но имеет порядок точности $inline$O(h^4)$inline$ (для сравнения, метод Эйлера имеет порядок точности $inline$O(h)$inline$ и требует одного вычисления $inline$f_n$inline$). Контроль точности решения также можно осуществлять несколькими способами: сравнить с аналитическим решением, решить разними методами или с разным шагом и сравнить результаты, контролировать сторонние параметры и ограничения, которым должно соответствовать решение.
+Также, у каждого из этих методов есть свои недостатки. Аналитические решения могут отсутствовать, или, даже в большинстве случаев, и вовсе отсутствуют. Например, для нашей задачи $inline$N$inline$ тел аналитическое решение есть только при $inline$N = 2$inline$, но даже этого достаточно для тестирования точности методов. Решение задачи двумя методами или с разным шагом увеличивает время вычислений, но этот подход возможно применять практически для любой задачи. Ограничения есть не у каждой задачи, но для нашей они есть: на каждом шаге интегрирования мы можем контролировать выполнение <a href="https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%BA%D0%BE%D0%BD%D1%8B_%D1%81%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F">законов сохранения</a>. Этот подход тоже увеличивает сложность вычисления, но здесь есть из чего выбирать, вычисление суммы импульсов или моментов импульса всех частиц имеет сложность порядка $inline$O(N)$inline$, в то время как вычисление полной энергии системы имеет сложность порядка $inline$O(N^2)$inline$
+
+<spoiler title="Заметка про вычисление полной энергии">
+В нашем случае полная энергия системы состоит из двух частей - кинетической и потенциальной энергии. Кинетическая энергия состоит из суммы кинетических энергий всех тел. Для вычисления же потенциальной энергии нужно сложить потенциальные энергии каждой частицы в гравитационном поле остальных частиц, таким образом нам нужно сложить $inline$O(N^2)$inline$ слагаемых. Сложность в том, что все слагаемые имеют сильо разный порядок, и даже при вычислениях с двойной точностью не удаётся вычислить это значение с точностью, достаточной для сравнения на разных шагах. Для преодоления этой проблемы пришлось применить суммирование по <a href="https://ru.wikipedia.org/wiki/%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC_%D0%9A%D1%8D%D1%85%D1%8D%D0%BD%D0%B0">алгоритму Кэхэна</a>.
+</spoiler>
+<img align=center src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Plocha_pruvodice.png/320px-Plocha_pruvodice.png" alt="Эллиптическая траектория"/>
+<p align=center><b>Рис 1.&nbsp;</b><i>Пример эллиптической траектории.</i></p>
+<!--https://commons.wikimedia.org/wiki/File:Plocha_pruvodice.png-->
+
+Рассмотрим простой случай движения спутника по эллиптической орбите вокруг Земли. При приближении спутника к Земле его скорость увеличивается, а при удалении от Земли уменьшается, соответственно, напрашивается возможность уменьшать шаг интегрирования по времени на зелёном участке орбиты, и увеличивать на красном и синем без изменения точности решения. Попробуем сравнить более детально.
+
+<b>Таблица 1. &nbsp;</b><i>Исследуемые методы решения дифференциальных уравнений</i>
+<table>
+<tr>
+<th>Обозначене</th>
+<th>Порядок</th>
+<th>Описание</th>
+</tr>
+<tr>
+<td>adams</td>
+<td>1-5</td>
+<td><a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%B5%D1%82%D0%BE%D0%B4_%D0%90%D0%B4%D0%B0%D0%BC%D1%81%D0%B0#%D0%9C%D0%B5%D1%82%D0%BE%D0%B4%D1%8B_%D0%90%D0%B4%D0%B0%D0%BC%D1%81%D0%B0_%E2%80%94_%D0%91%D0%B0%D1%88%D1%84%D0%BE%D1%80%D1%82%D0%B0">Метод Адамса-Башфорта</a></td>
+</tr>
+<tr>
+<td>euler</td>
+<td>1</td>
+<td><a href="https://en.wikipedia.org/wiki/Euler_method">Метод Эйлера</a></td>
+</tr>
+<tr>
+<td>rk4</td>
+<td>4</td>
+<td><a href="https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Classic_fourth-order_method">Классический метод Рунге-Кутты</a></td>
+</tr>
+<tr>
+<td>rkck</td>
+<td>5</td>
+<td><a href="https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method">Метод Каша-Карпа</a></td>
+</tr>
+<tr>
+<td>rkdp</td>
+<td>5</td>
+<td><a href="https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method">Метод Дормана-Принса</a></td>
+</tr>
+<tr>
+<td>rkdverk</td>
+<td>6</td>
+<td>Метод Вернера <a href="https://github.com/drons/nbody/blob/master/README.md#refs">1)</a> p. 181</td>
+</tr>
+<tr>
+<td>rkf</td>
+<td>7</td>
+<td>Метод Фельберга <a href="https://github.com/drons/nbody/blob/master/README.md#refs">1)</a> p. 180</td>
+</tr>
+<tr>
+<td>rkgl</td>
+<td>6</td>
+<td><a href="https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Gauss%E2%80%93Legendre_methods">Неявный метод Гаусса-Лежандра</a></td>
+</tr>
+<tr>
+<td>rklc</td>
+<td>4</td>
+<td><a href="https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Lobatto_IIIC_methods">Неявный метод Лобатто</a></td>
+</tr>
+<tr>
+<td>trapeze</td>
+<td>2</td>
+<td><a href="https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)">Метод трапеций</a></td>
+</tr>
+</table>
+Для выбора наилучшего метода для нашей задачи произведём сравнение нескольких известных методов. Для этого смоделируем столкновение двух систем тел $inline$N=512$inline$ и измерим относительное изменение <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-e.svg">полной энергии</a>, <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-p.svg">импульса</a> и его <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-l.svg">момента</a> в конце моделирования (максимальное время моделирования $inline$T_{max} = 2.5$inline$). При этом мы будем варьировать шаг и параметры методов интегрирования и замерять количество вызовов функции $inline$f_n$inline$, соответственно, те методы, которые при меньшем числе вызовов приведут к меньшим потерям, будем считать более приемлимыми.
+
+<table>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-e.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/bench-solvers-e.svg"/>
+            </a>
+        </td>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-p.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/bench-solvers-p.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+    <td align='center' border='0'>a)</td>
+    <td align='center' border='0'>b)</td>
+  </tr>
+  <tr>
+    <td colspan=2 align='center'><b>Рис 2.&nbsp;</b><i>Относительное изменение энергии a), импульса b), в конце моделирования системы $inline$N=512$inline$ тел различными методами в зависимости от количества вычислений функции $inline$f_n$inline$ с двойной точностью (double)</i></td>
+  </tr>
+</table>
+Из графиков рисунке 2 видно, что наилучшее соотношение количества вычисления функции $inline$f_n$inline$ и относительного изменения энергии системы тел у методов Адамса пятого порядка и Дормана-Принса. Также видно, что для всех методов с ростом числа вычисления $inline$f_n$inline$ увеличивается относительное изменение импульса системы. Для относительного изменения энергии это также заметно, но только для нескольких методов, которые смогли достичь порога $inline$dE/E_0 < 10^{-12}$inline$. Этот эффект можно связать уже не с погрешностью методов, а с погрешностью вычислений, и дальнейшее увеличение точности возможно только совместно с увеличением точности вычислений с плавающей точкой.
+<table>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-quad-e.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/bench-solvers-quad-e.svg"/>
+            </a>
+        </td>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/bench-solvers-quad-p.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/bench-solvers-quad-p.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+    <td align='center' border='0'>a)</td>
+    <td align='center' border='0'>b)</td>
+  </tr>
+  <tr>
+    <td colspan=2 align='center'><b>Рис 3.&nbsp;</b><i>Относительное изменение энергии a), импульса b), в конце моделирования системы $inline$N=512$inline$ тел различными методами в зависимости от количества вычислений функции $inline$f_n$inline$ с четверной точностью (__float128)</i></td>
+  </tr>
+</table>
+Из рисунков 3a и 3b видно, что применение вычислений с четверной точностью позволяет снизить относительные потери энергии вплоть до $inline$10^{-23}$inline$, но нужно понимать, что время вычислений по сравнению с двойной точностью увеличивается на два порядка. Как и в случае с вычислениями с двойной точностью наилучшим соотношением точности и количества вычислений функции $inline$f_n$inline$ обладают методы Адамса пятого порядка и Дормана-Принса.
+
+Методы Дормана-Принса и Вернера относятся к классу <a href="http://www.astro.tsu.ru/ChIntODY/text/3_6.html">вложенных методов</a> и позволяют одновременно вычислить два решения с высоким и низким порядком точности (для метода Дормана-Принса порядки 5 и 4, а для метода Вернера порядки 6 и 5). Если эти два решения сильно отличаются, то мы можем разбить текущий шаг интегрирования на более мелкие. Что позволяет нам динамически изменять шаг интегрирования и уменьшать его только на тех участках, где это требуется.
+
+Сравним методы Дормана-Принса, Вернера и Адамса пятого порядка более детально, на более длительном интервале моделирования нашей системы ($inline$T_{max} = 300$inline$).
+<table>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdp-loss.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdp-loss.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>a)&nbsp;</b><i>Относительное изменение энергии, импульса и его момента в процессе моделирования</i>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdp-cc.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdp-cc.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>b)&nbsp;</b><i>Количество вычислений функции $inline$f_n$inline$ на интервале моделирования $inline$\Delta T=0.3$inline$</i>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>Рис 4.&nbsp;</b><i>Зависимости относительного изменения физических параметров системы и количества вычислений функции $inline$f_n$inline$ от времени моделирования методом Дормана-Принса с переменным шагом $inline$h=10^{-5}\dots 10^{-9}$inline$</i>
+        </td>
+  </tr>
+</table>
+<table>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdverk-loss.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdverk-loss.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>a)&nbsp;</b><i>Относительное изменение энергии, импульса и его момента в процессе моделирования</i>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdverk-cc.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-5-rkdverk-cc.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>b)&nbsp;</b><i>Количество вычислений функции $inline$f_n$inline$ на интервале моделирования $inline$\Delta T=0.3$inline$</i>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>Рис 5.&nbsp;</b><i>Зависимости относительного изменения физических параметров системы и количества вычислений функции $inline$f_n$inline$ от времени моделирования методом Вернера с переменным шагом $inline$h=10^{-5}\dots 10^{-9}$inline$</i>
+        </td>
+  </tr>
+</table>
+<table>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-6-adams-loss.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/evolve-512-300-1e-6-adams-loss.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>Рис 6.&nbsp;</b><i>Относительное изменение энергии, импульса и его момента в процессе моделирования методом Адамса-Башфорта пятого порядка с шагом $inline$h=10^{-6}$inline$</i>
+        </td>
+  </tr>
+</table>
+<table>
+  <tr>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/evolve-512-300-rkdp-vs-rkdverk-vs-adams-cc.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/evolve-512-300-rkdp-vs-rkdverk-vs-adams-cc.svg"/>
+            </a>
+        </td>
+  </tr>
+  <tr>
+        <td align='center' border='0'>
+            <b>Рис 7.&nbsp;</b><i>Зависимости количества вычислений функции $inline$f_n$inline$ для методов Адамса пятого порядка, Дормана-Принса и Вернера от времени моделирования</i>
+        </td>
+  </tr>
+</table>
+Видно, что на начальном этапе эволюции нашей системы ($inline$T < 25$inline$) все три метода показывают схожие характеристики, но на более поздних этапах в системе происходят некие события, в результате которых резко подскакивают ошибки в основных параметрах системы (полной энергии, импульса и его момента). Но методы Дормана-Принса и Вернера справляется с этими изменениями существенно лучше за счёт возможности уменьшать шаг интегрирования на "сложных" участках, в результате чего возрастает число вычислений функции $inline$f_n$inline$, что видно на рисунках 4b и 5b, но общее число вычислений $inline$f_n$inline$ у вложенных методов меньше, чем у метода Адамса-Башфорта, что видно на рисунке 7.
+
+<spoiler title="Интересно, что происходило с системой в эти моменты">
+<table>
+    <tr>
+        <td align='center' border='0'>
+            <oembed>https://youtu.be/ZPyM6PRXjkY</oembed>
+        </td>
+    </tr>
+    <tr>
+        <td align='center' border='0'>
+            <b>Видео 1.&nbsp;</b><i>Моделирование системы из 512 тел. Метод Дормана-Принса. Динамический шаг $inline$h=10^{-5}\dots 10^{-9}$inline$</i>
+        </td>
+    </tr>
+</table>
+</spoiler>
+Видео демонстрирует, что до момента времени $inline$T = 25$inline$ движение относительно спокойное, а после происходит столкновение центров "галактик", которое приводит к резкому изменению траекторий и сильному увеличению скоростей некоторых частиц. При этом для сохранения точности решения необходимо уменьшать шаг интегрирования. Вложенные методы могут сделать это автоматически, на графиках видно, что на некоторых участках эволюции системы шаг интегрирования был уменьшнен почти на два порядка с $inline$10^{-5}$inline$ до $inline$h=10^{-7}$inline$. При использовании метода Адамса и такого шага на всём интервале эволюции системы мы не дождались бы решения.
+
+<h4>Итог</h4>
+Для решения лучше использовать вложеные методы, которые позволяют динамически контролировать шаг интегрирования, и уменьшать его только на "сложных" участках траектории. 
+
+Не стоит гнаться за методами самого высокого порядка. Даже при использовании типа данных 'double' они не достигают своих потенциальных возможностей, использование же типов данных с большей точностью сильно увеличивает время решения задачи.
+
+<h2>CPU реализация</h2>
+Теперь, когда выбор метода решения уравнений определён, попробуем разобраться с вычислением силы взаимодействия для каждой частицы. Получим двойной цикл по всем частицам:
+
+<spoiler title="Код реализации 'simple'">
+<source lang="cpp">
+for(size_t body1 = 0; body1 < count; ++body1)
+{
+    const nbvertex_t    v1(rx[ body1 ], ry[ body1 ], rz[ body1 ]);
+    nbvertex_t          total_force;
+    for(size_t body2 = 0; body2 != count; ++body2)
+    {
+        if(body1 == body2)
+        {
+            continue;
+        }
+        const nbvertex_t    v2(rx[ body2 ], ry[ body2 ], rz[ body2 ]);
+        const nbvertex_t    force(m_data->force(v1, v2, mass[body1], mass[body2]));
+        total_force += force;
+    }
+    frx[body1] = vx[body1];
+    fry[body1] = vy[body1];
+    frz[body1] = vz[body1];
+    fvx[body1] = total_force.x / mass[body1];
+    fvy[body1] = total_force.y / mass[body1];
+    fvz[body1] = total_force.z / mass[body1];
+}
+</source>
+</spoiler>
+Силы притяжения для каждого тела вычисляются независимо, и, для задействования всех ядер процессора, достаточно перед первым циклом написать директиву OpenMP:
+
+<spoiler title="Кусочек кода из реализации 'openmp'">
+<source lang="cpp">
+#pragma omp parallel for
+for(size_t body1 = 0; body1 < count; ++body1)
+</source>
+</spoiler>
+Т.к. каждое тело взаимодействует с каждым, то для уменьшения количества взаимодействий процессора с ОЗУ и улучшения использования кэша у нас есть возможность загружать в кэш часть  данных и использовать их многократно:
+
+<spoiler title="Код реализации 'openmp+block'">
+<source lang="cpp">
+#pragma omp parallel for
+for(size_t n1 = 0; n1 < count; n1 += BLOCK_SIZE)
+{
+    nbcoord_t            x1[BLOCK_SIZE];
+    nbcoord_t            y1[BLOCK_SIZE];
+    nbcoord_t            z1[BLOCK_SIZE];
+    nbcoord_t            m1[BLOCK_SIZE];
+    nbvertex_t           total_force[BLOCK_SIZE];
+
+    for(size_t b1 = 0; b1 != BLOCK_SIZE; ++b1)
+    {
+        size_t local_n1 = b1 + n1;
+
+        x1[b1] = rx[local_n1];
+        y1[b1] = ry[local_n1];
+        z1[b1] = rz[local_n1];
+        m1[b1] = mass[local_n1];
+    }
+    for(size_t n2 = 0; n2 < count; n2 += BLOCK_SIZE)
+    {
+        nbcoord_t            x2[BLOCK_SIZE];
+        nbcoord_t            y2[BLOCK_SIZE];
+        nbcoord_t            z2[BLOCK_SIZE];
+        nbcoord_t            m2[BLOCK_SIZE];
+
+        for(size_t b2 = 0; b2 != BLOCK_SIZE; ++b2)
+        {
+            size_t local_n2 = b2 + n2;
+
+            x2[b2] = rx[local_n2];
+            y2[b2] = ry[local_n2];
+            z2[b2] = rz[local_n2];
+            m2[b2] = mass[n2 + b2];
+        }
+
+        for(size_t b1 = 0; b1 != BLOCK_SIZE; ++b1)
+        {
+            const nbvertex_t    v1(x1[ b1 ], y1[ b1 ], z1[ b1 ]);
+            for(size_t b2 = 0; b2 != BLOCK_SIZE; ++b2)
+            {
+                const nbvertex_t    v2(x2[ b2 ], y2[ b2 ], z2[ b2 ]);
+                const nbvertex_t    force(m_data->force(v1, v2, m1[b1], m2[b2]));
+                total_force[b1] += force;
+            }
+        }
+    }
+
+    for(size_t b1 = 0; b1 != BLOCK_SIZE; ++b1)
+    {
+        size_t local_n1 = b1 + n1;
+        frx[local_n1] = vx[local_n1];
+        fry[local_n1] = vy[local_n1];
+        frz[local_n1] = vz[local_n1];
+        fvx[local_n1] = total_force[b1].x / m1[b1];
+        fvy[local_n1] = total_force[b1].y / m1[b1];
+        fvz[local_n1] = total_force[b1].z / m1[b1];
+    }
+}
+</source>
+</spoiler>
+Дальнейшая оптимизация заключается в вынесении содержимого функции вычисления силы в основной цикл и исключении деления и умножения на массу тела m1[b1]. Кроме того, что мы немного сократили вычисления, компилятор на таком развёрнутом цикле сможет применить векторные инструкции процессора SSE и AVX.
+
+<spoiler title="Код реализации 'openmp+block+optimization'">
+<source lang="cpp">
+#pragma omp parallel for
+for(size_t n1 = 0; n1 < count; n1 += BLOCK_SIZE)
+{
+    nbcoord_t            x1[BLOCK_SIZE];
+    nbcoord_t            y1[BLOCK_SIZE];
+    nbcoord_t            z1[BLOCK_SIZE];
+    nbcoord_t            total_force_x[BLOCK_SIZE];
+    nbcoord_t            total_force_y[BLOCK_SIZE];
+    nbcoord_t            total_force_z[BLOCK_SIZE];
+
+    for(size_t b1 = 0; b1 != BLOCK_SIZE; ++b1)
+    {
+        size_t local_n1 = b1 + n1;
+
+        x1[b1] = rx[local_n1];
+        y1[b1] = ry[local_n1];
+        z1[b1] = rz[local_n1];
+        total_force_x[b1] = 0;
+        total_force_y[b1] = 0;
+        total_force_z[b1] = 0;
+    }
+    for(size_t n2 = 0; n2 < count; n2 += BLOCK_SIZE)
+    {
+        nbcoord_t            x2[BLOCK_SIZE];
+        nbcoord_t            y2[BLOCK_SIZE];
+        nbcoord_t            z2[BLOCK_SIZE];
+        nbcoord_t            m2[BLOCK_SIZE];
+
+        for(size_t b2 = 0; b2 != BLOCK_SIZE; ++b2)
+        {
+            size_t local_n2 = b2 + n2;
+
+            x2[b2] = rx[local_n2];
+            y2[b2] = ry[local_n2];
+            z2[b2] = rz[local_n2];
+            m2[b2] = mass[n2 + b2];
+        }
+
+        for(size_t b1 = 0; b1 != BLOCK_SIZE; ++b1)
+        {
+            for(size_t b2 = 0; b2 != BLOCK_SIZE; ++b2)
+            {
+                nbcoord_t        dx = x1[b1] - x2[b2];
+                nbcoord_t        dy = y1[b1] - y2[b2];
+                nbcoord_t        dz = z1[b1] - z2[b2];
+                nbcoord_t        r2(dx * dx + dy * dy + dz * dz);
+                if(r2 < NBODY_MIN_R)
+                {
+                    r2 = NBODY_MIN_R;
+                }
+                nbcoord_t        r = sqrt(r2);
+                nbcoord_t        coeff = (m2[b2]) / (r * r2);
+
+                dx *= coeff;
+                dy *= coeff;
+                dz *= coeff;
+
+                total_force_x[b1] -= dx;
+                total_force_y[b1] -= dy;
+                total_force_z[b1] -= dz;
+            }
+        }
+    }
+
+    for(size_t b1 = 0; b1 != BLOCK_SIZE; ++b1)
+    {
+        size_t local_n1 = b1 + n1;
+        frx[local_n1] = vx[local_n1];
+        fry[local_n1] = vy[local_n1];
+        frz[local_n1] = vz[local_n1];
+        fvx[local_n1] = total_force_x[b1];
+        fvy[local_n1] = total_force_y[b1];
+        fvz[local_n1] = total_force_z[b1];
+    }
+}
+</source>
+</spoiler>
+<b>Таблица 2. &nbsp;</b><i>Зависимость времени вычисления (в секундах) функции $inline$f_n$inline$ от количества взаимодействующих тел $inline$N$inline$ для различных CPU реализаций</i>
+<table>
+  <tr>
+    <th>$inline$N$inline$</th>
+    <th>2048</th>
+     <th>4096</th>
+             <th>8192</th>
+             <th>16384</th>
+             <th>32768</th>
+  </tr>
+  <tr>
+    <td>simple</td><td>0.0425</td><td>0.1651</td><td>0.6594</td><td>2.65</td>       <td>10.52</td>
+  </tr>
+  <tr>
+    <td>openmp</td><td>0.0078</td><td>0.0260</td><td>0.1079</td><td>0.417</td><td>1.655</td>
+  </tr>
+  <tr>
+    <td>openmp+block+optimization</td><td>0.0037</td><td>0.0128</td><td>0.0495</td><td>0.194</td><td>0.774</td>
+  </tr>
+</table>
+<spoiler title="Параметры системы:">
+<ul>
+    <li>cистема: <i>Debian 9, Intel Core i7-5820K (6 core)</i></li>
+    <li>компилятор: <i>gcc 6.3.0</i></li>
+</ul>
+</spoiler>
+Хорошо видно, что версия с поддержкой OpenMP ускоряется в шесть раз, ровно по количеству ядер, а оптимизированная версия быстрее ещё немногим более чем в два раза. Так что, при оптимизации не стоит рассчитывать только на параллелизм. Интересно, что при вычислениях в один поток (simple) процессор работал на частоте 3.6 ГГц, в параллельной версии (openmp) сбросил частоту до 3.4 ГГц, а в параллельной и оптимизированной (openmp+block+optimization) сбросил ещё до 3.3 ГГц, но это не помешало ей работать в 13.6 раз быстрее. Также видно, что рост времени вычисления с увеличением размера задачи квадратичен, и дальнейшее увеличение $inline$N$inline$ делает задачу нерешаемой за разумное время.
+
+<h2>GPU реализация</h2>
+Но возникает желание производить вычисления ещё быстрее. Есть несколько доступных направлений для ускорения: вычисление на GPU, аппроксимация функции $inline$f_n$inline$. Сначала для произведения вычислений на GPU я выбрал технологию OpenCL. Для более удобной работы была использована библиотека <a href="https://github.com/KhronosGroup/OpenCL-CLHPP">CLHPP</a>. Главным достоинством OpenCL является то, что код можно запускать и на процессоре, и на GPU, что упрощает написание и отладку, а также расширяет список железа для запуска. В отладке помогает инструмент <a href="https://github.com/jrprice/Oclgrind">Oclgrind</a>, который в рантайме показывает неверные вызовы OpenCL API и проблемы при обращении к памяти.
+
+<h4>OpenCL</h4>
+Для начала работы с OpenCL необходимо получить список доступных платформ. Самые распространённые платформы представляют компании AMD, Intel и NVidia.
+
+<spoiler title="Код">
+<source lang="cpp">
+std::vector<cl::Platform>     platforms;
+cl::Platform::get(&platforms);
+</source>
+</spoiler>
+Далее, после выбора платформы, нужно выбрать вычислительное устройство, которое эта платформа представляет:
+
+<spoiler title="Код">
+<source lang="cpp">
+const cl::Platform&     platform(platforms[platform_n]);
+std::vector<cl::Device> all_devices;
+platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+</source>
+</spoiler>
+И в заключение подготовительного этапа нужно создать контекст и очереди в рамках которых будет выделяться память и производиться вычисления. Например, контекст, объединяющий все вычислительные устройства выбранной платформы, создаётся следующим образом:
+
+<spoiler title="Код создания контекста и очередей">
+<source lang="cpp">
+cl::Context                   context(all_devices);
+std::vector<cl::CommandQueue> queues;
+for(cl::Device device: all_devices)
+    queues.push_back(cl::CommandQueue(context, device));
+</source>
+</spoiler>
+Для загрузки исходного кода на вычислительное устройство его необходимо скомпилировать, для этого предназначен класс cl::Program.
+
+<spoiler title="Код компиляции ядра">
+<source lang="cpp">
+std::vector< std::string >   source_data;
+cl::Program::Sources         sources;
+for(int i = 0; i != files.size(); ++i)
+{
+    source_data.push_back(load_program(files[i]));//Загружаем из файла
+    sources.push_back(std::make_pair(source_data.back().data(),
+                                     source_data.back().size()));
+}
+cl::Program    prog(context, sources);
+devices.push_back(all_devices);
+prog.build(devices, options);
+</source>
+</spoiler>
+Для описания параметров функции (ядра), которая выполняется на вычислительном устройстве есть удолный шаблон cl::make_kernel.
+
+<spoiler title="Пример объявления ядра вычисления силы взаимодействия">
+<source lang="cpp">
+typedef cl::make_kernel< cl_int, cl_int, //Block offset
+                         cl::Buffer, //mass
+                         cl::Buffer, //y
+                         cl::Buffer, //f
+                         cl_int, cl_int, //yoff,foff
+                         cl_int, cl_int //points_count,stride
+                         > ComputeBlock;
+</source>
+</spoiler>
+Далее все просто: объявляем переменную с типом ядра, передаём в неё скомпилированную программу и имя вычислительного ядра, можем запускать ядро почти как обычную функцию.
+
+<spoiler title="Код запуска ядра">
+<source lang="cpp">
+ComputeBlock        fcompute(prog, "ComputeBlockLocal");
+cl::NDRange         global_range(device_data_size);
+cl::NDRange         local_range(block_size);
+cl::EnqueueArgs     eargs(ctx.m_queue, global_range, local_range);
+fcompute(eargs, ...все остальные аргументы); //Собственно, сам вызов ядра.
+</source>
+</spoiler>
+Само вычислительное ядро для OpenCL очень похоже на вариант 'openmp+block+optimization' для CPU, только в отличии от CPU версии управление первым циклом происходит при помощи OpenCL (диапазон цикла определяется переменной global_range из кода запуска ядра, а из ядра номер текущей итерации доступен с помощью функции get_global_id(0)). Сначала часть данных о телах загружается с локальную память, затем обрабатывается. Локальная память является общей для всех потоков в группе, поэтому загрузка происходит один раз для группы, а обрабатывается каждым потоком в группе и, т.к. локальная память существенно быстрее глобальной, вычисления происходят много быстрее.
+
+<spoiler title="Код ядра">
+<source lang="cpp">
+__kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
+                                __global const nbcoord_t* mass,
+                                __global const nbcoord_t* y,
+                                __global nbcoord_t* f, int yoff,
+                                int foff, int points_count, int stride)
+{
+    int        n1 = get_global_id(0) + offset_n1;
+    __global const nbcoord_t*    rx = y + yoff;
+    __global const nbcoord_t*    ry = rx + stride;
+    __global const nbcoord_t*    rz = rx + 2 * stride;
+    __global const nbcoord_t*    vx = rx + 3 * stride;
+    __global const nbcoord_t*    vy = rx + 4 * stride;
+    __global const nbcoord_t*    vz = rx + 5 * stride;
+
+    __global nbcoord_t*    frx = f + foff;
+    __global nbcoord_t*    fry = frx + stride;
+    __global nbcoord_t*    frz = frx + 2 * stride;
+    __global nbcoord_t*    fvx = frx + 3 * stride;
+    __global nbcoord_t*    fvy = frx + 4 * stride;
+    __global nbcoord_t*    fvz = frx + 5 * stride;
+
+    nbcoord_t    x1 = rx[n1];
+    nbcoord_t    y1 = ry[n1];
+    nbcoord_t    z1 = rz[n1];
+
+    nbcoord_t    res_x = 0.0;
+    nbcoord_t    res_y = 0.0;
+    nbcoord_t    res_z = 0.0;
+
+    __local nbcoord_t    x2[NBODY_DATA_BLOCK_SIZE];
+    __local nbcoord_t    y2[NBODY_DATA_BLOCK_SIZE];
+    __local nbcoord_t    z2[NBODY_DATA_BLOCK_SIZE];
+    __local nbcoord_t    m2[NBODY_DATA_BLOCK_SIZE];
+
+    // NB! get_local_size(0) == NBODY_DATA_BLOCK_SIZE
+    for(int b2 = 0; b2 < points_count; b2 += NBODY_DATA_BLOCK_SIZE)
+    {
+        int    n2 = b2 + offset_n2 + get_local_id(0);
+
+        // Copy data block to local memory
+        x2[ get_local_id(0) ] = rx[n2];
+        y2[ get_local_id(0) ] = ry[n2];
+        z2[ get_local_id(0) ] = rz[n2];
+        m2[ get_local_id(0) ] = mass[n2];
+
+        // Synchronize local work-items copy operations
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        nbcoord_t    local_res_x = 0.0;
+        nbcoord_t    local_res_y = 0.0;
+        nbcoord_t    local_res_z = 0.0;
+
+        for(int local_n2 = 0; local_n2 != NBODY_DATA_BLOCK_SIZE; ++local_n2)
+        {
+            nbcoord_t    dx = x1 - x2[local_n2];
+            nbcoord_t    dy = y1 - y2[local_n2];
+            nbcoord_t    dz = z1 - z2[local_n2];
+            nbcoord_t    r2 = (dx * dx + dy * dy + dz * dz);
+
+            if(r2 < NBODY_MIN_R)
+            {
+                r2 = NBODY_MIN_R;
+            }
+
+            nbcoord_t    r = sqrt(r2);
+            nbcoord_t    coeff = (m2[local_n2]) / (r * r2);
+
+            dx *= coeff;
+            dy *= coeff;
+            dz *= coeff;
+
+            local_res_x -= dx;
+            local_res_y -= dy;
+            local_res_z -= dz;
+        }
+
+        // Synchronize local work-items computations
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        res_x += local_res_x;
+        res_y += local_res_y;
+        res_z += local_res_z;
+    }
+
+    frx[n1] = vx[n1];
+    fry[n1] = vy[n1];
+    frz[n1] = vz[n1];
+    fvx[n1] = res_x;
+    fvy[n1] = res_y;
+    fvz[n1] = res_z;
+}
+</source>
+</spoiler>
+<h4>CUDA</h4>
+Реализация для платформы NVidia CUDA немного проще, чем OpenCL, нам не нужно самим создавать контекст устройства и управлять очередью выполнения (по крайней мере, пока мы не захотим сделать multi-GPU реализацию). Как и в случае с OpenCL, нам необходимо выделить память на GPU, скопировать в неё наши данные, и потом можно запускать вычислительное ядро. 
+
+Детальнее о работе с CUDA можно прочитать <a href="https://habr.com/ru/post/54707/">здесь</a>.
+
+<spoiler title="Код запуска CUDA ядра">
+<source lang="cpp">
+dim3	grid(count / block_size);
+dim3	block(block_size);
+size_t	shared_size(4 * sizeof(nbcoord_t) * block_size);
+
+kfcompute <<< grid, block, shared_size >>> (...параметры ядра...);
+</source>
+</spoiler>
+В отличие от OpenCL, в CUDA задаётся не полный диапазон итераций (в OpenCL реализации это global_range), а задаётся размер грида и размеры блока в гриде, соответственно немного меняется вычисление текущего номера тела, в остальном ядро очень похоже на OpenCL, за исключением других имён функций синхронизации и спецификатора для разделяемой памяти. Ещё полезной отличительной особенностью CUDA является то, что мы можем указывать необходимый размер разделяемой памяти при запуске ядра. Как и в OpenCL реализации, в начале каждого блока итераций мы копируем часть данных в разделяемую память и потом работаем с этой памятью из всех нитей блока.
+
+<spoiler title="Код CUDA ядра">
+<source lang="cpp">
+__global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t* f, int foff,
+                          const nbcoord_t* mass, int points_count, int stride)
+{
+    int n1 = blockDim.x * blockIdx.x + threadIdx.x;
+
+    const nbcoord_t*    rx = y + yoff;
+    const nbcoord_t*    ry = rx + stride;
+    const nbcoord_t*    rz = rx + 2 * stride;
+
+    nbcoord_t    x1 = rx[n1];
+    nbcoord_t    y1 = ry[n1];
+    nbcoord_t    z1 = rz[n1];
+
+    nbcoord_t    res_x = 0.0;
+    nbcoord_t    res_y = 0.0;
+    nbcoord_t    res_z = 0.0;
+
+    extern __shared__ nbcoord_t shared_xyzm_buf[];
+
+    nbcoord_t*    x2 = shared_xyzm_buf;
+    nbcoord_t*    y2 = x2 + blockDim.x;
+    nbcoord_t*    z2 = y2 + blockDim.x;
+    nbcoord_t*    m2 = z2 + blockDim.x;
+
+    for(int b2 = 0; b2 < points_count; b2 += blockDim.x)
+    {
+        int            n2 = b2 + offset_n2 + threadIdx.x;
+
+        // Copy data block to local memory
+        x2[ threadIdx.x ] = rx[n2];
+        y2[ threadIdx.x ] = ry[n2];
+        z2[ threadIdx.x ] = rz[n2];
+        m2[ threadIdx.x ] = mass[n2];
+
+        // Synchronize local work-items copy operations
+        __syncthreads();
+
+        nbcoord_t    local_res_x = 0.0;
+        nbcoord_t    local_res_y = 0.0;
+        nbcoord_t    local_res_z = 0.0;
+
+        for(int n2 = 0; n2 != blockDim.x; ++n2)
+        {
+            nbcoord_t    dx = x1 - x2[n2];
+            nbcoord_t    dy = y1 - y2[n2];
+            nbcoord_t    dz = z1 - z2[n2];
+            nbcoord_t    r2 = (dx * dx + dy * dy + dz * dz);
+
+            if(r2 < NBODY_MIN_R)
+            {
+                r2 = NBODY_MIN_R;
+            }
+
+            nbcoord_t    r = sqrt(r2);
+            nbcoord_t    coeff = (m2[n2]) / (r * r2);
+
+            dx *= coeff;
+            dy *= coeff;
+            dz *= coeff;
+
+            local_res_x -= dx;
+            local_res_y -= dy;
+            local_res_z -= dz;
+        }
+
+        // Synchronize local work-items computations
+        __syncthreads();
+
+        res_x += local_res_x;
+        res_y += local_res_y;
+        res_z += local_res_z;
+    }
+
+    n1 += foff;
+    f[n1 + 3 * stride] = res_x;
+    f[n1 + 4 * stride] = res_y;
+    f[n1 + 5 * stride] = res_z;
+}
+</source>
+</spoiler>
+<b>Таблица 3. &nbsp;</b><i>Зависимость времени вычисления (в секундах) функции $inline$f_n$inline$ от количества взаимодействующих тел $inline$N$inline$ для различных GPU реализаций и лучшей CPU реализации</i>
+<table>
+    <tr>
+        <th>$inline$N$inline$</th>
+        <th>4096</th>
+        <th>8192</th>
+        <th>16384</th>
+        <th>32768</th>
+        <th>65536</th>
+        <th>131072</th>
+    </tr>
+    <tr>
+        <td>openmp+block+optimization</td>
+        <td>0.0128</td>
+        <td>0.0495</td>
+        <td>0.194</td>
+        <td>0.774</td>
+        <td>---</td>
+        <td>---</td>
+    </tr>
+    <tr>
+        <td>OpenCL+половинка NVidia K80</td>
+        <td>0.004</td>
+        <td>0.008</td>
+        <td>0.026</td>
+        <td>0.134</td>
+        <td>0.322</td>
+        <td>1.18</td>
+    </tr>
+    <tr>
+        <td>CUDA+половинка NVidia K80</td>
+        <td>0.004</td>
+        <td>0.008</td>
+        <td>0.0245</td>
+        <td>0.115</td>
+        <td>0.291</td>
+        <td>1.13</td>
+    </tr>
+</table>
+<spoiler title="Где взять NVidia K80">
+OpenCL и CUDA реализации запускались на бесплатном сервисе <a href="https://colab.research.google.com/">Colab</a> от Google, который предоставляет доступ к вычислителям NVidia K80. Подробнее о работе с этим сервисом можно прочитать на <a href="https://habr.com/ru/post/348058/">хабре</a>.
+</spoiler>
+В целом результат неутешительный, всего лишь в 5-6 раз быстрее, чем CPU реализация.  Даже если мы будем вести расчёты на всей K80, то получим ускорение до 12 раз, но т.к. сложность задачи квадратична, то мы за разумное время сможем обрабатывать не 32768 взаимодействующих тел, а 131072, что только в 4 раза больше.
+
+<h2>Аппроксимация функции $inline$f_n$inline$</h2>
+Если присмотреться к функции, которой задаётся сила притяжения двух тел, то видно, что она квадратично убывает с расстоянием. Поэтому мы можем точно вычислять силу взаимодействия между близкими телами, и приближённо между отдалёнными. Одним из известных подходов
+является алгоритм <a href="https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">treecode</a>, предложенный Д. Барнсом и П. Хатом. В моделируемом пространстве строится <a href="https://ru.wikipedia.org/wiki/%D0%9E%D0%BA%D1%82%D0%BE%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D0%BE">октодерево</a>, содержащее в своих листьях координаты и массы моделируемых тел. В родительских узлах содержится центр масс, общая масса дочерних узлов и радиус сферы, описанной вокруг тел дочерних узлов. Корень дерева содержит центр масс всех тел, их общую массу и радиус сферы, описанной вокруг них. При расчёте силы взаимодействия сначала считается расстояние до корня дерева, если отношение расстояния до узла к его радиусу больше некоторой константы $inline$\lambda_{crit}$inline$, то корень считается одним телом с координатами, равными координатам центра масс входящих в него тел, и массой, равной сумме масс дочерних узлов, если отношение меньше или равно $inline$\lambda_{crit}$inline$, то процедура рекурсивно повторяется для каждого дочернего узла. Если достигается лист дерева, то сила взаимодействия считается обычным способом. Таким образом, если одно тело сильно удалено от компактной группы других тел, эта группа представляется для него в виде одного тела, и сила взаимодействия рассчитывается не до каждого тела, а только до одного тела. Благодаря этому сложность алгоритма уменьшается с $inline$O(N^2)$inline$ до $inline$O(N \log(N))$inline$ ценой некоторой потери точности.
+
+В своём подходе я решил использовать не <a href="https://ru.wikipedia.org/wiki/%D0%9E%D0%BA%D1%82%D0%BE%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D0%BE">октодерево</a>, а <a href="https://ru.wikipedia.org/wiki/K-%D0%BC%D0%B5%D1%80%D0%BD%D0%BE%D0%B5_%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D0%BE">kd-дерево</a> т.к. оно проще в использовании и имеет более низкие накладные расходы на хранение по сравнению с октодеревом.
+
+Вернёмся обратно к реализации на CPU. Узел kd-дерева можно представить в виде класса, содержащего указатели на левого и правого потомка и информацию о координатах и массе:
+
+<spoiler title="Узел kd-дерева">
+<source lang="cpp">
+class node
+{
+    node*      m_left;  //!< Левый потомок
+    node*      m_right; //!< Правый потомок
+    nbvertex_t m_mass_center;  //!< Координаты центра масс узла
+    nbcoord_t  m_mass; //!< Масса узла
+    nbcoord_t  m_radius_sqr; //!< Квадрат радиуса описанной сферы, умноженный на lambda_crit
+    nbvertex_t m_bmin; //!< Минимальные координаты описанного бокса
+    nbvertex_t m_bmax; //!< Максимальные координаты описанного бокса
+    size_t     m_body_n; //!< Номер тела, связанного с узлом
+};
+</source>
+</spoiler>
+При таком способе хранения дерева у нас имеется два возможных варианта обхода дерева: либо использовать явную рекурсию, либо использовать стек самим. Я остановился на втором варианте.
+
+<spoiler title="Вычисление силы взаимодействия путем обхода дерева">
+<source lang="cpp">
+nbvertex_t force_compute(const nbvertex_t& v1,
+                         const nbcoord_t mass1)
+{
+    nbvertex_t  total_force;
+    node*       stack_data[MAX_STACK_SIZE] = {};
+    node**      stack = stack_data;
+    node**      stack_head = stack;
+
+    *stack++ = m_root;
+    while(stack != stack_head)
+    {
+        node*            curr = *--stack;
+        const nbcoord_t  distance_sqr((v1 - curr->m_mass_center).norm());
+
+        if(distance_sqr > curr->m_radius_sqr)
+        {//Узел достаточно далеко, вычисляем силу и пропускаем его детей
+            total_force += force(v1, curr->m_mass_center, mass1, curr->m_mass);
+        }
+        else
+        {// Узел слишком близко, запоминаем детей для последующей обработки
+            if(curr->m_right != NULL)
+            {
+                *stack++ = curr->m_right;
+            }
+            if(curr->m_left != NULL)
+            {
+                *stack++ = curr->m_left;
+            }
+        }
+    }
+    return total_force;
+}
+</source>
+</spoiler>
+Как и в cлучае "точной" CPU реализации, функция вычисления силы вызывается для каждого тела. Цикл по всем телам может быть легко распараллелен с помощью директив OpenMP.
+
+Но соседние итерации цикла в этом случае будут обращаться к совершенно разным частям дерева, что не даёт эффективно использовать кэш процессора. Для преодоления этой проблемы обход всех тел нужно производить не по исходному порядку, а по порядку, по которому тела расположены в листьях kd-дерева, тогда соседние итерации будут происходить для тел, находящихся близко в пространстве, и обходить дерево по почти одинаковым путям.
+
+<spoiler title="Обход листьев дерева">
+<source lang="cpp">
+template<class Visitor>
+void traverse(Visitor visit)
+{
+    node*    stack_data[MAX_STACK_SIZE] = {};
+    node**    stack = stack_data;
+    node**    stack_head = stack;
+
+    *stack++ = m_root;
+    while(stack != stack_head)
+    {
+        node*                curr = *--stack;
+        if(curr->m_radius_sqr > 0)
+        {//Это не лист. Откладываем детей на стек.
+            if(curr->m_left != NULL)
+            {
+                *stack++ = curr->m_left;
+            }
+            if(curr->m_right != NULL)
+            {
+                *stack++ = curr->m_right;
+            }
+        }
+        else
+        {// Это листовой узел. Вычисляем силу.
+            visit(curr->m_body_n, curr->m_mass_center, curr->m_mass);
+        }
+    }
+}
+</source>
+</spoiler>
+Эта реализация имеет другую проблему - нет универсального способа распараллелить такой обход дерева. Но мы можем полностью изменить способ хранения дерева в памяти - мы можем хранить все узлы в одном линейном масиве и полностью отказаться от хранения указателей на потомков, по аналогии с построением <a href="https://ru.wikipedia.org/wiki/%D0%94%D0%B2%D0%BE%D0%B8%D1%87%D0%BD%D0%B0%D1%8F_%D0%BA%D1%83%D1%87%D0%B0">двоичной кучи</a>. При начале нумерации узлов с $inline$1$inline$, если узел находится в ячейке номером $inline$i$inline$, то его левый потомок находится в ячейке $inline$2i$inline$, правый потомок в ячейке $inline$2i + 1$inline$, а родитель в ячейке $inline$i/2$inline$. Правый узел, соответствующий левому с номером  $inline$i$inline$, будет иметь номер  $inline$i + 1$inline$. Сам массив будет иметь длину $inline$2N$inline$, а все листовые узлы будут расположены в последних $inline$N$inline$ ячейках, причём, близкие в пространстве узлы будут расположены в близких ячейках массива. Функция обхода дерева немного изменится, но основа остаётся прежней:
+
+<spoiler title="Вычисление силы путём обхода дерева в массиве">
+<source lang="cpp">
+nbvertex_t force_compute(const nbvertex_t& v1, const nbcoord_t mass1)
+{
+    nbvertex_t total_force;
+
+    size_t     stack_data[MAX_STACK_SIZE] = {};
+    size_t*    stack = stack_data;
+    size_t*    stack_head = stack;
+
+    *stack++ = NBODY_HEAP_ROOT_INDEX;
+    while(stack != stack_head)
+    {
+        size_t                curr = *--stack;
+        const nbcoord_t       distance_sqr((v1 - m_mass_center[curr]).norm());
+
+        if(distance_sqr > m_radius_sqr[curr])
+        {
+            total_force += force(v1, m_mass_center[curr], mass1, m_mass[curr]);
+        }
+        else
+        {
+            size_t    left(left_idx(curr));
+            size_t    rght(rght_idx(curr));
+            if(rght < m_body_n.size())
+            {
+                *stack++ = rght;
+            }
+            if(left < m_body_n.size())
+            {
+                *stack++ = left;
+            }
+        }
+    }
+    return total_force;
+}
+</source>
+</spoiler>
+Но и это ещё не все возможности, которые открывает нам хранение узлов в массиве - мы можем отказаться от стека при обходе. Для этого в ветку кода, в которой мы переходим к детям узла, мы добавляем функцию вычисления следующего узла ($inline$next_{up}$inline$), а в ветку, в которой вычисляем силу взаимодействия, мы добавляем вычисление следующего узла с пропуском текущего поддерева ($inline$skip_{down}$inline$).
+
+Для пропуска текущего поддерева нам нужно спускаться к корню (направление $inline$D$inline$), пока мы находимся в правом потомке, как только мы доходим до левого, то переходим в соответствующее ему правое поддерево (направление $inline$R$inline$), если мы попадаем в корень, то обход дерева завершается.
+
+<spoiler title="Код функции пропуска поддерева">
+<source lang="cpp">
+index_t skip_down(index_t idx)
+{
+    // While index is 'right' -> go down
+    while(is_right(idx))
+    {
+        index_t parent = parent_idx(idx);
+        // We at root again. Stop traverse.
+        if(parent == NBODY_HEAP_ROOT_INDEX)
+        {
+            return NBODY_HEAP_ROOT_INDEX;
+        }
+        idx = parent;
+    }
+    return left2right(idx);
+}
+</source>
+</spoiler>
+<img src="http://drons.github.io/nbody/docs/svg/tree-dn.svg" />
+<b>Рис 8. &nbsp;</b><i>Пропуск поддерева $inline$skip_{down}$inline$.</i>
+
+Для перехода к следующему узлу надо, если возможно, переходить к левому потомку  (направление $inline$U$inline$), а если потомка нет, то переходить к следующему узлу 'снизу' при помощи функции $inline$skip_{down}$inline$.
+
+<spoiler title="Код функции перехода к следующему узлу">
+<source lang="cpp">
+index_t next_up(index_t idx, index_t tree_size)
+{
+    index_t left = left_idx(idx);
+    if(left < tree_size)
+    {
+        return left;
+    }
+    return skip_down(idx);
+}
+</source>
+</spoiler>
+<img src="http://drons.github.io/nbody/docs/svg/tree-up.svg" />
+<b>Рис 9. &nbsp;</b><i>Переходы к следующему узлу $inline$next_{up}$inline$.</i>
+
+Может показаться, что рекурсию мы заменили на цикл $inline$while$inline$ в функции $inline$skip_{down}$inline$, и такая замена ничего не даёт, но давайте посмотрим ,как определить, является ли узел с номером $inline$i$inline$ правым потомком. Это можно сделать, просто проверив его номер на нечётность (правый потомок находится в ячейке $inline$2i + 1$inline$), для этого достаточно вычислить $inline$i\&1$inline$. Т.е. мы делим число $inline$i$inline$ на два если младщий бит выставлен в единицу. Но это можно сделать и без цикла, во многих процессорах есть инструкция <a href="https://en.wikipedia.org/wiki/Find_first_set">find first set</a>, которая возвращает позицию первого установленного бита, воспользовавшись ей мы сворачиваем цикл в четыре инструкции процессора.
+
+<spoiler title="Код оптимизированной функции пропуска поддерева">
+<source lang="cpp">
+index_t skip_down(index_t idx)
+{
+    idx = idx >> (__builtin_ffs(~idx) - 1);
+    return left2right(idx);
+}
+</source>
+</spoiler>
+После этого мы можем исключить стек из функции обхода дерева и заменить его на пару $inline$skip_{down} + next_{up}$inline$, после этого функция выглядит даже проще:
+
+<spoiler title="Вычисление силы путём обхода дерева в массиве без использования стека">
+<source lang="cpp">
+nbvertex_t force_compute(const nbvertex_t& v1,
+                         const nbcoord_t mass1) const
+{
+    nbvertex_t    total_force;
+    size_t        curr = NBODY_HEAP_ROOT_INDEX;
+    size_t        tree_size = m_mass_center.size();
+    do
+    {
+        const nbcoord_t  distance_sqr((v1 - m_mass_center[curr]).norm());
+
+        if(distance_sqr > m_radius_sqr[curr])
+        {
+            total_force += force(v1, m_mass_center[curr], mass1, m_mass[curr]);
+            curr = skip_down(curr);
+        }
+        else
+        {
+            curr = next_up(curr, tree_size);
+        }
+    }
+    while(curr != NBODY_HEAP_ROOT_INDEX);
+    return total_force;
+}
+</source>
+</spoiler>
+Всего у нас получилось шесть сочетаний обхода дерева и вычисления силы. Сравним эти подходы по времени вычисления и по качеству. Возъмём как меру качества относительное изменение полной энергии системы после 100 итераций. В качестве модельной системы возьмём две взаимодействующие "галактики", состоящих из $inline$16384$inline$ тел каждая.
+
+<b>Таблица 4. &nbsp;</b><i>Сочетания способа обхода дерева и вычисления силы</i>
+<table>
+    <tr>
+        <th>Тип обхода дерева / вычисления силы</th>
+        <th>Дерево со стеком</th>
+        <th>'Куча' со стеком</th>
+        <th>'Куча' без стека</th>
+    </tr>
+    <tr>
+        <th>Итерации по номеру тела</th>
+        <td>cycle+tree</td>
+        <td>cycle+heap</td>
+        <td>cycle+heapstackless</td>
+    </tr>
+    <tr>
+        <th>Обход листьев</th>
+        <td>nestedtree+tree</td>
+        <td>nestedtree+heap</td>
+        <td>nestedtree+heapstackless</td>
+    </tr>
+</table>
+<table border='0' bordercolor='0x00000000'>
+    <tr border='0'>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/bench-cpu-tree-time.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/bench-cpu-tree-time.svg"/>
+            </a>
+        </td>
+        <td align='center' border='0'>
+            <a href="http://drons.github.io/nbody/docs/svg/bench-cpu-tree-energy.svg">
+            <img src="http://drons.github.io/nbody/docs/svg/bench-cpu-tree-energy.svg"/>
+            </a>
+        </td>
+    </tr>
+    <tr border='0'>
+        <td border='0'><b>a)&nbsp;</b><i>Зависимость времени вычисления функции $inline$f_n$inline$ от отношения критического расстояния до узла дерева к его радиусу ($inline$\lambda_{crit}$inline$).</i></td>
+        <td border='0'><b>b)&nbsp;</b><i>Зависимость относительного изменения энергии в системе от отношения критического расстояния до узла дерева к его радиусу ($inline$\lambda_{crit}$inline$).</i></td>
+    </tr>
+    <tr border='0'>
+        <td colspan=2 align='center'><b>Рис 10.&nbsp;</b><i>Результаты вычисления функции $inline$f_n$inline$ различными способами на CPU (количество тел $inline$N=32768$inline$)</i></td>
+    </tr>
+</table>
+Видно, что реализация 'nestedtree+tree' безнадёжно отстала по скорости, т.к. в ней отсутствует параллелизм. Лидируют же реализации с расположением узлов дерева в массиве и индексацией как в двоичной куче. Относительное изменение энергии пренебрежима мала для всех вариантов с $inline$\lambda_{crit} > 1$inline$. Также на рис. 10a видно, что при ($inline$\lambda_{crit} < 10$inline$) все варианты вычисления функции $inline$f_n$inline$ существенно обгоняют по скорости самый оптимизированный вариант точного вычисления ('openmp+block+optimization'), при дальнейшем увеличении $inline$\lambda_{crit}$inline$ реализации с деревом проигрывают точной версии.
+
+<h2>Обход дерева на GPU</h2>
+Обход дерева на GPU я пробовал реализовать как при помощи технологии OpenCL, так и CUDA. Вариант хранения узлов в виде дерева был сразу отброшен, и оставлены были только варианты с хранением дерева в массиве с индексацией как в двоичной куче. В целом, реализации вычисительного ядра не сильно отличаются от CPU версии.
+
+<spoiler title="OpenCL ядро для вычисления силы путём обхода дерева (обход по порядку нумерации тел)">
+<source lang="cpp">
+__kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
+                            __global const nbcoord_t* y,
+                            __global nbcoord_t* f,
+                            __global const nbcoord_t* tree_cmx,
+                            __global const nbcoord_t* tree_cmy,
+                            __global const nbcoord_t* tree_cmz,
+                            __global const nbcoord_t* tree_mass,
+                            __global const nbcoord_t* tree_crit_r2)
+{
+    int        n1 = get_global_id(0) + offset_n1;
+    int        stride = points_count;
+    __global const nbcoord_t*    rx = y;
+    __global const nbcoord_t*    ry = rx + stride;
+    __global const nbcoord_t*    rz = rx + 2 * stride;
+    __global const nbcoord_t*    vx = rx + 3 * stride;
+    __global const nbcoord_t*    vy = rx + 4 * stride;
+    __global const nbcoord_t*    vz = rx + 5 * stride;
+
+    __global nbcoord_t*    frx = f;
+    __global nbcoord_t*    fry = frx + stride;
+    __global nbcoord_t*    frz = frx + 2 * stride;
+    __global nbcoord_t*    fvx = frx + 3 * stride;
+    __global nbcoord_t*    fvy = frx + 4 * stride;
+    __global nbcoord_t*    fvz = frx + 5 * stride;
+
+    nbcoord_t    x1 = rx[n1];
+    nbcoord_t    y1 = ry[n1];
+    nbcoord_t    z1 = rz[n1];
+
+    nbcoord_t    res_x = 0.0;
+    nbcoord_t    res_y = 0.0;
+    nbcoord_t    res_z = 0.0;
+
+    int    stack_data[MAX_STACK_SIZE] = {};
+    int    stack = 0;
+    int    stack_head = stack;
+
+    stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
+    while(stack != stack_head)
+    {
+        int          curr = stack_data[--stack];
+        nbcoord_t    dx = x1 - tree_cmx[curr];
+        nbcoord_t    dy = y1 - tree_cmy[curr];
+        nbcoord_t    dz = z1 - tree_cmz[curr];
+        nbcoord_t    r2 = (dx * dx + dy * dy + dz * dz);
+
+        if(r2 > tree_crit_r2[curr])
+        {
+            if(r2 < NBODY_MIN_R)
+            {
+                r2 = NBODY_MIN_R;
+            }
+
+            nbcoord_t    r = sqrt(r2);
+            nbcoord_t    coeff = tree_mass[curr] / (r * r2);
+
+            dx *= coeff;
+            dy *= coeff;
+            dz *= coeff;
+            res_x -= dx;
+            res_y -= dy;
+            res_z -= dz;
+        }
+        else
+        {
+            int    left = left_idx(curr);
+            int    rght = rght_idx(curr);
+            if(left < tree_size)
+            {
+                stack_data[stack++] = left;
+            }
+            if(rght < tree_size)
+            {
+                stack_data[stack++] = rght;
+            }
+        }
+    }
+
+    frx[n1] = vx[n1];
+    fry[n1] = vy[n1];
+    frz[n1] = vz[n1];
+    fvx[n1] = res_x;
+    fvy[n1] = res_y;
+    fvz[n1] = res_z;
+}
+</source>
+</spoiler>
+В первом варианте обход дерева начинался по порядку нумерации тел в исходном массиве, поэтому соседние нити обходили совершенно разные участки дерева, что отрицательно сказывалось на производительности кэш памяти GPU. Поэтому во втором варианте был применён обход, начинающийся с вершины дерева, в этом случае соседние нити начинают обход дерева по одинаковому пути, т.к. соседние вершины дерева находятся поблизости и в пространстве. Также важно, что мы выбрали нумерацию в массиве узлов дерева не с нуля, а  с единицы, в этом случае листья дерева хранятся во второй половине массива, и при количестве тел, равному степени двойки, у нас будет выровненный доступ к памяти по индексу tn1.
+
+<spoiler title="OpenCL ядро для вычисления силы путём обхода дерева (обход по порядку нумерации узлов дерева)">
+<source lang="cpp">
+__kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
+                            __global const nbcoord_t* y,
+                            __global nbcoord_t* f,
+                            __global const nbcoord_t* tree_cmx,
+                            __global const nbcoord_t* tree_cmy,
+                            __global const nbcoord_t* tree_cmz,
+                            __global const nbcoord_t* tree_mass,
+                            __global const nbcoord_t* tree_crit_r2,
+                            __global const int* body_n)
+{
+    int        tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+    int        stride = points_count;
+    int        tn1 = get_global_id(0) + offset_n1 + tree_offset;
+
+    int          n1 = body_n[tn1];
+    nbcoord_t    x1 = tree_cmx[tn1];
+    nbcoord_t    y1 = tree_cmy[tn1];
+    nbcoord_t    z1 = tree_cmz[tn1];
+
+    nbcoord_t    res_x = 0.0;
+    nbcoord_t    res_y = 0.0;
+    nbcoord_t    res_z = 0.0;
+
+    int stack_data[MAX_STACK_SIZE] = {};
+    int    stack = 0;
+    int    stack_head = stack;
+
+    stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
+    while(stack != stack_head)
+    {
+        int          curr = stack_data[--stack];
+        nbcoord_t    dx = x1 - tree_cmx[curr];
+        nbcoord_t    dy = y1 - tree_cmy[curr];
+        nbcoord_t    dz = z1 - tree_cmz[curr];
+        nbcoord_t    r2 = (dx * dx + dy * dy + dz * dz);
+
+        if(r2 > tree_crit_r2[curr])
+        {
+            if(r2 < NBODY_MIN_R)
+            {
+                r2 = NBODY_MIN_R;
+            }
+
+            nbcoord_t    r = sqrt(r2);
+            nbcoord_t    coeff = tree_mass[curr] / (r * r2);
+
+            dx *= coeff;
+            dy *= coeff;
+            dz *= coeff;
+            res_x -= dx;
+            res_y -= dy;
+            res_z -= dz;
+        }
+        else
+        {
+            int    left = left_idx(curr);
+            int    rght = rght_idx(curr);
+            if(left < tree_size)
+            {
+                stack_data[stack++] = left;
+            }
+            if(rght < tree_size)
+            {
+                stack_data[stack++] = rght;
+            }
+        }
+    }
+
+    __global const nbcoord_t*    vx = y + 3 * stride;
+    __global const nbcoord_t*    vy = y + 4 * stride;
+    __global const nbcoord_t*    vz = y + 5 * stride;
+
+    __global nbcoord_t*    frx = f;
+    __global nbcoord_t*    fry = frx + stride;
+    __global nbcoord_t*    frz = frx + 2 * stride;
+    __global nbcoord_t*    fvx = frx + 3 * stride;
+    __global nbcoord_t*    fvy = frx + 4 * stride;
+    __global nbcoord_t*    fvz = frx + 5 * stride;
+
+    frx[n1] = vx[n1];
+    fry[n1] = vy[n1];
+    frz[n1] = vz[n1];
+    fvx[n1] = res_x;
+    fvy[n1] = res_y;
+    fvz[n1] = res_z;
+}
+</source>
+</spoiler>
+При обходе по порядку нумерации узлов дерева мы получили прирост производительости. Но этот вариант тоже можно улучшить. Глобальная память, в которой сейчас располагаются узлы дерева, оптимизирована для <a href="http://steps3d.narod.ru/tutorials/cuda-2-tutorial.html">коллективного доступа</a>, т.е. нити одной группы должны читать слова, расположенные в одном блоке памяти. В нашем случае, обход дерева начинается по одинаковым путям, и мы запрашиваем одинаковые данные всеми нитями группы, но чем дальше мы углубляемся в дерево, тем пути соседних нитей всё больше расходятся, и нам приходится запрашивать разные данные, что в несколько раз снижает производительность подсистемы памяти. Но узлы каждого поддерева, принадлежащие одному уровню, располагаются в относительно близких ячейках памяти. Т.е. при обходе оставшейся части дерева соседние нити вычислительного ядра обращаются не к одинаковым узлам дерева, но к близко расположенным в памяти. Для оптимизации такого доступа к памяти можно применить текстурную память. Но есть одна загвоздка. На текущий момент текстуры не поддерживают работу с данными двойной точности (мы же хотим точно вести расчёты). Но в CUDA есть функция <i>__hiloint2double</i>, которая собирает число двойной точности из двух целых чисел.
+
+<spoiler title="Код запроса чисел двойной точности из текстуры, хранящей целые числа">
+<source lang="cpp">
+template<>
+struct nb1Dfetch<double>
+{
+    typedef double4 vec4;
+    static __device__ double fetch(cudaTextureObject_t tex, int i)
+    {
+        int2 p(tex1Dfetch<int2>(tex, i));
+        return __hiloint2double(p.y, p.x);
+    }
+    static __device__ vec4 fetch4(cudaTextureObject_t tex, int i)
+    {
+        int        ii(2 * i);
+        int4    p1(tex1Dfetch<int4>(tex, ii));
+        int4    p2(tex1Dfetch<int4>(tex, ii + 1));
+        vec4    d4 = {__hiloint2double(p1.y, p1.x),
+                      __hiloint2double(p1.w, p1.z),
+                      __hiloint2double(p2.y, p2.x),
+                      __hiloint2double(p2.w, p2.z)
+                  };
+        return d4;
+    }
+};
+</source>
+</spoiler>
+При этом было сделано две реализации, в одной каждый элемент дерева (x, y, z, tree_crit_r2) запрашивался независимо, а во второй реализации эти запросы были объединены. Запрос массы узла происходит значительно реже, только при выполнении условия <i>r2 > tree_crit_r2[curr]</i>, поэтому не имеет смысла объединять этот запрос с остальными. Ещё одной полезной функцией фреймворка CUDA является возможность регулирования соотношения размеров кэша L1 и размера разделяемой памяти (<a href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__EXECUTION.html#group__CUDART__EXECUTION_1g6699ca1943ac2655effa0d571b2f4f15">cudaFuncSetCacheConfig</a>). В случае обхода дерева мы не используем разделяемую память, поэтому мы можем увеличить кэш L1 в ущерб ей.
+
+<spoiler title="CUDA ядро для вычисления силы путём обхода дерева (обход по порядку нумерации узлов дерева)">
+<source lang="cpp">
+__global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
+                                      nbcoord_t* f,
+                                      cudaTextureObject_t tree_xyzr,
+                                      cudaTextureObject_t tree_mass,
+                                      const int* body_n)
+{
+    nb1Dfetch<nbcoord_t>    tex;
+    int        tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+    int        stride = points_count;
+    int        tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
+
+    int          n1 = body_n[tn1];
+    nbvec4_t     xyzr = tex.fetch4(tree_xyzr, tn1);
+    nbcoord_t    x1 = xyzr.x;
+    nbcoord_t    y1 = xyzr.y;
+    nbcoord_t    z1 = xyzr.z;
+
+    nbcoord_t    res_x = 0.0;
+    nbcoord_t    res_y = 0.0;
+    nbcoord_t    res_z = 0.0;
+
+    int stack_data[MAX_STACK_SIZE] = {};
+    int stack = 0;
+    int stack_head = stack;
+
+    stack_data[stack++] = NBODY_HEAP_ROOT_INDEX;
+    while(stack != stack_head)
+    {
+        int            curr = stack_data[--stack];
+        nbvec4_t    xyzr2 = tex.fetch4(tree_xyzr, curr);
+        nbcoord_t    dx = x1 - xyzr2.x;
+        nbcoord_t    dy = y1 - xyzr2.y;
+        nbcoord_t    dz = z1 - xyzr2.z;
+        nbcoord_t    r2 = (dx * dx + dy * dy + dz * dz);
+
+        if(r2 > xyzr2.w)
+        {
+            if(r2 < NBODY_MIN_R)
+            {
+                r2 = NBODY_MIN_R;
+            }
+
+            nbcoord_t    r = sqrt(r2);
+            nbcoord_t    coeff = tex.fetch(tree_mass, curr) / (r * r2);
+
+            dx *= coeff;
+            dy *= coeff;
+            dz *= coeff;
+            res_x -= dx;
+            res_y -= dy;
+            res_z -= dz;
+        }
+        else
+        {
+            int    left = nbody_heap_func<int>::left_idx(curr);
+            int    rght = nbody_heap_func<int>::rght_idx(curr);
+            if(left < tree_size)
+            {
+                stack_data[stack++] = left;
+            }
+            if(rght < tree_size)
+            {
+                stack_data[stack++] = rght;
+            }
+        }
+    }
+
+    f[n1 + 3 * stride] = res_x;
+    f[n1 + 4 * stride] = res_y;
+    f[n1 + 5 * stride] = res_z;
+}
+</source>
+</spoiler>
+Анализ программы в профилировщике nvprof показал, что даже при использовании текстурной памяти для хранения дерева всё равно очень высокая нагрузка на глобальную память. 
+
+Действительно, в CUDA вся память ядра, которая адресуется по 'вычисляемым' адресам, хранится в глобальной памяти, и соответственно стек, который нужен для обхода дерева, расположен в глобальной памяти и 'отъедает' значительную часть пропускной способности чипов памяти, ведь стек есть у каждой выполняемой нити, а нитей очень много.
+
+Но, к счастью, мы уже умеем обходить дерево без использования стека. Дополняя предыдущее вычислительное ядро функциями вычисления следующего узла дерева, получаем новое ядро, причём, более компактное.
+
+<spoiler title="CUDA ядро для вычисления силы путём обхода дерева без использования стека">
+<source lang="cpp">
+__global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int tree_size,
+                                            nbcoord_t* f,
+                                            cudaTextureObject_t tree_xyzr,
+                                            cudaTextureObject_t tree_mass,
+                                            const int* body_n)
+{
+    nb1Dfetch<nbcoord_t>    tex;
+    int        tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+    int        stride = points_count;
+    int        tn1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1 + tree_offset;
+
+    int          n1 = body_n[tn1];
+    nbvec4_t     xyzr = tex.fetch4(tree_xyzr, tn1);
+    nbcoord_t    x1 = xyzr.x;
+    nbcoord_t    y1 = xyzr.y;
+    nbcoord_t    z1 = xyzr.z;
+
+    nbcoord_t    res_x = 0.0;
+    nbcoord_t    res_y = 0.0;
+    nbcoord_t    res_z = 0.0;
+
+    int    curr = NBODY_HEAP_ROOT_INDEX;
+    do
+    {
+        nbvec4_t     xyzr2 = tex.fetch4(tree_xyzr, curr);
+        nbcoord_t    dx = x1 - xyzr2.x;
+        nbcoord_t    dy = y1 - xyzr2.y;
+        nbcoord_t    dz = z1 - xyzr2.z;
+        nbcoord_t    r2 = (dx * dx + dy * dy + dz * dz);
+
+        if(r2 > xyzr2.w)
+        {
+            if(r2 < NBODY_MIN_R)
+            {
+                r2 = NBODY_MIN_R;
+            }
+
+            nbcoord_t    r = sqrt(r2);
+            nbcoord_t    coeff = tex.fetch(tree_mass, curr) / (r * r2);
+
+            dx *= coeff;
+            dy *= coeff;
+            dz *= coeff;
+            res_x -= dx;
+            res_y -= dy;
+            res_z -= dz;
+            curr = nbody_heap_func<int>::skip_idx(curr);
+        }
+        else
+        {
+            curr = nbody_heap_func<int>::next_up(curr, tree_size);
+        }
+    }
+    while(curr != NBODY_HEAP_ROOT_INDEX);
+
+    f[n1 + 3 * stride] = res_x;
+    f[n1 + 4 * stride] = res_y;
+    f[n1 + 5 * stride] = res_z;
+}
+</source>
+</spoiler>
+Производительность ядер, выполняемых на GPU, сильно зависит от размера блоков, на которые мы делим задачу. От этого размера зависит, сколько регистров, локальной памяти и прочих ресурсов будет доступно каждой вычислительной нити. Также нужно иметь в виду, что во время ожидания доступа к памяти в одной нити, другая нить может производить вычисления на шейдерном процессоре, таким образом, при достаточном количестве одновременно выполняемых нитей на одном процессоре время доступа к памяти будет скрыто за вычисленими. Поэтому перед сравнением производительности наших ядер нам надо для каждого из них вычислить оптимальный размер блока. Произведём сравнение на доступной нам половинке от NVidia K80.
+
+<b>Таблица 5. &nbsp;</b><i>Зависимость времени вычисления (в секундах) функции $inline$f_n$inline$ от размера блока для различных GPU реализаций при количестве тел $inline$N=131072$inline$ и $inline$\lambda_{crit}=10$inline$</i>
+<table>
+  <tr>
+<th>Размер блока/ядро</th>
+<th>8</th>
+<th>16</th>
+<th>32</th>
+<th>64</th>
+<th>128</th>
+<th>256</th>
+<th>512</th>
+<th>1024</th>
+  </tr>
+  <tr>
+    <td>opencl+dense</td><td>5.77</td><td>2.84</td><td>1.46</td><td><b>1.13</b></td><td>1.15</td><td>1.14</td><td>1.14</td><td>1.13</td>
+  </tr>
+  <tr>
+    <td>cuda+dense</td><td>5.44</td><td>2.55</td><td>1.27</td><td><b>0.96</b></td><td>0.97</td><td>0.99</td><td>0.99</td><td>-</td>
+  </tr>
+  <tr>
+    <td>opencl+heap+cycle</td><td>5.88</td><td>5.65</td><td>5.74</td><td>5.96</td><td>5.37</td><td>5.38</td><td><b>5.35</b></td><td>5.38</td>
+  </tr>
+  <tr>
+    <<td>opencl+heap+nested</td><td>4.54</td><td><b>3.68</b></td><td>3.98</td><td>5.25</td><td>5.46</td><td>5.41</td><td>5.48</td><td>5.31</td>
+  </tr>
+  <tr>
+    <td>cuda+heap+nested</td><td>3.62</td><td>2.81</td><td><b>2.68</b></td><td>4.26</td><td>4.84</td><td>4.75</td><td>4.8</td><td>4.67</td>
+  </tr>
+  <tr>
+    <td>cuda+heap+nested+tex</td><td>2.6</td><td>1.51</td><td>0.912</td><td><b>0.7</b></td><td>1.85</td><td>1.75</td><td>1.69</td><td>1.61</td>
+  </tr>
+  <tr>
+    <td>cuda+heap+nested+tex+stackless</td><td>2.3</td><td>1.29</td><td>0.773</td><td><b>0.5</b></td><td>0.51</td><td>0.52</td><td>0.52</td><td>0.52</td>
+  </tr>
+</table>
+<!--
+<b>Таблица 6. &nbsp;</b><i>Зависимость времени вычисления (в секундах) функции $inline$f_n$inline$ от размера блока для различных GPU реализаций при количестве тел $inline$N=512K$inline$ и $inline$\lambda_{crit}=10$inline$</i>
+<table>
+  <tr>
+<th>Размер блока/ядро</th>
+<th>8</th>
+<th>16</th>
+<th>32</th>
+<th>64</th>
+<th>128</th>
+<th>256</th>
+<th>512</th>
+<th>1024</th>
+  </tr>
+<tr>
+<td>opencl+dense</td><td>91.57</td><td>44.65</td><td>22.55</td><td><b>17.47</b></td><td>17.8</td><td>17.55</td><td>17.51</td><td>17.55</td>
+</tr>
+<tr>
+<td>cuda+dense</td><td>86.55</td><td>40.53</td><td>20.1</td><td>15.28</td><td>15.28</td><td>15.3</td><td><b>15.07</b></td><td>-</td>
+</tr>
+<tr>
+<td>opencl+heap+cycle</td><td>49.91</td><td><b>61.98</b></td><td>62.92</td><td>66.55</td><td>63.53</td><td>63.84</td><td>63.45</td><td>63.33</td>
+</tr>
+<tr>
+<td>opencl+heap+nested</td><td><b>36.51</b></td><td>39.85</td><td>44.2</td><td>51.32</td><td>51.84</td><td>51.57</td><td>51.43</td><td>50.76</td>
+</tr>
+<tr>
+<td>cuda+heap+nested</td><td>27.35</td><td><b>24.6</b></td><td>34.09</td><td>43.27</td><td>46.12</td><td>45.91</td><td>45.67</td><td>45.26</td>
+</tr>
+<tr>
+<td>cuda+heap+nested+tex</td><td>20.31</td><td>11.86</td><td><b>8.174</b></td><td>9.119</td><td>18.58</td><td>17.85</td><td>17.19</td><td>16.67</td>
+</tr>
+<tr>
+<td>cuda+heap+nested+tex+stackless</td><td>18.07</td><td>10.44</td><td>6.32</td><td><b>6.214</b></td><td>7.754</td><td>7.797</td><td>7.811</td><td>7.669</td>
+</tr>
+</table>
+-->
+<b>Таблица 6. &nbsp;</b><i>Зависимость времени вычисления (в секундах) функции $inline$f_n$inline$ от размера блока для различных GPU реализаций при количестве тел $inline$N=1M$inline$ и $inline$\lambda_{crit}=4$inline$</i>
+<table>
+  <tr>
+<th>Размер блока/ядро</th>
+<th>8</th>
+<th>16</th>
+<th>32</th>
+<th>64</th>
+<th>128</th>
+<th>256</th>
+<th>512</th>
+<th>1024</th>
+  </tr>
+  <tr>
+<td>opencl+dense</td><td>366</td><td>179</td><td>89.9</td><td>69.3</td><td>70.3</td><td>69.1</td><td>68.9</td><td><b>68.0</b></td>
+  </tr>
+  <tr>
+<td>cuda+dense</td><td>346</td><td>162</td><td>79.6</td><td>60.8</td><td>60.8</td><td>60.7</td><td><b>59.6</b></td><td>-</td>
+  </tr>
+  <tr>
+<td>opencl+heap+cycle</td><td><b>16.2</b></td><td>18.2</td><td>20.1</td><td>21.2</td><td>21.2</td><td>21.3</td><td>21.2</td><td>21.1</td>
+  </tr>
+  <tr>
+<td>opencl+heap+nested</td><td>10.5</td><td>7.63</td><td><b>6.38</b></td><td>8.23</td><td>9.95</td><td>9.89</td><td>9.65</td><td>9.66</td>
+  </tr>
+  <tr>
+<td>cuda+heap+nested</td><td>8.67</td><td>6.44</td><td><b>5.39</b></td><td>5.93</td><td>8.65</td><td>8.61</td><td>8.41</td><td>8.27</td>
+  </tr>
+  <tr>
+<td>cuda+heap+nested+tex</td><td>6.38</td><td>3.57</td><td>2.13</td><td><b>1.44</b></td><td>3.56</td><td>3.46</td><td>3.30</td><td>3.29</td>
+  </tr>
+  <tr>
+<td>cuda+heap+nested+tex+stackless</td><td>5.78</td><td>3.19</td><td>1.83</td><td>1.21</td><td>1.11</td><td><b>1.10</b></td><td>1.11</td><td>1.13</td>
+  </tr>
+</table>
+Сложная ситуация, но, в отличие, от CPU версии обхода дерева, видно, что каждый шаг оптимизации приносит ощутимые плоды. Реализация 'opencl+heap+cycle' почти в 6 раз медленнее точного решения с полным вычислением функции $inline$f_n$inline$. Реализация 'opencl+heap+nested', в которой обход дерева начинается с соседних узлов, быстрее предыдушей в 1.4 раза, т.к. лучше задействуется кэш память. В реализации 'cuda+heap+nested' увеличен кэш L1 в ущерб разделяемой памяти, что дало прирост скорости ещё в 1.4 раза, хотя не исключено, что в cuda реализации более оптимально скомпилированно вычислительное ядро (в версиях 'opencl+dense' и 'cuda+dense' ядра идентичные, а быстродействие у cuda версии выше в ~1.2 раза). Самый существенный прирост скорости вычислений (в 3.8 раза) достигается при расположении дерева в текстурной памяти и объединении запросов к элементам узла дерева. Реализация с обходом дерева без использования стека 'cuda+heap+nested+tex+stackless' быстрее ещё в 1.4 раза, т.к. в ней вся пропускная способность шины памяти используется только для доступа к данным об узлах дерева и не расходуется на стек. Таким образом, при $inline$\lambda_{crit}=10$inline$ удалось достичь ускорения в два раза по сравнению с полным вычислением функции $inline$f_n$inline$. Но $inline$\lambda_{crit}=10$inline$ избыточно большое значение параметра, на графике зависимости относительного изменения энергии в системе от отношения критического расстояния до узла дерева к его радиусу для CPU реализации видно, что можно использовать более низкие значения $inline$\lambda_{crit}$inline$ без видимой потери точности решения. Попробуем поварьировать $inline$\lambda_{crit}$inline$ при оптимальных размерах блока, которые мы определили на предыдущем шаге.
+<table>
+<tr>
+<td align='center'>
+<a href="http://drons.github.io/nbody/docs/svg/bench-gpu-tree-time-128K.svg">
+<img src="http://drons.github.io/nbody/docs/svg/bench-gpu-tree-time-128K.svg"/>
+</a>
+</td>
+<td align='center'>
+<a href="http://drons.github.io/nbody/docs/svg/bench-gpu-tree-time-1M.svg">
+<img src="http://drons.github.io/nbody/docs/svg/bench-gpu-tree-time-1M.svg"/>
+</a>
+</td>
+</tr>
+<tr>
+<td align='center'>
+<b>a)&nbsp;</b> $inline$N=128K$inline$
+</td>
+<td align='center'>
+<b>b)&nbsp;</b> $inline$N=1M$inline$
+</td>
+</tr>
+<tr>
+<td colspan=2 align='center'>
+<b>Рис 11.&nbsp;</b><i>Зависимость времени вычисления функции $inline$f_n$inline$ от отношения критического расстояния до узла дерева к его радиусу ($inline$\lambda_{crit}$inline$) для различных GPU реализаций обхода дерева</i>
+</td>
+</tr>
+</table>
+Видно, что при малых $inline$\lambda_{crit}$inline$ все способы вычисления функции $inline$f_n$inline$ выходят на близкие значения, определяемые временем построения kd-дерева и подготовкой данных для GPU. Причём, время построения дерева вносит весомый вклад в общее время до $inline$\lambda_{crit}\leq 4$inline$, далее этим временем можно пренебречь. Интересно заметить, что при $inline$N=128K$inline$ производительность опять улучшается при достижении $inline$\lambda_{crit}=1024$inline$, скорее всего это обусловлено тем, что все нити GPU обходят одни и те же вершины дерева одновременно, что улучшает использование кэша L1 и полностью исключает <i>'branch divergence'</i>. Также видно, что наилучшее быстродействие у реализации без использования стека (cuda+heap+nested+tex+stackless), она обгоняет по скорости вариант со стеком примерно в $inline$1.4-1.5$inline$ раза. Прочие реализации ещё в несколько раз медленнее. Для закрепления результата проведём расчет времени на GPU с более новой архитектурой.
+
+<spoiler title="Результаты запуска на GeForce GTX 1080 Ti (одинарная точность)">
+<b>Таблица 7. &nbsp;</b><i>Зависимость времени вычисления (в секундах) функции $inline$f_n$inline$ от размера блока для различных GPU реализаций при количестве тел $inline$N=1M$inline$ и $inline$\lambda_{crit}=4$inline$</i>
+<table>
+  <tr>
+<th>Размер блока/ядро</th>
+<th>8</th>
+<th>16</th>
+<th>32</th>
+<th>64</th>
+<th>128</th>
+<th>256</th>
+<th>512</th>
+<th>1024</th>
+  </tr>
+  <tr>
+<td>opencl+dense</td><td>47.8</td><td>23.4</td><td>11.6</td><td><b>11.59</b></td><td>12.8</td><td>12.8</td><td>12.8</td><td>12.8</td>
+  </tr>
+  <tr>
+<td>cuda+dense</td><td>49.0</td><td>23.8</td><td>11.9</td><td>11.8</td><td><b>11.7</b></td><td>11.7</td><td>11.7</td><td>11.7</td>
+  </tr>
+  <tr>
+<td>opencl+heap+cycle</td><td>7.48</td><td>8.26</td><td>7.73</td><td>7.36</td><td>7.33</td><td><b>7.27</b></td><td>7.25</td><td>7.26</td>
+  </tr>
+  <tr>
+<td>opencl+heap+nested</td><td>1.33</td><td><b>1.20</b></td><td>1.41</td><td>2.46</td><td>2.53</td><td>2.49</td><td>2.44</td><td>2.47</td>
+  </tr>
+  <tr>
+<td>cuda+heap+nested</td><td>1.23</td><td><b>1.10</b></td><td>1.31</td><td>2.28</td><td>2.29</td><td>2.28</td><td>2.23</td><td>2.25</td>
+  </tr>
+  <tr>
+<td>cuda+heap+nested+tex</td><td>0.88</td><td>0.68</td><td><b>0.654</b></td><td>1.6</td><td>1.6</td><td>1.6</td><td>1.6</td><td>1.6</td>
+  </tr>
+  <tr>
+<td>cuda+heap+nested+tex+stackless</td><td>0.71</td><td>0.47</td><td>0.45</td><td>0.43</td><td>0.43</td><td>0.42</td><td>0.41</td><td><b>0.395</b></td>
+  </tr>
+</table>
+<table>
+<tr>
+<td align='center'>
+<a href="http://drons.github.io/nbody/docs/svg/bench-gpu-tree-time-1M-GTX1080.svg">
+<img src="http://drons.github.io/nbody/docs/svg/bench-gpu-tree-time-1M-GTX1080.svg"/>
+</a>
+</td>
+</tr>
+<tr>
+<td align='center'>
+<b>Рис 12.&nbsp;</b><i>Зависимость времени вычисления функции $inline$f_n$inline$ от отношения критического расстояния до узла дерева к его радиусу ($inline$\lambda_{crit}$inline$) для различных GPU реализаций обхода дерева</i>
+</td>
+</tr>
+</table>
+</spoiler>
+При использовании GeForce GTX 1080 Ti для вычисления, разница между реализациями обхода дерева со стеком и без стека достигает двух раз, при условии, что мы пренебрегаем временем построения дерева. Этот факт подталкивает нас к тому, чтобы в будующем перенестии на GPU и построение дерева. Из сравнения таблиц 5-7 видно, что нет единого оптимального размера блока для разного количества тел и тем более для разных архитектур GPU, причём, разница времени вычисления может достигать нескольких раз, даже если не брать в расчёт граничные значения. Таким образом, перед длительными расчетами имеет смысл определять оптимальный размер блока для каждой конфигурации.
+
+Главное, чего мы достигли - это возможность моделировать попарное взаимодействие немногим более миллиона тел ($inline$2^{20}$inline$) за разумное время на одном, не самом новом GPU. На более новых GPU (Tesla V100), видимо, можно будет обрабатывать уже около двух миллионов взаимодействующих тел за разумное время, т.к. их производительность примерно в четыре раза выше, чем у половинки Tesla K80. Хотя, это число ещё и несравнимо с количеством звёзд даже в карликовых галактиках, таких как <a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D0%BB%D0%BE%D0%B5_%D0%9C%D0%B0%D0%B3%D0%B5%D0%BB%D0%BB%D0%B0%D0%BD%D0%BE%D0%B2%D0%BE_%D0%9E%D0%B1%D0%BB%D0%B0%D0%BA%D0%BE">Малое Магелланово Облако</a>, но, на мой взгляд, является внушительным.
+
+<h2>Заключение</h2>
+Применение вложенных методов решения дифференциальных уравнений позволяет решать подобные задачи с высоким уровнем точности при сравнительно небольших временных затратах, а применение алгоритмов аппроксимации функции вычисления силы попарного притяжения позволяют обрабатывать колоссальные объёмы взаимодействующих тел. Таким образом, в отличие от инопланетян из "Задачи трёх тел", мы в состоянии решить задачу $inline$N$inline$ тел, и для небольшого числа тел и для целых звёздных скоплений, хотя и ценой некоторой потери точности.
+
+<h4>Визуализация</h4>
+Для тех, кто дочитал до конца приведу ещё несколько видеороликов с визуализацией процесса эволюции систем тел.
+
+Моделирование столкновения двух галактик. Общее количество тел 60 тысяч.
+
+<oembed>https://youtu.be/AYzgTC0qqV0</oembed>
+Моделирование эволюции галактики, состоящей из миллиона звёзд. В центре тело с массой 99% от общей. Одиночные частицы практически неразличимы. Уже больше напоминает волны в капле жидкости. Раскрашено в соответствии с модулем скорости. Низкая скорость - синий цвет, средняя - зелёный, высокая - красный. Видно, что в центре скорость выше, и плавно убывает к краям, а самая низкая в экваториальной плоскости.
+
+<oembed>https://youtu.be/0_8nZCrVqWI</oembed>
+Более 'динамичное' моделирование эволюции галактики, состоящей из миллиона звёзд. В центре тело с массой 10% от общей. Центральное тело влияет на остальные существенно меньше. Сначала 'звёзды' разлетаются, потом собираются обратно в несколько скоплений, и в конце опять образуют одно большое скопление.
+
+В процессе моделирования порядка 5% 'звёзд' покинуло начальную область безвозвратно.
+
+<oembed>https://youtu.be/XLvIPK6m6QI</oembed>
+На 10-й секунде очень напоминает существующую <a href="https://ru.wikipedia.org/wiki/%D0%93%D0%B0%D0%BB%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B0_%D0%9A%D0%BE%D0%BB%D0%B5%D1%81%D0%BE_%D1%82%D0%B5%D0%BB%D0%B5%D0%B3%D0%B8">галактику Колесо телеги</a>.
+
+Код проекта можно найти на <a href="https://github.com/drons/nbody">гитхабе</a>.

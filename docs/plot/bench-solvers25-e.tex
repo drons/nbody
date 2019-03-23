@@ -1,0 +1,37 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.14}
+
+% stars_count = 512;
+% max_time = 25
+% steps = {0.1, 0.1 / 8, 0.1 / (8 * 8), 0.1 / (8 * 8 * 8), 0.1 / (8 * 8 * 8 * 8)};
+
+\begin{document}
+
+\begin{tikzpicture}
+\begin{loglogaxis}[
+    height=6in,
+    width=6in,
+    xlabel=$f_n$ compute count,
+    ylabel=$dE/E_0$
+]
+\addplot [red,mark=*,solid] coordinates { (439, 0.01256) (2022, 0.002426) (1.602e+04, 0.00292) (1.28e+05, 0.01618) (1.024e+06, 0.003824) };
+\addplot [blue,mark=*,solid] coordinates { (502, 0.2072) (2029, 0.004908) (1.603e+04, 0.009324) (1.28e+05, 0.02477) (1.024e+06, 0.007793) };
+\addplot [teal,mark=*,solid] coordinates { (628, 0.4135) (2043, 0.2222) (1.604e+04, 0.01885) (1.28e+05, 0.03693) (1.024e+06, 0.0003036) };
+\addplot [black,mark=*,solid] coordinates { (250, 0.01911) (2001, 0.00735) (1.6e+04, 0.03352) (1.28e+05, 0.01526) (1.024e+06, 0.01067) };
+\addplot [red,mark=triangle*,solid] coordinates { (1000, 0.08768) (8004, 0.007143) (6.4e+04, 0.01097) (5.12e+05, 0.00849) (4.096e+06, 2.438) };
+\addplot [blue,mark=triangle*,solid] coordinates { (1500, 0.3344) (1.35e+04, 0.4097) (1.095e+05, 0.003) (8.775e+05, 0.08762) (7.022e+06, 3.781e-06) };
+\addplot [teal,mark=triangle*,solid] coordinates { (1750, 0.5972) (1.575e+04, 0.08687) (3.104e+04, 0.002885) (4.381e+04, 0.1776) (4.577e+04, 1.323e-07) };
+\addplot [black,mark=triangle*,solid] coordinates { (3250, 0.07759) (2.925e+04, 0.01056) (2.372e+05, 0.007948) (1.901e+06, 0.1008) (1.521e+07, 0.09814) };
+\addplot [red,mark=diamond*,solid] coordinates { (754, 0.05494) (6007, 0.1964) (4.801e+04, 0.1137) (3.84e+05, 0.01545) (3.072e+06, 0.007852) };
+\addplot [blue,mark=diamond*,solid] coordinates { (2254, 0.05264) (1.801e+04, 0.03566) (1.44e+05, 0.4269) (1.152e+06, 0.09812) (9.216e+06, 0.008068) };
+\addplot [teal,mark=diamond*,solid] coordinates { (754, 0.04362) (6754, 0.002806) (5.475e+04, 0.04249) (4.388e+05, 0.08115) (2.245e+06, 0.009864) };
+\addplot [black,mark=diamond*,solid] coordinates { (2254, 0.01025) (2.025e+04, 0.02951) (1.643e+05, 0.02907) (1.316e+06, 0.006202) (3.022e+06, 0.001246) };
+\addplot [red,mark=square*,solid] coordinates { (3754, 0.006951) (3.375e+04, 0.02398) (2.738e+05, 0.005757) (2.194e+06, 0.003986) (5.037e+06, 0.0009659) };
+\addplot [blue,mark=square*,solid] coordinates { (750, 8.284) (6003, 423.2) (4.8e+04, 8.84) (3.84e+05, 1.846) (3.072e+06, 0.002613) };
+\legend{$adams2$,$adams3$,$adams5$,$euler$,$rk4$,$rkck$,$rkdp$,$rkf$,$rkgl_1s$,$rkgl_3s$,$rklc_1s$,$rklc_3s$,$rklc_5s$,$trapeze$};
+\end{loglogaxis}
+\end{tikzpicture}
+
+\end{document}

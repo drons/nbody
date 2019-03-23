@@ -1,0 +1,34 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.14}
+
+% stars_count = 1024 * 1024;
+% max_time = 0.1
+% max_step = 0.01
+% ratio = {0.1, 0.5, 1, 2, 4, 16, 64, 256, 1024};
+
+\begin{document}
+
+\begin{tikzpicture}
+\begin{loglogaxis}[
+    height=6in,
+    width=6in,
+    xlabel=$\lambda_{crit}$,
+    ylabel=Step time (s),
+    legend style={at={(0.01,0.99)},anchor=north west}
+]
+\addplot [red,mark=*,solid] coordinates { (0.1, 0.3189) (0.5, 0.3717) (1, 0.8335) (2, 3.169) (4, 16.34) (16, 345.4) };
+\addplot [blue,mark=*,solid] coordinates { (0.1, 0.3274) (0.5, 0.3349) (1, 0.4597) (2, 1.201) (4, 6.387) (16, 384.2) };
+\addplot [teal,mark=*,solid] coordinates { (0.1, 0.2652) (0.5, 0.2656) (1, 0.369) (2, 1.005) (4, 5.353) (16, 310.6) };
+\addplot [black,mark=*,solid] coordinates { (0.1, 0.272) (0.5, 0.2749) (1, 0.3003) (2, 0.4539) (4, 1.436) (16, 85.67) };
+\addplot [red,mark=triangle*,solid] coordinates { (0.1, 0.2731) (0.5, 0.2762) (1, 0.2781) (2, 0.3872) (4, 1.099) (16, 82.99) };
+
+\addplot [green,mark=triangle*,solid] coordinates { (0.1, 59.57) (16, 59.57) };
+
+\legend{$opencl+heap+cycle$,$opencl+heap+nested$,$cuda+heap+nested$,$cuda+heap+nested+tex$,$cuda+heap+nested+tex+stackless$,$cuda+dense$};
+
+\end{loglogaxis}
+\end{tikzpicture}
+
+\end{document}
