@@ -303,6 +303,34 @@ matrix:
     - os: linux
       dist: xenial
       sudo: required
+      env: NAME="gcc9 + Qt5 + debug"
+      addons:
+        apt:
+          packages:
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+          - ocl-icd-opencl-dev
+          - oclgrind
+      script:
+      - wget --no-check-certificate https://docs.google.com/uc?id=134PP2fse2d2yZJ8HukJW8arc_V_09xgW -O gcc_9.1.0-1_amd64.deb
+      - sudo dpkg -i gcc_9.1.0-1_amd64.deb
+      - export LD_LIBRARY_PATH=./lib:/usr/local/lib64:${LD_LIBRARY_PATH}
+      - sudo ln -f -s /usr/local/bin/gcc /usr/bin/gcc
+      - sudo ln -f -s /usr/local/bin/g++ /usr/bin/g++
+      - gcc --version
+      - mkdir build-debug-gcc9
+      - cd build-debug-gcc9
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug
+      - make -j2
+      - oclgrind ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: xenial
+      sudo: required
       env: NAME="gcc8 + Qt5 + ASAN"
       addons:
         apt:
