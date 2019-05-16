@@ -17,11 +17,13 @@ QMAKE_CXXFLAGS += -Werror=cast-qual
 QMAKE_CXXFLAGS += -Werror=vla
 QMAKE_CXXFLAGS += -Werror=format-security
 QMAKE_CXXFLAGS += -Werror=format
-QMAKE_CXXFLAGS += -Werror=logical-op
 QMAKE_CXXFLAGS += -fpermissive
-QMAKE_CXXFLAGS += -Werror=maybe-uninitialized
 #QMAKE_CXXFLAGS += -Werror=switch-enum
 QMAKE_CXXFLAGS += -pedantic-errors
+!clang {
+	QMAKE_CXXFLAGS += -Werror=logical-op
+	QMAKE_CXXFLAGS += -Werror=maybe-uninitialized
+}
 
 release:equals(QT_MAJOR_VERSION,4){
 	QMAKE_CXXFLAGS += -Wno-unused-variable
