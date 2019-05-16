@@ -29,6 +29,17 @@ public:
 private:
 	void sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt,
 				  nbody_engine::memory* y, size_t recursion_level);
+	void sub_step_implicit(size_t steps, const nbcoord_t** a,
+						   nbcoord_t* coeff,
+						   const nbody_engine::memory* y,
+						   bool need_first_approach_k,
+						   const nbcoord_t* c, nbcoord_t t,
+						   nbcoord_t dt);
+	void sub_step_explicit(size_t steps, const nbcoord_t** a,
+						   nbcoord_t* coeff,
+						   const nbody_engine::memory* y,
+						   const nbcoord_t* c, nbcoord_t t,
+						   nbcoord_t dt);
 };
 
 #endif // NBODY_SOLVER_RK_BUTCHER_H

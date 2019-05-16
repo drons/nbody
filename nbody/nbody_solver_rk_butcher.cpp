@@ -66,16 +66,73 @@ void nbody_solver_rk_butcher::print_info() const
 	qDebug() << "\trefine_steps_count" << m_refine_steps_count;
 }
 
+void nbody_solver_rk_butcher::sub_step_implicit(size_t steps, const nbcoord_t** a,
+												nbcoord_t* coeff,
+												const nbody_engine::memory* y,
+												bool need_first_approach_k,
+												const nbcoord_t* c, nbcoord_t t,
+												nbcoord_t dt)
+{
+	if(need_first_approach_k)
+	{
+		//Compute first approach for <k>
+		engine()->fcompute(t, y, m_tmpk);
+		for(size_t i = 0; i != steps; ++i)
+		{
+			engine()->fmadd(m_tmpy, y, m_tmpk, dt * c[i]);
+			engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
+		}
+	}
+
+	//<k> iterative refinement
+	for(size_t iter = 0; iter != m_refine_steps_count; ++iter)
+	{
+		for(size_t i = 0; i != steps; ++i)
+		{
+			for(size_t n = 0; n != steps; ++n)
+			{
+				coeff[n] = dt * a[i][n];
+			}
+			engine()->fmaddn(m_tmpy, y, m_k, coeff, m_k.size());
+			engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
+		}
+	}
+}
+
+void nbody_solver_rk_butcher::sub_step_explicit(size_t steps, const nbcoord_t** a,
+												nbcoord_t* coeff,
+												const nbody_engine::memory* y,
+												const nbcoord_t* c, nbcoord_t t,
+												nbcoord_t dt)
+{
+	for(size_t i = 0; i < steps; ++i)
+	{
+		if(i == 0)
+		{
+			engine()->fcompute(t + c[i]*dt, y, m_k[i]);
+		}
+		else
+		{
+			for(size_t n = 0; n != i; ++n)
+			{
+				coeff[n] = dt * a[i][n];
+			}
+			engine()->fmaddn(m_tmpy, y, m_k, coeff, i);
+			engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
+		}
+	}
+}
+
 void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt,
 									   nbody_engine::memory* y, size_t recursion_level)
 {
-	const size_t		STEPS = m_bt->get_steps();
+	const size_t		steps = m_bt->get_steps();
 	const nbcoord_t**	a = m_bt->get_a();
 	const nbcoord_t*	b1 = m_bt->get_b1();
 	const nbcoord_t*	b2 = m_bt->get_b2();
 	const nbcoord_t*	c = m_bt->get_c();
 	size_t				ps = engine()->problem_size();
-	size_t				coeff_count = STEPS + 1;
+	size_t				coeff_count = steps + 1;
 	bool				need_first_approach_k = false;
 
 	std::vector<nbcoord_t>	coeff;
@@ -84,7 +141,7 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 	if(m_k.empty())
 	{
 		need_first_approach_k  = true;
-		m_k = engine()->create_buffers(sizeof(nbcoord_t) * ps, STEPS);
+		m_k = engine()->create_buffers(sizeof(nbcoord_t) * ps, steps);
 		m_tmpy = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_tmpk = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_y_stack = engine()->create_buffers(sizeof(nbcoord_t) * ps, m_max_recursion);
@@ -94,60 +151,22 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 	{
 		if(m_bt->is_implicit())
 		{
-			if(need_first_approach_k)
-			{
-				//Compute first approach for <k>
-				engine()->fcompute(t, y, m_tmpk);
-				for(size_t i = 0; i != STEPS; ++i)
-				{
-					engine()->fmadd(m_tmpy, y, m_tmpk, dt * c[i]);
-					engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
-				}
-			}
-
-			//<k> iterative refinement
-			for(size_t iter = 0; iter != m_refine_steps_count; ++iter)
-			{
-				for(size_t i = 0; i != STEPS; ++i)
-				{
-					for(size_t n = 0; n != STEPS; ++n)
-					{
-						coeff[n] = dt * a[i][n];
-					}
-					engine()->fmaddn(m_tmpy, y, m_k, coeff.data(), m_k.size());
-					engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
-				}
-			}
+			sub_step_implicit(steps, a, coeff.data(), y, need_first_approach_k, c, t, dt);
 		}
-		else//Explicit method
+		else
 		{
-			for(size_t i = 0; i < STEPS; ++i)
-			{
-				if(i == 0)
-				{
-					engine()->fcompute(t + c[i]*dt, y, m_k[i]);
-				}
-				else
-				{
-					for(size_t n = 0; n != i; ++n)
-					{
-						coeff[n] = dt * a[i][n];
-					}
-					engine()->fmaddn(m_tmpy, y, m_k, coeff.data(), i);
-					engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
-				}
-			}
+			sub_step_explicit(steps, a, coeff.data(), y, c, t, dt);
 		}
 
 		nbcoord_t	max_error = 0;
 
 		if(m_bt->is_embedded())
 		{
-			for(size_t n = 0; n != STEPS; ++n)
+			for(size_t n = 0; n != steps; ++n)
 			{
 				coeff[n] = (b2[n] - b1[n]);
 			}
-			engine()->fmaddn(m_tmpy, NULL, m_k, coeff.data(), STEPS);
+			engine()->fmaddn(m_tmpy, NULL, m_k, coeff.data(), steps);
 			engine()->fmaxabs(m_tmpy, max_error);
 		}
 
@@ -168,7 +187,7 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 		}
 		else
 		{
-			for(size_t n = 0; n != STEPS; ++n)
+			for(size_t n = 0; n != steps; ++n)
 			{
 				coeff[n] = b2[n] * dt;
 			}
