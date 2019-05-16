@@ -59,9 +59,8 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory
 		update_f(body1, total_force, mass[body1]);
 	};
 
-	switch(m_traverse_type)
+	if(ett_cycle == m_traverse_type)
 	{
-	case ett_cycle:
 		#pragma omp parallel for schedule(dynamic, 4)
 		for(size_t body1 = 0; body1 < count; ++body1)
 		{
@@ -70,12 +69,10 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory
 			const nbvertex_t	total_force(tree.traverse(m_data, v1, mass1));
 			update_f(body1, total_force, mass1);
 		}
-		break;
-	case ett_nested_tree:
+	}
+	else if(ett_nested_tree == m_traverse_type)
+	{
 		tree.traverse(node_visitor);
-		break;
-	default:
-		break;
 	}
 }
 
