@@ -20,6 +20,9 @@ public:
 	nbody_engine_ah(size_t full_recompute_rate = 1000, nbcoord_t max_dist = 10, nbcoord_t min_force = 1e-4);
 	const char* type_name() const override;
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
+private:
+	void fcompute_full(const smemory* y, smemory* f);
+	void fcompute_sparse(const smemory* y, smemory* f);
 };
 
 #endif // NBODY_ENGINE_SPARSE_H
