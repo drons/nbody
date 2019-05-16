@@ -30,13 +30,11 @@ void nbody_frame_compressor_opencv::push_frame(const QImage& frame, size_t)
 {
 	cv::Size    size(frame.width(), frame.height());
 
-	if(!d->m_writer.isOpened())
+	if((!d->m_writer.isOpened()) &&
+			(!d->m_writer.open(d->m_dst_file.toLocal8Bit().data(), CV_FOURCC('M', 'P', 'E', 'G'), 24, size, true)))
 	{
-		if(!d->m_writer.open(d->m_dst_file.toLocal8Bit().data(), CV_FOURCC('M', 'P', 'E', 'G'), 24, size, true))
-		{
-			qDebug() << "Can't open output" << d->m_dst_file;
-			return;
-		}
+		qDebug() << "Can't open output" << d->m_dst_file;
+		return;
 	}
 
 	QImage			rgb(frame.convertToFormat(QImage::Format_RGB888).rgbSwapped());

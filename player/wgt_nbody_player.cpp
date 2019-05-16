@@ -83,6 +83,25 @@ void wgt_nbody_player::on_update_view()
 	m_view->updateGL();
 }
 
+static std::shared_ptr<nbody_frame_compressor>
+create_compresser(const QString& selected, const QStringList& filters, QString& out)
+{
+	if(selected == filters[0])
+	{
+
+		if(!out.endsWith(".avi", Qt::CaseInsensitive))
+		{
+			out += ".avi";
+		}
+		return std::make_shared<nbody_frame_compressor_opencv>();
+	}
+	else if(selected == filters[1])
+	{
+		return std::make_shared<nbody_frame_compressor_image>();
+	}
+	return nullptr;
+}
+
 void wgt_nbody_player::on_start_record()
 {
 	QStringList		filters{"Avi (*.avi)", "PNG frames (*.png)"};
@@ -96,19 +115,7 @@ void wgt_nbody_player::on_start_record()
 		return;
 	}
 
-	std::shared_ptr<nbody_frame_compressor>	compressor;
-	if(selected == filters[0])
-	{
-		compressor = std::make_shared<nbody_frame_compressor_opencv>();
-		if(!out.endsWith(".avi", Qt::CaseInsensitive))
-		{
-			out += ".avi";
-		}
-	}
-	else if(selected == filters[1])
-	{
-		compressor = std::make_shared<nbody_frame_compressor_image>();
-	}
+	auto	compressor(create_compresser(selected, filters, out));
 
 	if((compressor == NULL) || (!compressor->set_destination(out)))
 	{

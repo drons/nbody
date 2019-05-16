@@ -148,17 +148,10 @@ static nbcolor_t get_color(nbcoord_t x)
 		return lut[lut_len - 1];
 	}
 	x *= lut_len;
-	for(size_t i = 1; i < lut_len; ++i)
-	{
-		if(x >= i)
-		{
-			continue;
-		}
-		nbcoord_t	w = i - x;
 
-		return lut[i - 1] * w + lut[i] * (1 - w);
-	}
-	return lut[lut_len - 1];
+	size_t		i = static_cast<size_t>(ceil(x));
+	nbcoord_t	w = i - x;
+	return lut[i - 1] * w + lut[i] * (1 - w);
 }
 
 static void compute_color_from_velosity(const nbvertex_t* vel, nbcolor_t* color, size_t count, nbcoord_t max_velosity)
