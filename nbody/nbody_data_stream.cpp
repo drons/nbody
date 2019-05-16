@@ -119,13 +119,10 @@ int nbody_data_stream::write(const nbody_data* bdata)
 		return -1;
 	}
 
-	if(!d->m_header_written)
+	if((!d->m_header_written) && 0 != d->write_header(bdata))
 	{
-		if(0 != d->write_header(bdata))
-		{
-			qDebug() << "Write header failed";
-			return -1;
-		}
+		qDebug() << "Write header failed";
+		return -1;
 	}
 
 	if(d->m_max_part_size > 0 && d->m_data.pos() >= d->m_max_part_size)
