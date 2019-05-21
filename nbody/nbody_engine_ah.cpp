@@ -94,7 +94,7 @@ void nbody_engine_ah::fcompute_full(const nbody_engine_simple::smemory* y, nbody
 			const nbvertex_t	force(m_data->force(v1, v2, mass[body1], mass[body2]));
 
 			if((v1 - v2).norm() < m_max_dist_sqr ||
-					force.norm() > m_min_force_sqr)
+			   force.norm() > m_min_force_sqr)
 			{
 				m_adjacent_body[ body1 ].push_back(body2);
 			}

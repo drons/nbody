@@ -36,7 +36,7 @@ attach-extern-c
 #--indent-labels=no
 #--indent-preproc-block
 #--indent-preproc-cond=no
-
+--min-conditional-indent=0
 #
 # Padding Options
 #
