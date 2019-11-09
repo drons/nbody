@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/drons/nbody/branch/master/graph/badge.svg)](https://codecov.io/gh/drons/nbody)
 [![Coverity](https://scan.coverity.com/projects/9436/badge.svg)](https://scan.coverity.com/projects/drons-nbody)
 [![Scc Count Badge](https://sloc.xyz/github/drons/nbody/?category=code)](https://github.com/drons/nbody/)
-
+[![codefactor.io](https://www.codefactor.io/repository/github/drons/nbody/badge?style=flat-square)](https://www.codefactor.io/repository/github/drons/nbody)
 
 ## Features
 ### Integration methods
