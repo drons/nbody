@@ -94,9 +94,9 @@ void nbody_engine_block::fcompute(const nbcoord_t& t, const memory* _y, memory* 
 					nbcoord_t		dy = y1[b1] - y2[b2];
 					nbcoord_t		dz = z1[b1] - z2[b2];
 					nbcoord_t		r2(dx * dx + dy * dy + dz * dz);
-					if(r2 < NBODY_MIN_R)
+					if(r2 < nbody::MinDistance)
 					{
-						r2 = NBODY_MIN_R;
+						r2 = nbody::MinDistance;
 					}
 					nbcoord_t		r = sqrt(r2);
 					nbcoord_t		coeff = (m2[b2]) / (r * r2);

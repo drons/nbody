@@ -80,9 +80,9 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 			nbcoord_t	dz = z1 - z2[n2];
 			nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
 
-			if(r2 < NBODY_MIN_R)
+			if(r2 < nbody::MinDistance)
 			{
-				r2 = NBODY_MIN_R;
+				r2 = nbody::MinDistance;
 			}
 
 			nbcoord_t	r = sqrt(r2);
@@ -162,9 +162,9 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 
 		if(r2 > tree_crit_r2[curr])
 		{
-			if(r2 < NBODY_MIN_R)
+			if(r2 < nbody::MinDistance)
 			{
-				r2 = NBODY_MIN_R;
+				r2 = nbody::MinDistance;
 			}
 
 			nbcoord_t	r = sqrt(r2);
@@ -300,9 +300,9 @@ __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_
 
 		if(r2 > xyzr2.w)
 		{
-			if(r2 < NBODY_MIN_R)
+			if(r2 < nbody::MinDistance)
 			{
-				r2 = NBODY_MIN_R;
+				r2 = nbody::MinDistance;
 			}
 
 			nbcoord_t	r = sqrt(r2);
@@ -383,9 +383,9 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 
 		if(r2 > xyzr2.w)
 		{
-			if(r2 < NBODY_MIN_R)
+			if(r2 < nbody::MinDistance)
 			{
-				r2 = NBODY_MIN_R;
+				r2 = nbody::MinDistance;
 			}
 
 			nbcoord_t	r = sqrt(r2);

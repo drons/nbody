@@ -11,7 +11,7 @@
 #include <omp.h>
 
 namespace {
-nbcoord_t GravityConst = 1;
+constexpr nbcoord_t GravityConst = 1_f; // Gravity constant used in modelling
 }
 
 nbody_data::nbody_data() :
@@ -35,9 +35,9 @@ nbvertex_t nbody_data::force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord
 {
 	nbvertex_t	dr(v1 - v2);
 	nbcoord_t	r2(dr.norm());
-	if(r2 < NBODY_MIN_R)
+	if(r2 < nbody::MinDistance)
 	{
-		r2 = NBODY_MIN_R;
+		r2 = nbody::MinDistance;
 	}
 	return dr * ((-GravityConst * mass1 * mass2) / (r2 * sqrt(r2)));
 }
@@ -46,7 +46,7 @@ nbcoord_t nbody_data::potential_energy(const nbvertex_t* vertites, size_t body1,
 {
 	nbvertex_t	dr(vertites[body1] - vertites[body2]);
 	nbcoord_t	r2(dr.norm());
-	if(r2 < NBODY_MIN_R)
+	if(r2 < nbody::MinDistance)
 	{
 		return 0;
 	}
@@ -447,7 +447,7 @@ bool nbody_data::save(const QString& fn) const
 	return true;
 }
 
-bool nbody_data::load(const QString& fn)
+bool nbody_data::load(const QString& fn, e_units_type unit_type)
 {
 	QFile		file(fn);
 
@@ -459,6 +459,7 @@ bool nbody_data::load(const QString& fn)
 
 	clear();
 
+	nbcoord_t	mass_factor = get_mass_factor(unit_type);
 	QTextStream	s(&file);
 
 	while(!s.atEnd())
@@ -473,7 +474,7 @@ bool nbody_data::load(const QString& fn)
 		}
 		add_body(nbvertex_t(p[0].toDouble(), p[1].toDouble(), p[2].toDouble()),
 				 nbvertex_t(p[3].toDouble(), p[4].toDouble(), p[5].toDouble()),
-				 p[6].toDouble(), nbcolor_t(1, 1, 1, 1));
+				 p[6].toDouble() * mass_factor, nbcolor_t(1, 1, 1, 1));
 	}
 
 	return true;
@@ -581,4 +582,19 @@ bool nbody_data::load_zeno_ascii(const QString& fn)
 	std::fill(m_color.begin(), m_color.end(), nbcolor_t(1, 1, 1, 1));
 	m_box_size = 1;
 	return true;
+}
+
+nbcoord_t nbody_data::get_mass_factor(e_units_type unit_type)
+{
+	switch(unit_type)
+	{
+	case eut_G1:
+		return 1_f;
+	case eut_SI:
+		return nbody::MassFactorSI;
+	case eut_au_day_kg:
+		return nbody::MassFactorAuDayKg;
+	}
+	//We will never be here
+	return 0_f;
 }

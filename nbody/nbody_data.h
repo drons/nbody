@@ -83,8 +83,10 @@ public:
 	bool is_equal(const nbody_data& other, const nbcoord_t eps = -1) const;
 	void clear();
 	bool save(const QString& fn) const;
-	bool load(const QString& fn);
+	bool load(const QString& fn, e_units_type unit_type = eut_G1);
 	bool load_zeno_ascii(const QString& fn);
+	
+	static nbcoord_t get_mass_factor(e_units_type unit_type);
 };
 
 #endif // NBODY_DATA_H
