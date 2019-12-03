@@ -85,7 +85,8 @@ public:
 	bool save(const QString& fn) const;
 	bool load(const QString& fn, e_units_type unit_type = eut_G1);
 	bool load_zeno_ascii(const QString& fn);
-	
+	bool load_initial(const QString& fn, const QString& type);
+
 	static nbcoord_t get_mass_factor(e_units_type unit_type);
 };
 

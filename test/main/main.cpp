@@ -22,6 +22,7 @@ int main(int argc, char* argv[])
 	QString				output(param.value("output", "/tmp/nbody/main-stream").toString());
 	QString				resume(param.value("resume", QString()).toString());
 	QString				initial_state(param.value("initial_state", QString()).toString());
+	QString				initial_state_type(param.value("initial_type", "Zeno").toString());
 
 	nbody_data									data;
 	std::unique_ptr<nbody_data_stream>			stream(new nbody_data_stream);
@@ -50,7 +51,7 @@ int main(int argc, char* argv[])
 	}
 	else if(!initial_state.isEmpty())
 	{
-		if(!data.load_zeno_ascii(initial_state))
+		if(!data.load_initial(initial_state, initial_state_type))
 		{
 			qDebug() << "Can't load initial state" << initial_state;
 			return -1;

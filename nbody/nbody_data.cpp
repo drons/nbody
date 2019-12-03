@@ -584,6 +584,28 @@ bool nbody_data::load_zeno_ascii(const QString& fn)
 	return true;
 }
 
+bool nbody_data::load_initial(const QString& fn, const QString& type)
+{
+	if(type.compare("Zeno", Qt::CaseInsensitive) == 0)
+	{
+		return load_zeno_ascii(fn);
+	}
+	else if(type.compare("G1", Qt::CaseInsensitive) == 0)
+	{
+		return load(fn, eut_G1);
+	}
+	else if(type.compare("SI", Qt::CaseInsensitive) == 0)
+	{
+		return load(fn, eut_SI);
+	}
+	else if(type.compare("ADK", Qt::CaseInsensitive) == 0)
+	{
+		return load(fn, eut_au_day_kg);
+	}
+	qDebug() << "Unknown initial state type. Possible values are: Zeno, G1, SI, ADK.";
+	return false;
+}
+
 nbcoord_t nbody_data::get_mass_factor(e_units_type unit_type)
 {
 	switch(unit_type)

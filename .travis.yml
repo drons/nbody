@@ -140,6 +140,9 @@ matrix:
       - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE"
       - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_ascii.txt --output=/tmp/nbody/zeno_ascii
       - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=2 --resume=/tmp/nbody/zeno_ascii
+      - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_table.txt --initial_type=G1
+      - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_table.txt --initial_type=SI
+      - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_table.txt --initial_type=ADK
       - cd nbody
       - gcov ./*
       after_success:

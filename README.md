@@ -48,13 +48,22 @@ Argument | Description
 `--box_size` | 'Universe' box size.
 `--output` | Output stream name.
 `--resume` | Stream name to resume (in this case `output` and `initial_state` are ignored).
-`--initial_state` | Optional initial state file in ['Zeno'](https://github.com/joshuabarnes/zeno) format. Can be created with [snapascii](https://github.com/joshuabarnes/zeno/blob/master/src/nbody/tools/snapascii.c) tool.
+`--initial_state` | Optional initial state file
+`--initial_type` | Initial state type. Possible values are: Zeno, G1, SI, ADK. See [initial state types table](#initial-state-types).
 `--max_part_size` | Max stream file size (splits a stream into multiple files).
 `--max_time` | Max simulation time.
 `--dump_step` | Time step to dump simulation state to stream.
 `--check_step` | Time step to verify the fundamental laws of physics. Conservation of impulse [P], angular momentum [L], energy [E], mass center velocity [V].
 `--check_list` | List of fundamental laws of physics to check. For example `--check_list=PL` to check only conservation of impulse [P] and angular momentum [L].
 `--verbose` | Print detailed simulation information.
+
+###### Initial state types
+Type | Description
+-----|-------------
+`Zeno` | File in ['Zeno'](https://github.com/joshuabarnes/zeno) format. Can be created with [snapascii](https://github.com/joshuabarnes/zeno/blob/master/src/nbody/tools/snapascii.c) tool.
+`G1` | Plane text table with `Rx Ry Rz Vx Vy Vz M` values. Space as separator.
+`SI` | Plane text table same format as `G1`. Units are `meter`, `second`, `kilogram`. On load mass will be multiplied by `MassFactorSI` to convert to `G1` type.
+`ADK` | Plane text table same format as `G1`. Units are `astronomical unit`, `day`, `kilogram`. On load mass will be multiplied by `MassFactorAuDayKg` to convert to `G1` type.
 
 ##### Engine control arguments are:
 
