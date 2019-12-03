@@ -37,7 +37,7 @@ WORK_TYPE summation_k(A container, size_t begin, size_t end, WORK_TYPE* correcti
 	Kahan array summation
 */
 template< class WORK_TYPE, class A >
-WORK_TYPE summation(A container, size_t size)
+WORK_TYPE summation(const A& container, size_t size)
 {
 	WORK_TYPE correction(0);
 

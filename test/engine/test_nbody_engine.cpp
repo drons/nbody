@@ -470,7 +470,7 @@ class test_nbody_engine : public QObject
 	size_t			m_problem_size;
 	nbcoord_t		m_eps;
 public:
-	test_nbody_engine(nbody_engine* e, size_t problen_size = 64, nbcoord_t eps = 1e-13);
+	explicit test_nbody_engine(nbody_engine* e, size_t problen_size = 64, nbcoord_t eps = 1e-13);
 	~test_nbody_engine();
 
 private slots:

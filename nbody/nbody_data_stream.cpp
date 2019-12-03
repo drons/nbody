@@ -170,24 +170,24 @@ int nbody_data_stream::open(const QString& name, qint64 max_part_size,
 
 	d->m_base_name = name;
 	d->m_max_part_size = max_part_size;
-
-	if(append_to == NULL)
-	{
-		d->m_file_n = 0;
-	}
-	else
+	bool append_mode = append_to != NULL;
+	if(append_mode)
 	{
 		d->m_file_n = append_to->get_last_file_n();
 		d->m_header_written = true;
 	}
+	else
+	{
+		d->m_file_n = 0;
+	}
 
-	if(0 != d->open_data_file(append_to != NULL))
+	if(0 != d->open_data_file(append_mode))
 	{
 		qDebug() << "Can't d->open_data_file()";
 		return -1;
 	}
 
-	if(0 != d->open_index_file(append_to != NULL))
+	if(0 != d->open_index_file(append_mode))
 	{
 		qDebug() << "Can't d->open_index_file()";
 		return -1;
