@@ -449,7 +449,8 @@ bool nbody_data::save(const QString& fn) const
 
 bool nbody_data::load(const QString& fn, e_units_type unit_type)
 {
-	QFile		file(fn);
+	const QString	comment("//");
+	QFile			file(fn);
 
 	if(!file.open(QFile::ReadOnly))
 	{
@@ -464,12 +465,23 @@ bool nbody_data::load(const QString& fn, e_units_type unit_type)
 
 	while(!s.atEnd())
 	{
-		QString		line(s.readLine());
-		QStringList	p(line.split(" "));
+		QString	line(s.readLine());
+		int		comment_index(line.indexOf(comment));
+		if(comment_index >= 0)
+		{
+			line = line.mid(0, comment_index);
+		}
+		line = line.trimmed();
+		if(line.isEmpty())
+		{
+			continue;
+		}
+		const QStringList	p(line.split(" "));
 
 		if(p.size() != 7)
 		{
 			qDebug() << "Failed to parse line" << line;
+			qDebug() << "Format is 'X Y Z Vx Vy Vz Mass', comment is '//'";
 			return false;
 		}
 		add_body(nbvertex_t(p[0].toDouble(), p[1].toDouble(), p[2].toDouble()),
