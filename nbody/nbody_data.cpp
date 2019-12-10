@@ -598,24 +598,45 @@ bool nbody_data::load_zeno_ascii(const QString& fn)
 
 bool nbody_data::load_initial(const QString& fn, const QString& type)
 {
+	bool	ret = false;
 	if(type.compare("Zeno", Qt::CaseInsensitive) == 0)
 	{
-		return load_zeno_ascii(fn);
+		ret = load_zeno_ascii(fn);
 	}
 	else if(type.compare("G1", Qt::CaseInsensitive) == 0)
 	{
-		return load(fn, eut_G1);
+		ret = load(fn, eut_G1);
 	}
 	else if(type.compare("SI", Qt::CaseInsensitive) == 0)
 	{
-		return load(fn, eut_SI);
+		ret = load(fn, eut_SI);
 	}
 	else if(type.compare("ADK", Qt::CaseInsensitive) == 0)
 	{
-		return load(fn, eut_au_day_kg);
+		ret = load(fn, eut_au_day_kg);
 	}
-	qDebug() << "Unknown initial state type. Possible values are: Zeno, G1, SI, ADK.";
-	return false;
+	else
+	{
+		qDebug() << "Unknown initial state type. Possible values are: Zeno, G1, SI, ADK.";
+		return false;
+	}
+	if(!ret)
+	{
+		return false;
+	}
+
+	nbvertex_t	r(1_f, 1_f, 1_f);
+
+	for(const auto& v : m_vertites)
+	{
+		r.x = std::max(v.x, r.x);
+		r.y = std::max(v.y, r.y);
+		r.z = std::max(v.z, r.z);
+	}
+
+	m_box_size = static_cast<size_t>(std::max(r.x, std::max(r.y, r.z)));
+
+	return ret;
 }
 
 nbcoord_t nbody_data::get_mass_factor(e_units_type unit_type)
