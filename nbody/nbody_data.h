@@ -17,6 +17,7 @@ class NBODY_DLL nbody_data
 	std::vector< nbcolor_t >	m_color;
 	std::vector< nbvertex_t >	m_velosites;
 	std::vector< nbcoord_t >	m_mass;
+	std::vector< nbcoord_t >	m_radius;
 
 	QString						m_check_list;
 	nbvertex_t					m_initial_impulce;
@@ -39,7 +40,8 @@ public:
 
 	nbvertex_t force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2) const;
 	nbcoord_t potential_energy(const nbvertex_t* vertites, size_t body1, size_t body2) const;
-	void add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m, const nbcolor_t& color);
+	void add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m,
+				  const nbcolor_t& color, const nbcoord_t& radius = 0_f);
 	void advise_time(nbcoord_t dt);
 	nbcoord_t get_time() const;
 	void set_time(nbcoord_t t);
@@ -80,7 +82,7 @@ public:
 	nbcoord_t get_impulce_moment_err() const;
 	nbcoord_t get_energy_err() const;
 
-	bool is_equal(const nbody_data& other, const nbcoord_t eps = -1) const;
+	bool is_equal(const nbody_data& other, nbcoord_t eps = 0) const;
 	void clear();
 	bool save(const QString& fn) const;
 	bool load(const QString& fn, e_units_type unit_type = eut_G1);

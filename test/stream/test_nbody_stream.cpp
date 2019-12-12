@@ -340,6 +340,7 @@ public:
 private Q_SLOTS:
 	void save_load();
 	void load_zeno_ascii();
+	void negative();
 };
 
 void test_nbody_data_io::save_load()
@@ -361,6 +362,13 @@ void test_nbody_data_io::load_zeno_ascii()
 	nbody_data	data2;
 	QVERIFY(data2.load(m_apppath + "/../data/zeno_table.txt"));
 	QVERIFY(data2.is_equal(data1, 1e-16));
+}
+
+void test_nbody_data_io::negative()
+{
+	QVERIFY(!nbody_data().load(m_apppath + "/../data/inv_column.txt"));
+	QVERIFY(!nbody_data().load(m_apppath + "/../data/inv_columns_count.txt"));
+	QVERIFY(!nbody_data().load(m_apppath + "/../data/inv_radius.txt"));
 }
 
 class test_nbody_stream_restart : public QObject

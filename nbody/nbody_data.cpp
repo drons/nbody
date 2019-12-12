@@ -157,17 +157,19 @@ bool nbody_data::resize(size_t s)
 	m_velosites.resize(s);
 	m_mass.resize(s);
 	m_color.resize(s);
+	m_radius.resize(s);
 	m_count = s;
 	return true;
 }
 
 void nbody_data::add_body(const nbvertex_t& r, const nbvertex_t& v, const nbcoord_t& m,
-						  const nbcolor_t& color)
+						  const nbcolor_t& color, const nbcoord_t& radius)
 {
 	m_vertites.push_back(r);
 	m_velosites.push_back(v);
 	m_mass.push_back(m);
 	m_color.push_back(color);
+	m_radius.push_back(radius);
 	++m_count;
 }
 
@@ -382,30 +384,23 @@ nbcoord_t nbody_data::get_energy_err() const
 	return fabs(100.0 * (get_last_total_energy() - get_initial_energy()) / get_initial_energy());
 }
 
-bool nbody_data::is_equal(const nbody_data& other, const nbcoord_t eps) const
+bool nbody_data::is_equal(const nbody_data& other, nbcoord_t eps) const
 {
 	if(m_count != other.m_count)
 	{
 		return false;
 	}
-	if(eps <= 0)
-	{
-		return m_vertites == other.m_vertites &&
-			   m_velosites == other.m_velosites &&
-			   m_color == other.m_color &&
-			   m_mass == other.m_mass;
-	}
 
 	for(size_t n = 0; n != m_count; ++n)
 	{
-		if(
-			fabs(m_mass[n] - other.m_mass[n]) > eps ||
-			fabs(m_vertites[n].x - other.m_vertites[n].x) > eps ||
-			fabs(m_vertites[n].y - other.m_vertites[n].y) > eps ||
-			fabs(m_vertites[n].z - other.m_vertites[n].z) > eps ||
-			fabs(m_velosites[n].x - other.m_velosites[n].x) > eps ||
-			fabs(m_velosites[n].y - other.m_velosites[n].y) > eps ||
-			fabs(m_velosites[n].z - other.m_velosites[n].z) > eps)
+		if(fabs(m_mass[n] - other.m_mass[n]) > eps ||
+		   fabs(m_radius[n] - other.m_radius[n]) > eps ||
+		   fabs(m_vertites[n].x - other.m_vertites[n].x) > eps ||
+		   fabs(m_vertites[n].y - other.m_vertites[n].y) > eps ||
+		   fabs(m_vertites[n].z - other.m_vertites[n].z) > eps ||
+		   fabs(m_velosites[n].x - other.m_velosites[n].x) > eps ||
+		   fabs(m_velosites[n].y - other.m_velosites[n].y) > eps ||
+		   fabs(m_velosites[n].z - other.m_velosites[n].z) > eps)
 		{
 			return false;
 		}
@@ -419,6 +414,7 @@ void nbody_data::clear()
 	m_velosites.clear();
 	m_mass.clear();
 	m_color.clear();
+	m_radius.clear();
 	m_count = 0;
 }
 
@@ -441,7 +437,7 @@ bool nbody_data::save(const QString& fn) const
 	{
 		s << m_vertites[n].x << " " << m_vertites[n].y << " " << m_vertites[n].z << " "
 		  << m_velosites[n].x << " " << m_velosites[n].y << " " << m_velosites[n].z << " "
-		  << m_mass[n] << "\n";
+		  << m_mass[n] << " " << m_radius[n] << "\n";
 	}
 
 	return true;
@@ -463,7 +459,7 @@ bool nbody_data::load(const QString& fn, e_units_type unit_type)
 	nbcoord_t	mass_factor = get_mass_factor(unit_type);
 	QTextStream	s(&file);
 
-	while(!s.atEnd())
+	for(size_t line_n = 0; !s.atEnd(); ++line_n)
 	{
 		QString	line(s.readLine());
 		int		comment_index(line.indexOf(comment));
@@ -476,17 +472,44 @@ bool nbody_data::load(const QString& fn, e_units_type unit_type)
 		{
 			continue;
 		}
-		const QStringList	p(line.split(" "));
+		const QStringList	columns(line.split(" "));
 
-		if(p.size() != 7)
+		if(columns.size() < 7)
 		{
-			qDebug() << "Failed to parse line" << line;
-			qDebug() << "Format is 'X Y Z Vx Vy Vz Mass', comment is '//'";
+			qDebug() << "Failed to parse line " << line_n
+					 << "<" << line << "> \n"
+					 << "Format is 'X Y Z Vx Vy Vz Mass <Radius> <Some other data>',"
+					 << " comment is '//'";
 			return false;
 		}
-		add_body(nbvertex_t(p[0].toDouble(), p[1].toDouble(), p[2].toDouble()),
-				 nbvertex_t(p[3].toDouble(), p[4].toDouble(), p[5].toDouble()),
-				 p[6].toDouble() * mass_factor, nbcolor_t(1, 1, 1, 1));
+		nbcoord_t	rvm[7];
+		for(int n = 0; n != 7; ++n)
+		{
+			bool ok = false;
+			rvm[n] = columns[n].toDouble(&ok);
+			if(!ok)
+			{
+				qDebug() << "Can't convert column" << n
+						 << "to double at line " << line_n
+						 << "<" << line << ">";
+				return false;
+			}
+		}
+		nbcoord_t	radius  = 0_f;
+		if(columns.size() > 7)
+		{
+			bool ok = false;
+			radius = columns[7].toDouble(&ok);
+			if(!ok)
+			{
+				qDebug() << "Can't convert 'radius' column to double at line "
+						 << "<" << line << ">";
+				return false;
+			}
+		}
+		add_body(nbvertex_t(rvm[0], rvm[1], rvm[2]),
+				 nbvertex_t(rvm[3], rvm[4], rvm[5]),
+				 rvm[6] * mass_factor, nbcolor_t(1, 1, 1, 1), radius);
 	}
 
 	return true;
