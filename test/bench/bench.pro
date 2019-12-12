@@ -14,4 +14,4 @@ LIBS += -L../../lib
 LIBS += -lnbody
 
 SOURCES	+= main.cpp
-
+HEADERS += bench.h
