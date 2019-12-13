@@ -7,6 +7,22 @@
 #include "nbody_engines.h"
 #include "nbody_solvers.h"
 
+static std::pair<nbcoord_t, nbcoord_t>
+compare_data(const nbvertex_t* a,
+			 const nbvertex_t* b,
+			 size_t count)
+{
+	nbcoord_t	total = 0_f;
+	nbcoord_t	max_diff = 0_f;
+	for(size_t n = 0; n < count; ++n)
+	{
+		nbcoord_t	diff((a[n] - b[n]).length());
+		total += diff;
+		max_diff = std::max(max_diff, diff);
+	}
+	return std::make_pair(total / count, max_diff);
+}
+
 static int run(nbody_solver* solver,
 			   nbody_data* data,
 			   const QString& check_list,
@@ -35,11 +51,24 @@ QVariantMap run(const QVariantMap& param,
 				const QString& check_list,
 				nbcoord_t max_time)
 {
-	nbody_data		data;
-	nbcoord_t		box_size = 100;
-	size_t			stars_count = param.value("stars_count", "1024").toUInt();
+	nbody_data	data;
+	QString		initial_state(param.value("initial_state", QString()).toString());
 
-	data.make_universe(stars_count / 2, box_size, box_size, box_size);
+	if(initial_state.isEmpty())
+	{
+		size_t		stars_count = param.value("stars_count", "1024").toUInt();
+		nbcoord_t	box_size = 100;
+		data.make_universe(stars_count / 2, box_size, box_size, box_size);
+	}
+	else
+	{
+		QString	initial_state_type(param.value("initial_type", "ADK").toString());
+		if(!data.load_initial(initial_state, initial_state_type))
+		{
+			qDebug() << "Can't load initial state" << initial_state;
+			return QVariantMap();
+		}
+	}
 
 	nbody_engine*	engine = nbody_create_engine(param);
 	if(engine == NULL)
@@ -61,7 +90,7 @@ QVariantMap run(const QVariantMap& param,
 	nbcoord_t	min_step(solver->get_min_step());
 	if(min_step < 0)
 	{
-		solver->set_time_step(max_step, 0.1);
+		solver->set_time_step(max_step, max_step);
 	}
 	engine->init(&data);
 	solver->set_engine(engine);
@@ -73,6 +102,7 @@ QVariantMap run(const QVariantMap& param,
 
 	if(res != 0)
 	{
+		qDebug() << "Solver run failed";
 		return QVariantMap();
 	}
 
@@ -81,6 +111,27 @@ QVariantMap run(const QVariantMap& param,
 	delete solver;
 	delete engine;
 
+	const QString	end_state(param.value("end_state", QString()).toString());
+	if(!end_state.isEmpty())
+	{
+		data.save(end_state);
+	}
+	const QString	expected_state(param.value("expected_state", QString()).toString());
+	if(!expected_state.isEmpty())
+	{
+		nbody_data	expected_data;
+		expected_data.load_initial(expected_state, "G1");
+		size_t	count = data.get_count();
+		if(expected_data.get_count() == count)
+		{
+			const auto dr = compare_data(data.get_vertites(), expected_data.get_vertites(), count);
+			const auto dv = compare_data(data.get_velosites(), expected_data.get_velosites(), count);
+			bench_res["dR"] = static_cast<double>(dr.first);
+			bench_res["dR_max"] = static_cast<double>(dr.second);
+			bench_res["dV"] = static_cast<double>(dv.first);
+			bench_res["dV_max"] = static_cast<double>(dv.second);
+		}
+	}
 	return bench_res;
 }
 
@@ -94,6 +145,7 @@ void print_table_txt(const std::vector<QVariantMap>& params,
 		cout << std::setw(10);
 		cout << std::setprecision(4);
 		cout << std::setfill(' ');
+		cout << result_field.join(",").toLocal8Bit().data() << std::endl;
 		cout << param_header.toLocal8Bit().data() << " ";
 		for(size_t j = 0; j < variable.size(); ++j)
 		{

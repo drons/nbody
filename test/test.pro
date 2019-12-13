@@ -4,9 +4,9 @@ TEMPLATE = subdirs
 
 SUBDIRS += bench
 SUBDIRS += engine
-SUBDIRS += solver
-SUBDIRS += solvers_equality
 SUBDIRS += main
 SUBDIRS += memsupp
+SUBDIRS += solar
+SUBDIRS += solver
+SUBDIRS += solvers_equality
 SUBDIRS += stream
-
