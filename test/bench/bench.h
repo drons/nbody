@@ -156,7 +156,7 @@ void print_table_txt(const std::vector<QVariantMap>& params,
 	for(size_t i = 0; i < result.size(); ++i)
 	{
 		cout << std::setw(10);
-		cout << std::setprecision(4);
+		cout << std::setprecision(8);
 		cout << std::setfill(' ');
 		cout << params[i][param_header].toByteArray().data();
 		cout << " ";
@@ -227,7 +227,7 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 	for(size_t i = 0; i < result.size(); ++i)
 	{
 		cout << std::setw(10);
-		cout << std::setprecision(4);
+		cout << std::setprecision(8);
 		cout << "\\addplot [" << styles[i % result.size()] << "] coordinates { ";
 		for(size_t j = 0; j < variable.size(); ++j)
 		{
