@@ -1,16 +1,20 @@
 #ifndef NBODY_SOLVER_H
 #define NBODY_SOLVER_H
 
+#include <memory>
 #include "nbody_data.h"
 #include "nbody_engine.h"
 
 class nbody_data_stream;
+class nbody_step_visitor;
 
 class NBODY_DLL nbody_solver
 {
 	nbody_engine*						m_engine;
 	nbcoord_t							m_min_step;
 	nbcoord_t							m_max_step;
+
+	std::vector<std::shared_ptr<nbody_step_visitor>> m_check_visitors;
 	nbody_solver(const nbody_solver&) = delete;
 	nbody_solver& operator = (const nbody_solver&) = delete;
 public:
@@ -21,6 +25,7 @@ public:
 	void set_time_step(nbcoord_t min_step, nbcoord_t max_step);
 	nbcoord_t get_min_step() const;
 	nbcoord_t get_max_step() const;
+	void add_check_visitor(std::shared_ptr<nbody_step_visitor> v);
 	int run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max_time, nbcoord_t dump_dt, nbcoord_t check_dt);
 
 	virtual const char* type_name() const = 0;

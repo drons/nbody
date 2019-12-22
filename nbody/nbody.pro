@@ -76,6 +76,7 @@ HEADERS	+= \
 	nbody_space_heap_stackless.h \
 	nbody_space_heap_func.h \
 	nbody_space_tree.h \
+	nbody_step_visitor.h \
 	vertex.h \
 	nbtype.h \
 	nbtype_info.h \

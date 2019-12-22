@@ -1,5 +1,6 @@
 #include "nbody_solver.h"
 #include "nbody_data_stream.h"
+#include "nbody_step_visitor.h"
 #include <QDebug>
 
 nbody_solver::nbody_solver()
@@ -39,6 +40,11 @@ nbcoord_t nbody_solver::get_max_step() const
 	return m_max_step;
 }
 
+void nbody_solver::add_check_visitor(std::shared_ptr<nbody_step_visitor> v)
+{
+	m_check_visitors.push_back(v);
+}
+
 int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max_time,
 					  nbcoord_t dump_dt, nbcoord_t check_dt)
 {
@@ -66,6 +72,10 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 		if(check_dt > 0 && t >= last_check + check_dt - dt * 0.1)
 		{
 			data->print_statistics(m_engine);
+			for(auto v : m_check_visitors)
+			{
+				v->visit(data);
+			}
 			last_check = t;
 		}
 
