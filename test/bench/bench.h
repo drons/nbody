@@ -27,14 +27,14 @@ static int run(nbody_solver* solver,
 			   nbody_data* data,
 			   const QString& check_list,
 			   QVariantMap& bench_res,
-			   nbcoord_t max_time)
+			   nbcoord_t max_time,
+			   nbcoord_t check_step)
 {
 	nbcoord_t	dump_step = 0;
-	nbcoord_t	check_step = max_time;
 
 	data->set_check_list(check_list);
 
-	qDebug() << "Solver:" << solver->type_name();
+	qDebug() << "Solver:" << solver->type_name() << max_time << check_step;
 	solver->print_info();
 	qDebug() << "Engine:" << solver->engine()->type_name();
 	solver->engine()->print_info();
@@ -49,7 +49,8 @@ static int run(nbody_solver* solver,
 
 QVariantMap run(const QVariantMap& param,
 				const QString& check_list,
-				nbcoord_t max_time)
+				nbcoord_t max_time,
+				std::shared_ptr<nbody_step_visitor> step_visitor = nullptr)
 {
 	nbody_data	data;
 	QString		initial_state(param.value("initial_state", QString()).toString());
@@ -88,6 +89,8 @@ QVariantMap run(const QVariantMap& param,
 
 	nbcoord_t	max_step(solver->get_max_step());
 	nbcoord_t	min_step(solver->get_min_step());
+	nbcoord_t	check_step =
+		param.value("check_step", static_cast<double>(max_time)).toDouble();
 	if(min_step < 0)
 	{
 		solver->set_time_step(max_step, max_step);
@@ -95,9 +98,12 @@ QVariantMap run(const QVariantMap& param,
 	engine->init(&data);
 	solver->set_engine(engine);
 	QVariantMap	bench_res(param);
-
+	if(step_visitor != nullptr)
+	{
+		solver->add_check_visitor(step_visitor);
+	}
 	double wtime = omp_get_wtime();
-	int res = run(solver, &data, check_list, bench_res, max_time);
+	int res = run(solver, &data, check_list, bench_res, max_time, check_step);
 	wtime = omp_get_wtime() - wtime;
 
 	if(res != 0)
@@ -300,6 +306,10 @@ int run_bench(const std::vector<QVariantMap>& params,
 		{
 			QVariantMap	p(params[i]);
 			p[variable_field] = variable[j];
+			if(variable_field == "max_time")
+			{
+				max_time = variable[j].toDouble();
+			}
 			result[i][j] = run(p, check_list, max_time);
 			if(result[i][j].isEmpty())
 			{
