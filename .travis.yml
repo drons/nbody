@@ -427,7 +427,7 @@ matrix:
           packages:
           - codespell
       script:
-      - codespell 
+      - codespell
       - git diff --exit-code
     - os: linux
       dist: xenial

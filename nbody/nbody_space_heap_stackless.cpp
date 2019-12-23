@@ -22,7 +22,7 @@ nbvertex_t nbody_space_heap_stackless::traverse(const nbody_data* data, const nb
 			curr = next_up(curr, tree_size);
 		}
 	}
-	while(curr != NBODY_HEAP_ROOT_INDEX);
+	while(curr != NBODY_HEAP_ROOT_INDEX);//NOLINT
 
 	return total_force;
 }

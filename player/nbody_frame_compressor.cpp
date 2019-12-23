@@ -2,7 +2,6 @@
 
 nbody_frame_compressor::nbody_frame_compressor()
 {
-
 }
 
 nbody_frame_compressor::~nbody_frame_compressor()

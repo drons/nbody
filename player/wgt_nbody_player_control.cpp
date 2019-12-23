@@ -88,7 +88,7 @@ wgt_nbody_player_control::wgt_nbody_player_control(QWidget* parent, const nbody_
 	connect(m_animation, SIGNAL(finished()),
 			this, SLOT(on_finished()));
 	connect(m_stereo_base, SIGNAL(valueChanged(int)),
-			this, SLOT(on_stereo_base_changed(int)));
+			this, SLOT(on_stereo_base_changed()));
 	connect(this, SIGNAL(frame_number_updated()),
 			this, SLOT(on_frame_number_updated()));
 	connect(m_stars_intensity, SIGNAL(valueChanged(int)),
@@ -196,7 +196,7 @@ void wgt_nbody_player_control::on_finished()
 	m_act_pause->setEnabled(false);
 }
 
-void wgt_nbody_player_control::on_stereo_base_changed(int)
+void wgt_nbody_player_control::on_stereo_base_changed()
 {
 	emit frame_state_updated();
 }

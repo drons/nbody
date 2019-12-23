@@ -108,7 +108,6 @@ struct nbody_data_stream_reader::data
 
 nbody_data_stream_reader::nbody_data_stream_reader() : d(new data())
 {
-
 }
 
 nbody_data_stream_reader::~nbody_data_stream_reader()

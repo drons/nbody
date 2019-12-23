@@ -29,7 +29,6 @@ test_nbody_solvers_equality::test_nbody_solvers_equality(nbody_engine* _e1, nbod
 														 nbody_solver* _s2) :
 	e1(_e1), s1(_s1), e2(_e2), s2(_s2)
 {
-
 }
 
 test_nbody_solvers_equality::~test_nbody_solvers_equality()

@@ -5,7 +5,6 @@
 
 nbody_frame_compressor_image::nbody_frame_compressor_image()
 {
-
 }
 
 nbody_frame_compressor_image::~nbody_frame_compressor_image()

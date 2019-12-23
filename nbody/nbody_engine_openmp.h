@@ -9,17 +9,17 @@ public:
 	nbody_engine_openmp();
 	~nbody_engine_openmp();
 
-	virtual const char* type_name() const override;
+	const char* type_name() const override;
 
-	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
+	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 
-	virtual void copy_buffer(memory* a, const memory* b) override;
-	virtual void fill_buffer(memory* a, const nbcoord_t& value) override;
-	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;
-	virtual void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d) override;
-	virtual void fmaxabs(const memory* a, nbcoord_t& result) override;
+	void copy_buffer(memory* a, const memory* b) override;
+	void fill_buffer(memory* a, const nbcoord_t& value) override;
+	void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;
+	void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d) override;
+	void fmaxabs(const memory* a, nbcoord_t& result) override;
 
-	virtual void print_info() const override;
+	void print_info() const override;
 };
 
 #endif // NBODY_ENGINE_SIMPLE_H

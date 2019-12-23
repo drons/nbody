@@ -2,12 +2,10 @@
 
 nbody_engine::memory::memory()
 {
-
 }
 
 nbody_engine::memory::~memory()
 {
-
 }
 
 nbody_engine::nbody_engine():
@@ -18,7 +16,6 @@ nbody_engine::nbody_engine():
 
 nbody_engine::~nbody_engine()
 {
-
 }
 
 nbody_engine::memory_array nbody_engine::create_buffers(size_t size, size_t count)

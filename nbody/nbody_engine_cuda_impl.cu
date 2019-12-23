@@ -404,7 +404,7 @@ __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int
 			curr = nbody_heap_func<int>::next_up(curr, tree_size);
 		}
 	}
-	while(curr != NBODY_HEAP_ROOT_INDEX);
+	while(curr != NBODY_HEAP_ROOT_INDEX);//NOLINT
 
 	f[n1 + 3 * stride] = res_x;
 	f[n1 + 4 * stride] = res_y;

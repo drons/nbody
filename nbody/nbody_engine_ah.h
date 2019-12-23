@@ -17,7 +17,7 @@ class NBODY_DLL nbody_engine_ah : public nbody_engine_simple
 	nbcoord_t							m_max_dist_sqr;
 	nbcoord_t							m_min_force_sqr;
 public:
-	nbody_engine_ah(size_t full_recompute_rate = 1000, nbcoord_t max_dist = 10, nbcoord_t min_force = 1e-4);
+	explicit nbody_engine_ah(size_t full_recompute_rate = 1000, nbcoord_t max_dist = 10, nbcoord_t min_force = 1e-4);
 	const char* type_name() const override;
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 private:

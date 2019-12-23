@@ -2,17 +2,14 @@
 
 nbody_butcher_table::nbody_butcher_table()
 {
-
 }
 
 nbody_butcher_table::~nbody_butcher_table()
 {
-
 }
 
 nbody_butcher_table_rk4::nbody_butcher_table_rk4()
 {
-
 }
 
 size_t nbody_butcher_table_rk4::get_steps() const

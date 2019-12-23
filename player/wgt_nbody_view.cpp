@@ -22,7 +22,8 @@ QGLFramebufferObjectFormat nb_framebuffer_format()
 	f.setMipmap(false);
 	return f;
 }
-}
+}//namespace
+
 wgt_nbody_view::wgt_nbody_view(nbody_data* _data) :
 	QGLWidget(nb_glwidget_format())
 {

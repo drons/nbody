@@ -20,7 +20,6 @@ public:
 
 nbody_butcher_table_rkgl::nbody_butcher_table_rkgl()
 {
-
 }
 
 size_t nbody_butcher_table_rkgl::get_steps() const
@@ -72,7 +71,6 @@ bool nbody_butcher_table_rkgl::is_embedded() const
 nbody_solver_rkgl::nbody_solver_rkgl() :
 	nbody_solver_rk_butcher(new nbody_butcher_table_rkgl())
 {
-
 }
 
 const char* nbody_solver_rkgl::type_name() const

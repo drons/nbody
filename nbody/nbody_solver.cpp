@@ -10,7 +10,6 @@ nbody_solver::nbody_solver()
 
 nbody_solver::~nbody_solver()
 {
-
 }
 
 void nbody_solver::set_engine(nbody_engine* e)

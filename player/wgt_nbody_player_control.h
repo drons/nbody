@@ -45,7 +45,7 @@ public slots:
 	void on_stop();
 	void on_forward();
 	void on_finished();
-	void on_stereo_base_changed(int);
+	void on_stereo_base_changed();
 	void on_frame_number_updated();
 	void on_stars_size_range_changed(double, double, double);
 signals:

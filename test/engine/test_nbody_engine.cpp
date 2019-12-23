@@ -512,7 +512,6 @@ void test_nbody_engine::initTestCase()
 
 void test_nbody_engine::cleanupTestCase()
 {
-
 }
 
 void test_nbody_engine::test_mem()

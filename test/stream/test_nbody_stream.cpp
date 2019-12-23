@@ -34,7 +34,6 @@ test_nbody_stream::test_nbody_stream() :
 	m_stream(new nbody_data_stream()),
 	m_tmp(QDir::tempPath())
 {
-
 }
 
 test_nbody_stream::~test_nbody_stream()
@@ -131,7 +130,6 @@ void test_nbody_stream::run()
 		QVERIFY(0.4 == data.get_time());
 		QVERIFY(4 == data.get_step());
 	}
-
 }
 
 void test_nbody_stream::negative_branch()

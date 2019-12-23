@@ -11,7 +11,7 @@ public:
 	nbody_solver_rk4();
 	~nbody_solver_rk4();
 	const char* type_name() const override;
-	virtual void advise(nbcoord_t dt) override;
+	void advise(nbcoord_t dt) override;
 };
 
 #endif // NBODY_SOLVER_RK4_H

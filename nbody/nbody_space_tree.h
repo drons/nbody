@@ -17,7 +17,7 @@ class nbody_space_tree
 		nbvertex_t				m_bmax;
 		size_t					m_body_n;
 	public:
-		explicit node();
+		node();
 		~node();
 		void build(size_t count, size_t* indites,
 				   const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,

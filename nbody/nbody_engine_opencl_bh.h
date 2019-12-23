@@ -10,11 +10,11 @@ class NBODY_DLL nbody_engine_opencl_bh : public nbody_engine_opencl
 public:
 	explicit nbody_engine_opencl_bh(nbcoord_t distance_to_node_radius_ratio);
 	~nbody_engine_opencl_bh();
-	virtual const char* type_name() const override;
+	const char* type_name() const override;
 
-	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
+	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 
-	virtual void print_info() const override;
+	void print_info() const override;
 	void set_cycle_traverse(bool tt);
 };
 

@@ -97,7 +97,6 @@ struct nbody_data_stream::data
 
 nbody_data_stream::nbody_data_stream() : d(new data())
 {
-
 }
 
 nbody_data_stream::~nbody_data_stream()

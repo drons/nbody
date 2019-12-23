@@ -88,7 +88,6 @@ create_compresser(const QString& selected, const QStringList& filters, QString& 
 {
 	if(selected == filters[0])
 	{
-
 		if(!out.endsWith(".avi", Qt::CaseInsensitive))
 		{
 			out += ".avi";

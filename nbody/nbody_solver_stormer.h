@@ -12,7 +12,7 @@ class NBODY_DLL nbody_solver_stormer : public nbody_solver
 public:
 	nbody_solver_stormer();
 	const char* type_name() const override;
-	virtual void advise(nbcoord_t dt) override;
+	void advise(nbcoord_t dt) override;
 };
 
 #endif // NBODY_SOLVER_STORMER_H

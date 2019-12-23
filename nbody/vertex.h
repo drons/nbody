@@ -253,7 +253,6 @@ struct vertex4
 		w *= a;
 		return *this;
 	}
-
 };
 
 template< class S, class T >

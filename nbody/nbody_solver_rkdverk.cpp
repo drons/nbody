@@ -20,7 +20,6 @@ public:
 
 nbody_butcher_table_rkdverk::nbody_butcher_table_rkdverk()
 {
-
 }
 
 size_t nbody_butcher_table_rkdverk::get_steps() const

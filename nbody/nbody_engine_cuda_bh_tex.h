@@ -17,9 +17,9 @@ class NBODY_DLL nbody_engine_cuda_bh_tex : public nbody_engine_cuda
 public:
 	explicit nbody_engine_cuda_bh_tex(nbcoord_t distance_to_node_radius_ratio, e_tree_layout tl);
 	~nbody_engine_cuda_bh_tex();
-	virtual const char* type_name() const override;
-	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
-	virtual void print_info() const override;
+	const char* type_name() const override;
+	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
+	void print_info() const override;
 };
 
 #endif // NBODY_ENGINE_CUDA_BH_TEX_H

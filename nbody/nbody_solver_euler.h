@@ -10,7 +10,7 @@ public:
 	nbody_solver_euler();
 	~nbody_solver_euler();
 	const char* type_name() const override;
-	virtual void advise(nbcoord_t dt) override;
+	void advise(nbcoord_t dt) override;
 };
 
 #endif // NBODY_SOLVER_EULER_H
