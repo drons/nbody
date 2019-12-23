@@ -5,6 +5,7 @@
 #include "bench.h"
 #include "nbody_data_stream.h"
 #include "nbody_arg_parser.h"
+#include "nbody_step_visitor.h"
 
 void compute_end_state(const QString& initial_state,
 					   const QString& end_state)
@@ -84,6 +85,216 @@ void bench_solver(const QString& format,
 				QStringList() << "$f_n$ compute count" << "$dV$", format);
 }
 
+class nbody_step_visitor_comparator : public nbody_step_visitor
+{
+	nbody_data								m_expected_data;
+	std::vector<std::vector<QVariantMap>>	m_result;
+	std::vector<QVariant>					m_variable;
+	std::vector<QVariantMap>				m_params;
+	nbcoord_t								m_min_dr;
+	nbcoord_t								m_min_dr_time;
+public:
+	nbody_step_visitor_comparator() :
+		m_min_dr(1e30_f),
+		m_min_dr_time(0_f)
+	{
+	}
+	~nbody_step_visitor_comparator()
+	{
+		std::cout << "%" << std::setw(10) << std::setprecision(8)
+				  << "Min dR=" << static_cast<double>(m_min_dr)
+				  << " T=" << static_cast<double>(m_min_dr_time);
+	}
+	bool load_init(const QString& expected_state)
+	{
+		bool res = m_expected_data.load_initial(expected_state, "G1");
+		size_t	count = m_expected_data.get_count();
+		m_result.resize(count + 5);
+		m_params.resize(count + 5);
+		for(size_t i = 0; i != count; ++i)
+		{
+			m_params[i]["name"] = QString::number(i);
+		}
+		m_params[count]["name"] = "mean";
+		m_params[count + 1]["name"] = "Earth-Moon";
+		m_params[count + 2]["name"] = "Sun";
+		m_params[count + 3]["name"] = "Mercury";
+		m_params[count + 4]["name"] = "Earth";
+		return res;
+	}
+	void push(size_t n, double t, double dr)
+	{
+		QVariantMap	r;
+		r["T"] = t;
+		r["dR"] = dr;
+		m_result[n].push_back(r);
+	}
+	void visit(const nbody_data* data) override
+	{
+		double	t = static_cast<double>(data->get_time());
+		size_t	count = data->get_count();
+		auto* vert = data->get_vertites();
+		auto* expected_vert = m_expected_data.get_vertites();
+		const auto dr = compare_data(vert, expected_vert, count);
+		if(t > 365 * 3000)
+		{
+			for(size_t i = 0; i != count; ++i)
+			{
+				push(i, t, vert[i].distance(expected_vert[i]));
+			}
+			push(count, t, dr.first);
+			push(count + 1, t, vert[3].distance(vert[4]));
+			push(count + 2, t, vert[0].length());
+			push(count + 3, t, vert[1].length());
+			push(count + 4, t, vert[3].length());
+			m_variable.push_back(t);
+		}
+		if(m_min_dr > dr.first)
+		{
+			m_min_dr = dr.first;
+			m_min_dr_time = t;
+		}
+	}
+	const std::vector<std::vector<QVariantMap>> result() const
+	{
+		return m_result;
+	}
+	const std::vector<QVariant> variable() const
+	{
+		return m_variable;
+	}
+	const std::vector<QVariantMap> params() const
+	{
+		return m_params;
+	}
+};
+
+void plot_period(const QString& format,
+				 const QString& initial_state,
+				 const QString& expected_state)
+{
+	QString	engine("simple");
+	QVariantMap param01(std::map<QString, QVariant>(
+	{
+		{"verbose", 0},
+		{"name", "rkdp"},
+		{"engine", engine},
+		{"solver", "rkdp"},
+		{"starter_solver", "rkdp"},
+		{"max_step", 1.0 / 4.0},
+		{"min_step", -1},
+		{"check_step", 1.0},
+		{"initial_state", initial_state}
+	}));
+
+	std::shared_ptr<nbody_step_visitor_comparator>	checker =
+		std::make_shared<nbody_step_visitor_comparator>();
+	checker->load_init(expected_state);
+
+	run(param01, "E", 365.5 * 3000, checker);
+	const auto	result(checker->result());
+	const auto	variable(checker->variable());
+	const auto	params(checker->params());
+	QVariantMap	plot_param;
+	plot_param["ymode"] = "log";
+	plot_param["mark"] = "none";
+	for(auto ii = param01.begin(); ii != param01.end(); ++ii)
+	{
+		std::cout << "%%" << ii.key().toLocal8Bit().data() << "="
+				  << ii.value().toByteArray().data() << "," << std::endl;
+	}
+	print_table(params, variable, result, "name", QStringList() << "T" << "dR",
+				QStringList() << "$T$" << "$dR$", format, plot_param);
+}
+
+class nbody_step_visitor_orbit_dump : public nbody_step_visitor
+{
+	std::vector<std::vector<QVariantMap>>	m_result;
+	std::vector<QVariant>					m_variable;
+	std::vector<QVariantMap>				m_params;
+public:
+	nbody_step_visitor_orbit_dump()
+	{
+	}
+	~nbody_step_visitor_orbit_dump()
+	{
+	}
+	void push(size_t n, double t, double dr)
+	{
+		QVariantMap	r;
+		r["T"] = t;
+		r["dR"] = dr;
+		m_result[n].push_back(r);
+	}
+	void visit(const nbody_data* data) override
+	{
+		double	t = static_cast<double>(data->get_time()) / 365.0;
+		size_t	count = data->get_count();
+		if(m_result.empty())
+		{
+			m_result.resize(count);
+			m_params.resize(count);
+			for(size_t i = 0; i != count; ++i)
+			{
+				m_params[i]["name"] = QString::number(i);
+			}
+		}
+		auto* vert = data->get_vertites();
+		for(size_t i = 0; i != count; ++i)
+		{
+			push(i, t, vert[i].length());
+		}
+		m_variable.push_back(t);
+	}
+	const std::vector<std::vector<QVariantMap>> result() const
+	{
+		return m_result;
+	}
+	const std::vector<QVariant> variable() const
+	{
+		return m_variable;
+	}
+	const std::vector<QVariantMap> params() const
+	{
+		return m_params;
+	}
+};
+
+void plot_start_period(const QString& format,
+					   const QString& initial_state)
+{
+	QString	engine("simple");
+	QVariantMap param01(std::map<QString, QVariant>(
+	{
+		{"verbose", 0},
+		{"name", "rkdp"},
+		{"engine", engine},
+		{"solver", "rkdp"},
+		{"starter_solver", "rkdp"},
+		{"max_step", 1.0 / 4.0},
+		{"min_step", -1},
+		{"check_step", 10.0},
+		{"initial_state", initial_state}
+	}));
+
+	std::shared_ptr<nbody_step_visitor_orbit_dump>	checker =
+		std::make_shared<nbody_step_visitor_orbit_dump>();
+
+	run(param01, "E", 365 * 100, checker);
+	const auto	result(checker->result());
+	const auto	variable(checker->variable());
+	const auto	params(checker->params());
+	QVariantMap	plot_param;
+	plot_param["ymode"] = "log";
+	plot_param["mark"] = "none";
+	for(auto ii = param01.begin(); ii != param01.end(); ++ii)
+	{
+		std::cout << "%%" << ii.key().toLocal8Bit().data() << "="
+				  << ii.value().toByteArray().data() << "," << std::endl;
+	}
+	print_table(params, variable, result, "name", QStringList() << "T" << "dR",
+				QStringList() << "$T$" << "$R$", format, plot_param);
+}
 
 int main(int argc, char* argv[])
 {
@@ -127,6 +338,33 @@ int main(int argc, char* argv[])
 		}
 		bench_solver(format, initial_state, expected_state);
 	}
+	else if(bench == "plot_period")
+	{
+		QString	initial_state(param.value("initial_state", QString()).toString());
+		QString	expected_state(param.value("expected_state", QString()).toString());
 
+		if(initial_state.isEmpty())
+		{
+			qDebug() << "--initial_state must be set";
+			return 1;
+		}
+		if(expected_state.isEmpty())
+		{
+			qDebug() << "--expected_state must be set";
+			return 1;
+		}
+		plot_period(format, initial_state, expected_state);
+	}
+	else if(bench == "plot_start_period")
+	{
+		QString	initial_state(param.value("initial_state", QString()).toString());
+
+		if(initial_state.isEmpty())
+		{
+			qDebug() << "--initial_state must be set";
+			return 1;
+		}
+		plot_start_period(format, initial_state);
+	}
 	return 0;
 }
