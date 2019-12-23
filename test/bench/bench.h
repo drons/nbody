@@ -195,7 +195,8 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 						  const std::vector<std::vector<QVariantMap>>& result,
 						  const QString& param_header,
 						  const QStringList& result_field,
-						  const QStringList& axis_label)
+						  const QStringList& axis_label,
+						  const QVariantMap& plot_params)
 {
 	using std::cout;
 	if(result_field.size() != 2)
@@ -203,11 +204,14 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 		qDebug() << "Result size must be 2";
 		return;
 	}
-	std::vector<std::string>	plotcolors = {"red", "blue", "teal", "black"};
+	std::vector<std::string>	plotcolors = {"red", "blue", "teal", "black", "magenta", "cyan"};
 	std::vector<std::string>	plotmarks = {"*", "triangle*", "diamond*", "square*", "+", "x"};
 	std::vector<std::string>	plotlines = {"solid", "dotted", "dashed"};
 	std::vector<std::string>	styles;
-
+	if(plot_params.value("mark").toString() == "none")
+	{
+		plotmarks = std::vector<std::string> {"none"};
+	}
 	for(auto line : plotlines)
 	{
 		for(auto mark : plotmarks)
@@ -219,11 +223,16 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 		}
 	}
 
-	std::string	axistype = "loglogaxis";
+	std::string	axistype(plot_params.isEmpty() ? "loglogaxis" : "axis");
 	std::string	height = "6in";
 	std::string	width = "6in";
 	cout << "\\begin{tikzpicture}" << std::endl;
 	cout << "\\begin{" << axistype << "}[" << std::endl;
+	for(auto ii = plot_params.begin(); ii != plot_params.end(); ++ii)
+	{
+		cout << "    " << ii.key().toLocal8Bit().data() << "="
+			 << ii.value().toByteArray().data() << "," << std::endl;
+	}
 	cout << "    height=" << height << "," << std::endl;
 	cout << "    width=" << width << "," << std::endl;
 	cout << "    xlabel=" << axis_label[0].toLocal8Bit().data() << "," << std::endl;
@@ -234,7 +243,7 @@ void print_table_pgfplots(const std::vector<QVariantMap>& params,
 	{
 		cout << std::setw(10);
 		cout << std::setprecision(8);
-		cout << "\\addplot [" << styles[i % result.size()] << "] coordinates { ";
+		cout << "\\addplot [" << styles[i % styles.size()] << "] coordinates { ";
 		for(size_t j = 0; j < variable.size(); ++j)
 		{
 			cout << "(";
@@ -271,7 +280,9 @@ void print_table(const std::vector<QVariantMap>& params,
 				 const std::vector<std::vector<QVariantMap>>& result,
 				 const QString& param_header,
 				 const QStringList& result_field,
-				 const QStringList& _axis_labels, const QString& format)
+				 const QStringList& _axis_labels,
+				 const QString& format,
+				 const QVariantMap& plot_params = QVariantMap())
 {
 	QStringList	axis_labels(_axis_labels);
 	if(axis_labels.isEmpty())
@@ -285,7 +296,8 @@ void print_table(const std::vector<QVariantMap>& params,
 	}
 	else if(format == "pgfplots")
 	{
-		print_table_pgfplots(params, variable, result, param_header, result_field, axis_labels);
+		print_table_pgfplots(params, variable, result, param_header,
+							 result_field, axis_labels, plot_params);
 	}
 	else
 	{
