@@ -10,9 +10,13 @@ class NBODY_DLL nbody_solver_adams : public nbody_solver
 {
 	nbody_solver*				m_starter;
 	nbody_engine::memory_array	m_f;
+	nbody_engine::memory*		m_corr_data;
 	size_t						m_rank;
+	bool						m_correction;
 public:
-	explicit nbody_solver_adams(nbody_solver* starter, size_t rank = 5);
+	explicit nbody_solver_adams(nbody_solver* starter,
+								size_t rank = 5,
+								bool corr = false);
 	~nbody_solver_adams();
 	const char* type_name() const override;
 	void advise(nbcoord_t dt) override;

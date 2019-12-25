@@ -3,17 +3,22 @@
 #include "summation.h"
 #include <QDebug>
 
-nbody_solver_adams::nbody_solver_adams(nbody_solver* starter, size_t rank) :
-	nbody_solver()
+nbody_solver_adams::nbody_solver_adams(nbody_solver* starter,
+									   size_t rank,
+									   bool corr) :
+	nbody_solver(),
+	m_starter(starter),
+	m_corr_data(nullptr),
+	m_rank(rank),
+	m_correction(corr)
 {
-	m_starter = starter;
-	m_rank = rank;
 }
 
 nbody_solver_adams::~nbody_solver_adams()
 {
 	delete m_starter;
 	engine()->free_buffers(m_f);
+	engine()->free_buffer(m_corr_data);
 }
 
 const char* nbody_solver_adams::type_name() const
@@ -41,6 +46,11 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 	{
 		m_starter->set_engine(engine());
 		m_f = engine()->create_buffers(sizeof(nbcoord_t) * ps, m_rank);
+		if(m_correction)
+		{
+			m_corr_data = engine()->create_buffer(sizeof(nbcoord_t) * ps);
+			engine()->fill_buffer(m_corr_data, 0);
+		}
 	}
 
 	if(step > m_rank)
@@ -54,7 +64,15 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 			coeff[(m_rank + fnum - n) % m_rank ] = a[n] * dt;
 		}
 
-		engine()->fmaddn_inplace(y, m_f, coeff.data());
+		if(m_correction)
+		{
+			engine()->fmaddn_corr(y, m_corr_data, m_f, coeff.data());
+		}
+		else
+		{
+			engine()->fmaddn_inplace(y, m_f, coeff.data());
+		}
+
 		engine()->advise_time(dt);
 	}
 	else
@@ -68,5 +86,6 @@ void nbody_solver_adams::print_info() const
 {
 	nbody_solver::print_info();
 	qDebug() << "\trank" << m_rank;
+	qDebug() << "\tcorrection" << m_correction;
 	qDebug() << "\tstarter" << m_starter->type_name();
 }

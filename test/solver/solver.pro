@@ -17,6 +17,7 @@ LIBS += -lnbody
 SOURCES += test_nbody_solver.cpp
 
 TEST_DATA += \
+    ../data/adams5-corr.txt \
     ../data/adams5.txt \
     ../data/euler.txt \
     ../data/initial_state.txt \

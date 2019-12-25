@@ -26,7 +26,8 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 		{
 			return NULL;
 		}
-		solver = new nbody_solver_adams(starter, param.value("rank", 1).toInt());
+		solver = new nbody_solver_adams(starter, param.value("rank", 1).toInt(),
+										param.value("correction", false).toBool());
 	}
 	else if(type == "euler")
 	{
