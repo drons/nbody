@@ -109,17 +109,13 @@ public:
 	{
 		bool res = m_expected_data.load_initial(expected_state, "G1");
 		size_t	count = m_expected_data.get_count();
-		m_result.resize(count + 5);
-		m_params.resize(count + 5);
+		m_result.resize(count + 1);
+		m_params.resize(count + 1);
 		for(size_t i = 0; i != count; ++i)
 		{
 			m_params[i]["name"] = QString::number(i);
 		}
 		m_params[count]["name"] = "mean";
-		m_params[count + 1]["name"] = "Earth-Moon";
-		m_params[count + 2]["name"] = "Sun";
-		m_params[count + 3]["name"] = "Mercury";
-		m_params[count + 4]["name"] = "Earth";
 		return res;
 	}
 	void push(size_t n, double t, double dr)
@@ -131,22 +127,18 @@ public:
 	}
 	void visit(const nbody_data* data) override
 	{
-		double	t = static_cast<double>(data->get_time());
+		double	t = static_cast<double>(data->get_time()) / 365;
 		size_t	count = data->get_count();
 		auto* vert = data->get_vertites();
 		auto* expected_vert = m_expected_data.get_vertites();
 		const auto dr = compare_data(vert, expected_vert, count);
-		if(t > 365 * 3000)
+		if(t > 3002)
 		{
 			for(size_t i = 0; i != count; ++i)
 			{
 				push(i, t, vert[i].distance(expected_vert[i]));
 			}
 			push(count, t, dr.first);
-			push(count + 1, t, vert[3].distance(vert[4]));
-			push(count + 2, t, vert[0].length());
-			push(count + 3, t, vert[1].length());
-			push(count + 4, t, vert[3].length());
 			m_variable.push_back(t);
 		}
 		if(m_min_dr > dr.first)
@@ -171,27 +163,25 @@ public:
 
 void plot_period(const QString& format,
 				 const QString& initial_state,
-				 const QString& expected_state)
+				 const QString& expected_state,
+				 const QVariantMap& args)
 {
-	QString	engine("simple");
+	QString	engine("openmp");
 	QVariantMap param01(std::map<QString, QVariant>(
 	{
 		{"verbose", 0},
-		{"name", "rkdp"},
 		{"engine", engine},
-		{"solver", "rkdp"},
 		{"starter_solver", "rkdp"},
-		{"max_step", 1.0 / 4.0},
 		{"min_step", -1},
-		{"check_step", 1.0},
 		{"initial_state", initial_state}
 	}));
 
+	param01.unite(args);
 	std::shared_ptr<nbody_step_visitor_comparator>	checker =
 		std::make_shared<nbody_step_visitor_comparator>();
 	checker->load_init(expected_state);
 
-	run(param01, "E", 365.5 * 3000, checker);
+	run(param01, "E", 365 * 3004, checker);
 	const auto	result(checker->result());
 	const auto	variable(checker->variable());
 	const auto	params(checker->params());
@@ -353,7 +343,7 @@ int main(int argc, char* argv[])
 			qDebug() << "--expected_state must be set";
 			return 1;
 		}
-		plot_period(format, initial_state, expected_state);
+		plot_period(format, initial_state, expected_state, param);
 	}
 	else if(bench == "plot_start_period")
 	{
