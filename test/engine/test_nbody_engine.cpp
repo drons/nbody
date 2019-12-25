@@ -359,6 +359,68 @@ bool test_fmaddn3(nbody_engine* e, size_t dsize)
 	return ret;
 }
 
+bool test_fmaddn_corr(nbody_engine* e, size_t csize)
+{
+	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
+	const size_t			size = e->problem_size();
+	const size_t			bstride = size;
+	std::vector<nbcoord_t>	a(size);
+	std::vector<nbcoord_t>	corr(size);
+	std::vector<nbcoord_t>	a_res(size);
+	std::vector<nbcoord_t>	b(bstride * csize);
+	std::vector<nbcoord_t>	c(csize);
+	nbody_engine::memory*		mem_a = e->create_buffer(a.size() * sizeof(nbcoord_t));
+	nbody_engine::memory*		mem_corr = e->create_buffer(corr.size() * sizeof(nbcoord_t));
+	nbody_engine::memory_array	mem_b = e->create_buffers(bstride * sizeof(nbcoord_t), csize);
+
+	for(size_t n = 0; n != a.size(); ++n)
+	{
+		a[n] = 1_f;
+	}
+	for(size_t n = 0; n != b.size(); ++n)
+	{
+		b[n] = 1_f;
+	}
+	nbcoord_t	factor = eps / 2_f;
+	for(size_t n = 0; n != c.size(); ++n)
+	{
+		c[n] = factor;
+	}
+
+	e->write_buffer(mem_a, a.data());
+	e->fill_buffer(mem_corr, 0_f);
+	for(size_t n = 0; n != mem_b.size(); ++n)
+	{
+		e->write_buffer(mem_b[n], b.data() + n * bstride);
+	}
+
+	//! a[i] += sum( b[k][i]*c[k], k=[0...b.size()) )
+	e->fmaddn_corr(mem_a, mem_corr, mem_b, c.data());
+
+	e->read_buffer(a_res.data(), mem_a);
+
+	bool	ret = true;
+	for(size_t i = 0; i != size; ++i)
+	{
+		nbcoord_t	s = csize * factor;
+		nbcoord_t	absdelta = fabs((a[i] + s) - a_res[i]);
+		if(absdelta > eps)
+		{
+			if(ret)
+			{
+				qDebug() << "Invalid delta" << absdelta << "at index" << i;
+			}
+			ret = false;
+		}
+	}
+
+	e->free_buffer(mem_corr);
+	e->free_buffer(mem_a);
+	e->free_buffers(mem_b);
+
+	return ret;
+}
+
 bool test_fmaxabs(nbody_engine* e)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
@@ -485,6 +547,7 @@ private slots:
 	void test_fmaddn1();
 	void test_fmaddn2();
 	void test_fmaddn3();
+	void test_fmaddn_corr();
 	void test_fmaxabs();
 	void test_fcompute();
 	void test_negative_branches();
@@ -563,6 +626,16 @@ void test_nbody_engine::test_fmaddn3()
 	QVERIFY(::test_fmaddn3(m_e, 1));
 	QVERIFY(::test_fmaddn3(m_e, 3));
 	QVERIFY(::test_fmaddn3(m_e, 7));
+}
+
+void test_nbody_engine::test_fmaddn_corr()
+{
+	if(dynamic_cast<nbody_engine_simple*>(m_e) == nullptr)
+	{
+		qDebug() << "Skip" << m_e->type_name();
+		return;
+	}
+	QVERIFY(::test_fmaddn_corr(m_e, 10));
 }
 
 void test_nbody_engine::test_fmaxabs()
@@ -694,7 +767,43 @@ void test_nbody_engine::test_negative_branches()
 		m_e->fmaddn_inplace(a, b, c);
 		m_e->free_buffer(a);
 	}
-
+	qDebug() << "fmaddn_corr";
+	{
+		nbody_engine::memory*		a = nullptr;
+		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_corr(a, corr, b, c);
+		m_e->free_buffer(corr);
+		m_e->free_buffers(b);
+	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		corr = nullptr;
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_corr(a, corr, b, c);
+		m_e->free_buffer(a);
+		m_e->free_buffers(b);
+	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b(1, nullptr);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_corr(a, corr, b, c);
+		m_e->free_buffer(a);
+		m_e->free_buffer(corr);
+	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		m_e->fmaddn_corr(a, corr, b, nullptr);
+		m_e->free_buffer(a);
+		m_e->free_buffer(corr);
+		m_e->free_buffers(b);
+	}
 	qDebug() << "fmaddn";
 	{
 		nbody_engine_memory_fake	a(0);

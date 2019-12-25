@@ -56,6 +56,12 @@ void nbody_engine::fmaddn_inplace(memory* a, const memory_array& b, const nbcoor
 	}
 }
 
+void nbody_engine::fmaddn_corr(memory* a, memory* corr, const memory_array& b, const nbcoord_t* c)
+{
+	Q_UNUSED(corr);
+	fmaddn_inplace(a, b, c);
+}
+
 //! a[i] = b[i] + sum( c[k][i]*d[k], k=[0...c.size()) )
 void nbody_engine::fmaddn(memory* a, const memory* b, const memory_array& c,
 						  const nbcoord_t* d, size_t dsize)

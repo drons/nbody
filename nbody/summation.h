@@ -4,12 +4,12 @@
 /*!
 	Kahan summation
 */
-template< class WORK_TYPE>
-WORK_TYPE summation_k(WORK_TYPE a, WORK_TYPE b, WORK_TYPE* correction)
+template<class WORK_TYPE>
+WORK_TYPE summation_k(const WORK_TYPE& a, const WORK_TYPE& b, WORK_TYPE& correction)
 {
-	WORK_TYPE	corrected = b - *correction;
+	WORK_TYPE	corrected = b - correction;
 	WORK_TYPE	new_sum = a + corrected;
-	*correction = (new_sum - a) - corrected;
+	correction = (new_sum - a) - corrected;
 	return new_sum;
 }
 
@@ -28,7 +28,7 @@ WORK_TYPE summation_k(A container, size_t begin, size_t end, WORK_TYPE* correcti
 	sum = container[begin];
 	for(size_t i = begin + 1; i < end; ++i)
 	{
-		sum = summation_k(sum, container[i], correction);
+		sum = summation_k(sum, container[i], *correction);
 	}
 	return sum;
 }
