@@ -472,7 +472,7 @@ bool nbody_data::load(const QString& fn, e_units_type unit_type)
 		{
 			continue;
 		}
-		const QStringList	columns(line.split(" "));
+		const QStringList	columns(line.split(" ", QString::SkipEmptyParts));
 
 		if(columns.size() < 7)
 		{
