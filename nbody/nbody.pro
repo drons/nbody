@@ -1,5 +1,4 @@
 include( ../pri/nbody.pri )
-include( ../pri/vectorize.pri )
 
 TEMPLATE	= lib
 TARGET		= nbody

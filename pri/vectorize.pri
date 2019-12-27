@@ -1,8 +1,10 @@
 unix{
 	!clang {
 		NBODY_FLAGS += -ftree-vectorizer-verbose=1
-		NBODY_FLAGS += -mavx -ffast-math -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-vectorize -fipa-cp-clone
+		NBODY_FLAGS += -O3 -mavx -ftree-vectorize
 	}
-	QMAKE_CFLAGS += $$NBODY_FLAGS
-	QMAKE_CXXFLAGS += $$NBODY_FLAGS
+	QMAKE_CFLAGS_RELEASE -= -O2
+	QMAKE_CXXFLAGS_RELEASE -= -O2
+	QMAKE_CFLAGS_RELEASE += $$NBODY_FLAGS
+	QMAKE_CXXFLAGS_RELEASE += $$NBODY_FLAGS
 }
