@@ -364,8 +364,11 @@ void test_nbody_data_io::load_zeno_ascii()
 
 void test_nbody_data_io::negative()
 {
+	QVERIFY(QFile::exists(m_apppath + "/../data/inv_column.txt"));
 	QVERIFY(!nbody_data().load(m_apppath + "/../data/inv_column.txt"));
+	QVERIFY(QFile::exists(m_apppath + "/../data/inv_columns_count.txt"));
 	QVERIFY(!nbody_data().load(m_apppath + "/../data/inv_columns_count.txt"));
+	QVERIFY(QFile::exists(m_apppath + "/../data/inv_radius.txt"));
 	QVERIFY(!nbody_data().load(m_apppath + "/../data/inv_radius.txt"));
 }
 
