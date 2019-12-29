@@ -7,22 +7,23 @@
 #include "nbody_arg_parser.h"
 #include "nbody_step_visitor.h"
 
-void compute_end_state(const QString& initial_state,
-					   const QString& end_state)
+int compute_end_state(const QVariantMap& param)
 {
-	QVariantMap param(std::map<QString, QVariant>(
-	{
-		{"name", "adams5"},
-		{"engine", "simple"},
-		{"solver", "adams"},
-		{"max_step", 1.0 / 1024.0},
-		{"rank", 5},
-		{"starter_solver", "rkdp"},
-		{"initial_state", initial_state},
-		{"end_state", end_state},
-	}));
+	QString	initial_state(param.value("initial_state", QString()).toString());
+	QString	end_state(param.value("end_state", QString()).toString());
 
-	run(param, "PLVE", 365000);
+	if(initial_state.isEmpty())
+	{
+		qDebug() << "--initial_state must be set";
+		return 1;
+	}
+	if(end_state.isEmpty())
+	{
+		qDebug() << "--end_state must be set";
+		return 1;
+	}
+	run(param, "PLVE", 400 * 365.25);
+	return 0;
 }
 
 void bench_solver(const QString& format,
@@ -295,21 +296,7 @@ int main(int argc, char* argv[])
 
 	if(bench == "compute_end_state")
 	{
-		QString	initial_state(param.value("initial_state", QString()).toString());
-		QString	end_state(param.value("end_state", QString()).toString());
-
-		if(initial_state.isEmpty())
-		{
-			qDebug() << "--initial_state must be set";
-			return 1;
-		}
-		if(end_state.isEmpty())
-		{
-			qDebug() << "--end_state must be set";
-			return 1;
-		}
-
-		compute_end_state(initial_state, end_state);
+		return compute_end_state(param);
 	}
 	else if(bench == "solver")
 	{
