@@ -23,8 +23,10 @@ SOURCES	+= \
 	nbody_engine_simple.cpp \
 	nbody_engine_simple_bh.cpp \
 	nbody_engines.cpp \
+	nbody_extrapolator.cpp \
 	nbody_solver.cpp \
 	nbody_solver_adams.cpp \
+	nbody_solver_bulirsch_stoer.cpp \
 	nbody_solver_euler.cpp \
 	nbody_solver_rk_butcher.cpp \
 	nbody_solver_rk4.cpp \
@@ -57,8 +59,10 @@ HEADERS	+= \
 	nbody_engine_simple.h \
 	nbody_engine_simple_bh.h \
 	nbody_engines.h \
+	nbody_extrapolator.h \
 	nbody_solver.h \
 	nbody_solver_adams.h \
+	nbody_solver_bulirsch_stoer.h \
 	nbody_solver_euler.h \
 	nbody_solver_rk_butcher.h \
 	nbody_solver_rk4.h \
