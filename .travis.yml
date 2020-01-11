@@ -21,6 +21,7 @@ matrix:
       - make -j2
       - oclgrind ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -44,6 +45,7 @@ matrix:
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -135,6 +137,7 @@ matrix:
       - make -j2
       - oclgrind ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
       - ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE"
@@ -170,6 +173,7 @@ matrix:
       - grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
       - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
       - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
+      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/extrapolator/extrapolator
       - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/stream/stream
     - os: linux
       dist: trusty
@@ -193,6 +197,7 @@ matrix:
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -241,6 +246,7 @@ matrix:
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -270,6 +276,7 @@ matrix:
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -301,6 +308,7 @@ matrix:
       - make -j2
       - oclgrind ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -329,6 +337,7 @@ matrix:
       - make -j2
       - oclgrind ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
@@ -359,6 +368,7 @@ matrix:
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
