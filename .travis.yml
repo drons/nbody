@@ -417,7 +417,7 @@ matrix:
       - astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
       - git diff --exit-code
     - os: linux
-      dist: xenial
+      dist: bionic
       compiler: gcc
       env: NAME="cppcheck"
       addons:
