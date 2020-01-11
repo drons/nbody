@@ -4,6 +4,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += bench
 SUBDIRS += engine
+SUBDIRS += extrapolator
 SUBDIRS += main
 SUBDIRS += memsupp
 SUBDIRS += solar
