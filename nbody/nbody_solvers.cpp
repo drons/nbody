@@ -29,6 +29,10 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 		solver = new nbody_solver_adams(starter, param.value("rank", 1).toInt(),
 										param.value("correction", false).toBool());
 	}
+	else if(type == "bs")
+	{
+		solver = new nbody_solver_bulirsch_stoer(param.value("max_level", 8).toUInt());
+	}
 	else if(type == "euler")
 	{
 		solver = new nbody_solver_euler();

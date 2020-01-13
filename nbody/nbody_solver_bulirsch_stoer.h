@@ -19,12 +19,12 @@ class NBODY_DLL nbody_solver_bulirsch_stoer : public nbody_solver
 	nbody_engine::memory*		m_y0;
 	nbody_extrapolator*			m_extrapolator;
 public:
-	nbody_solver_bulirsch_stoer();
+	explicit nbody_solver_bulirsch_stoer(size_t max_level = 8);
 	~nbody_solver_bulirsch_stoer();
 	const char* type_name() const override;
 	void advise(nbcoord_t dt) override;
 private:
-	void compute_substep(size_t level, nbcoord_t dt);
+	void compute_substep(size_t level, nbcoord_t dt, nbcoord_t t0);
 };
 
 #endif // NBODY_SOLVER_BULIRSCH_STOER_H

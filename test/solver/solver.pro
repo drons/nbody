@@ -19,6 +19,7 @@ SOURCES += test_nbody_solver.cpp
 TEST_DATA += \
     ../data/adams5-corr.txt \
     ../data/adams5.txt \
+    ../data/bulirsch-stoer.txt \
     ../data/euler.txt \
     ../data/midpoint.txt \
     ../data/initial_state.txt \

@@ -118,6 +118,11 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "bs"}, {"max_level", 4}, {"min_step", 1e-5}}));
+		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "bulirsch-stoer");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
 		QVariantMap			param(std::map<QString, QVariant>({{"solver", "euler"}}));
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "euler");
 		res += QTest::qExec(&tc1, argc, argv);

@@ -2,6 +2,7 @@
 #define NBODY_SOLVERS_H
 
 #include "nbody_solver_adams.h"
+#include "nbody_solver_bulirsch_stoer.h"
 #include "nbody_solver_euler.h"
 #include "nbody_solver_midpoint.h"
 #include "nbody_solver_rk4.h"
