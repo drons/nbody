@@ -90,4 +90,6 @@ public:
 	e_ode_order get_ode_order() const;
 };
 
+NBODY_DLL QDebug operator << (QDebug g, const QPair<nbody_engine*, nbody_engine::memory*>& m);
+
 #endif // NBODY_ENGINE_H

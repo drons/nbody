@@ -118,3 +118,12 @@ e_ode_order nbody_engine::get_ode_order() const
 {
 	return m_ode_order;
 }
+
+QDebug operator << (QDebug g, const QPair<nbody_engine*, nbody_engine::memory*>& m)
+{
+	QVector<nbcoord_t>	host_data;
+	host_data.resize(static_cast<int>(m.second->size() / sizeof(nbcoord_t)));
+	m.first->read_buffer(host_data.data(), m.second);
+	g << host_data;
+	return g;
+}
