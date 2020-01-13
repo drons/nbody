@@ -16,7 +16,7 @@ public:
 	virtual ~nbody_extrapolator();
 	nbody_engine* engine() const;
 	size_t sub_steps_count(size_t level) const;
-	virtual void update_table(size_t level, nbody_engine::memory* y) const = 0;
+	virtual void update_table(size_t level, nbody_engine::memory* y) = 0;
 	virtual nbcoord_t estimate_error(size_t level) const = 0;
 	virtual void extrapolate(size_t level, nbody_engine::memory* ext_y) const = 0;
 };
@@ -38,11 +38,40 @@ public:
 	nbody_extrapolator_berrut(nbody_engine* engine, size_t order,
 							  const std::vector<size_t>& substeps_count);
 	~nbody_extrapolator_berrut();
-	void update_table(size_t level, nbody_engine::memory* y) const override;
+	void update_table(size_t level, nbody_engine::memory* y) override;
 	nbcoord_t estimate_error(size_t level) const override;
 	void extrapolate(size_t level, nbody_engine::memory* ext_y) const override;
 private:
 	std::vector<nbcoord_t> weights(size_t level) const;
 };
+
+
+/*!
+	\brief Neville extrapolation
+
+	@see (17.3.8) at [1]
+	[1] Numerical Recipes, Third Edition, Cambridge, 2007
+*/
+class NBODY_DLL nbody_extrapolator_neville : public nbody_extrapolator
+{
+	nbody_engine::memory_array	m_table;
+	nbody_engine::memory_array	m_table_prev;
+	nbody_engine::memory*		m_diff;
+public:
+	nbody_extrapolator_neville(nbody_engine* engine, size_t order,
+							   const std::vector<size_t>& substeps_count);
+	~nbody_extrapolator_neville();
+	void update_table(size_t level, nbody_engine::memory* y) override;
+	nbcoord_t estimate_error(size_t level) const override;
+	void extrapolate(size_t level, nbody_engine::memory* ext_y) const override;
+};
+
+/*!
+   \brief Create extrapolator
+   \return configured extrapolator
+ */
+nbody_extrapolator NBODY_DLL* nbody_create_extrapolator(
+	const QString& type, nbody_engine* engine,
+	size_t order, const std::vector<size_t>& substeps_count);
 
 #endif //NBODY_EXTRAPOLATOR_H
