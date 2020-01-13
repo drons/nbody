@@ -20,6 +20,7 @@ TEST_DATA += \
     ../data/adams5-corr.txt \
     ../data/adams5.txt \
     ../data/euler.txt \
+    ../data/midpoint.txt \
     ../data/initial_state.txt \
     ../data/rk4.txt \
     ../data/rkck.txt \

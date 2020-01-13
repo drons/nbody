@@ -123,6 +123,11 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "midpoint"}}));
+		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "midpoint");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
 		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rk4"}}));
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rk4");
 		res += QTest::qExec(&tc1, argc, argv);

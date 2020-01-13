@@ -3,6 +3,7 @@
 
 #include "nbody_solver_adams.h"
 #include "nbody_solver_euler.h"
+#include "nbody_solver_midpoint.h"
 #include "nbody_solver_rk4.h"
 #include "nbody_solver_rkck.h"
 #include "nbody_solver_rkdp.h"

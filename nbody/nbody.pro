@@ -28,6 +28,7 @@ SOURCES	+= \
 	nbody_solver_adams.cpp \
 	nbody_solver_bulirsch_stoer.cpp \
 	nbody_solver_euler.cpp \
+	nbody_solver_midpoint.cpp \
 	nbody_solver_rk_butcher.cpp \
 	nbody_solver_rk4.cpp \
 	nbody_solver_rkck.cpp \
@@ -64,6 +65,7 @@ HEADERS	+= \
 	nbody_solver_adams.h \
 	nbody_solver_bulirsch_stoer.h \
 	nbody_solver_euler.h \
+	nbody_solver_midpoint.h \
 	nbody_solver_rk_butcher.h \
 	nbody_solver_rk4.h \
 	nbody_solver_rkck.h \
