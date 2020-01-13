@@ -317,7 +317,10 @@ matrix:
       env: NAME="gcc9 + Qt5 + debug"
       addons:
         apt:
+          sources:
+          - ubuntu-toolchain-r-test
           packages:
+          - g++-9
           - qtbase5-dev
           - qtbase5-dev-tools
           - libqt5opengl5-dev
@@ -325,11 +328,12 @@ matrix:
           - ocl-icd-opencl-dev
           - oclgrind
       script:
-      - wget --no-check-certificate https://docs.google.com/uc?id=134PP2fse2d2yZJ8HukJW8arc_V_09xgW -O gcc_9.1.0-1_amd64.deb
-      - sudo dpkg -i gcc_9.1.0-1_amd64.deb
-      - export LD_LIBRARY_PATH=./lib:/usr/local/lib64:${LD_LIBRARY_PATH}
-      - sudo ln -f -s /usr/local/bin/gcc /usr/bin/gcc
-      - sudo ln -f -s /usr/local/bin/g++ /usr/bin/g++
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+      - gcc --version
+      - gcc-9 --version
+      - sudo ln -f -s /usr/bin/gcc-9 /usr/bin/gcc
+      - sudo ln -f -s /usr/bin/g++-9 /usr/bin/g++
       - gcc --version
       - mkdir build-debug-gcc9
       - cd build-debug-gcc9
