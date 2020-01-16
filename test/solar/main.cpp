@@ -30,7 +30,7 @@ void bench_solver(const QString& format,
 				  const QString& initial_state,
 				  const QString& expected_state)
 {
-	QString	engine("simple");
+	QString	engine("openmp");
 	QVariantMap param01(std::map<QString, QVariant>(
 	{
 		{"name", "adams5"},
@@ -43,15 +43,18 @@ void bench_solver(const QString& format,
 	}));
 	QVariantMap param02(std::map<QString, QVariant>(
 	{
-		{"name", "rk4"},
+		{"name", "adams5-corr"},
 		{"engine", engine},
-		{"solver", "rk4"},
+		{"solver", "adams"},
+		{"rank", 5},
+		{"correction", true},
+		{"starter_solver", "rkdp"},
 		{"initial_state", initial_state},
 		{"expected_state", expected_state}
 	}));
 	QVariantMap param03(std::map<QString, QVariant>(
 	{
-		{"name", "rkdp"},
+		{"name", "rkdp-fixed-step"},
 		{"engine", engine},
 		{"solver", "rkdp"},
 		{"initial_state", initial_state},
@@ -60,20 +63,103 @@ void bench_solver(const QString& format,
 	}));
 	QVariantMap param04(std::map<QString, QVariant>(
 	{
-		{"name", "rkdverk"},
+		{"name", "rkdp-fixed-step-corr"},
+		{"engine", engine},
+		{"solver", "rkdp"},
+		{"correction", true},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param05(std::map<QString, QVariant>(
+	{
+		{"name", "midpoint"},
+		{"engine", engine},
+		{"solver", "midpoint"},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param06(std::map<QString, QVariant>(
+	{
+		{"name", "bs4-fixed-step"},
+		{"engine", engine},
+		{"solver", "bs"},
+		{"max_level", 4},
+		{"error_threshold", 1e-14},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param07(std::map<QString, QVariant>(
+	{
+		{"name", "bs8-fixed-step"},
+		{"engine", engine},
+		{"solver", "bs"},
+		{"max_level", 8},
+		{"error_threshold", 1e-14},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param08(std::map<QString, QVariant>(
+	{
+		{"name", "bs16-fixed-step"},
+		{"engine", engine},
+		{"solver", "bs"},
+		{"max_level", 16},
+		{"error_threshold", 1e-14},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param09(std::map<QString, QVariant>(
+	{
+		{"name", "rkdverk-fixed-step"},
 		{"engine", engine},
 		{"solver", "rkdverk"},
+		{"correction", false},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param10(std::map<QString, QVariant>(
+	{
+		{"name", "rkdverk-fixed-step-corr"},
+		{"engine", engine},
+		{"solver", "rkdverk"},
+		{"correction", true},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param11(std::map<QString, QVariant>(
+	{
+		{"name", "rkf-fixed-step"},
+		{"engine", engine},
+		{"solver", "rkf"},
+		{"correction", false},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param12(std::map<QString, QVariant>(
+	{
+		{"name", "rkf-fixed-step-corr"},
+		{"engine", engine},
+		{"solver", "rkf"},
+		{"correction", true},
 		{"initial_state", initial_state},
 		{"expected_state", expected_state},
 		{"min_step", "-1"}
 	}));
 
-	std::vector<QVariantMap>				params = {param01, param02, param03, param04};
-	std::vector<QVariant>					steps = {1.0, 1.0 / 4.0, 1.0 / 16.0, 1.0 / 64.0, 1.0 / 256.0};
+	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07, param08, param09, param10, param11, param12};
+	std::vector<QVariant>					steps = {16.0, 4.0, 1.0, 1.0 / 4.0, 1.0 / 16.0, 1.0 / 64.0, 1.0 / 256.0};
 	QString									variable_field = "max_step";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
 
-	run_bench(params, steps, result, variable_field, "PLVE", 3000_f * 365.4_f);
+	run_bench(params, steps, result, variable_field, "PLVE", 3000_f * 365.25_f);
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dE",
 				QStringList() << "$f_n$ compute count" << "$dE/E_0$", format);
 	print_table(params, steps, result, "name", QStringList() << "CC" << "dL",
