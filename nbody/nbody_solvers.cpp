@@ -31,7 +31,9 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 	}
 	else if(type == "bs")
 	{
-		solver = new nbody_solver_bulirsch_stoer(param.value("max_level", 8).toUInt());
+		solver = new nbody_solver_bulirsch_stoer(
+			param.value("max_level", 8).toUInt(),
+			param.value("error_threshold", 1e-11).toDouble());
 	}
 	else if(type == "euler")
 	{

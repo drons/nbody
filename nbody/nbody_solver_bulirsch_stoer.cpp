@@ -38,11 +38,12 @@ std::vector<size_t> init_steps(size_t n, e_bs_sub type)
 }
 }//namespace
 
-nbody_solver_bulirsch_stoer::nbody_solver_bulirsch_stoer(size_t max_level) :
+nbody_solver_bulirsch_stoer::nbody_solver_bulirsch_stoer(
+	size_t max_level, nbcoord_t error_threshold) :
 	nbody_solver(),
 	m_internal(nullptr),
 	m_max_level(max_level),
-	m_error_threshold(1e-11),
+	m_error_threshold(error_threshold),
 	m_sub_steps_count(init_steps(m_max_level, ebssub_bulirsch_stoer)),
 	m_y0(nullptr),
 	m_extrapolator(nullptr)
@@ -116,4 +117,11 @@ void nbody_solver_bulirsch_stoer::advise(nbcoord_t dt)
 
 	engine()->set_time(t0);
 	engine()->advise_time(dt);
+}
+
+void nbody_solver_bulirsch_stoer::print_info() const
+{
+	nbody_solver::print_info();
+	qDebug() << "\tmax_level" << m_max_level;
+	qDebug() << "\terror_threshold" << m_error_threshold;
 }
