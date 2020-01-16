@@ -9,6 +9,7 @@ static nbody_solver* create_butcher_solver(const QVariantMap& param)
 	solver->set_max_recursion(param.value("max_recursion", 8).toUInt());
 	solver->set_refine_steps_count(param.value("refine_steps_count", 1).toUInt());
 	solver->set_substep_subdivisions(param.value("substep_subdivisions", 8).toUInt());
+	solver->set_correction(param.value("correction", false).toBool());
 
 	return solver;
 }

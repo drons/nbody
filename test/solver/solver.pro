@@ -25,6 +25,7 @@ TEST_DATA += \
     ../data/initial_state.txt \
     ../data/rk4.txt \
     ../data/rkck.txt \
+    ../data/rkdp-corr.txt \
     ../data/rkdp.txt \
     ../data/rkdverk.txt \
     ../data/rkf.txt \

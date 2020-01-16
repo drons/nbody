@@ -143,8 +143,13 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
-		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkdp"}}));
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkdp"}, {"correction", false}}));
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkdp");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkdp"}, {"correction", true}}));
+		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkdp-corr");
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{

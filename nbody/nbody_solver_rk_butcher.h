@@ -10,12 +10,14 @@ class NBODY_DLL nbody_solver_rk_butcher : public nbody_solver
 	nbody_engine::memory_array	m_k;
 	nbody_engine::memory*		m_tmpy;
 	nbody_engine::memory*		m_tmpk;
+	nbody_engine::memory*		m_corr_data;
 	nbody_engine::memory_array	m_y_stack;
 
 	size_t						m_max_recursion;
 	size_t						m_substep_subdivisions;
 	nbcoord_t					m_error_threshold;
 	size_t						m_refine_steps_count;
+	bool						m_correction;
 public:
 	explicit nbody_solver_rk_butcher(nbody_butcher_table*);
 	~nbody_solver_rk_butcher();
@@ -23,6 +25,7 @@ public:
 	void set_substep_subdivisions(size_t);
 	void set_error_threshold(nbcoord_t);
 	void set_refine_steps_count(size_t);
+	void set_correction(bool corr);
 	const char* type_name() const override;
 	void advise(nbcoord_t dt) override;
 	void print_info() const override;

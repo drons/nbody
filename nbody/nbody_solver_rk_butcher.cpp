@@ -2,15 +2,17 @@
 #include <QDebug>
 
 nbody_solver_rk_butcher::nbody_solver_rk_butcher(nbody_butcher_table* t) :
-	nbody_solver()
+	nbody_solver(),
+	m_bt(t),
+	m_tmpy(nullptr),
+	m_tmpk(nullptr),
+	m_corr_data(nullptr),
+	m_max_recursion(8),
+	m_substep_subdivisions(8),
+	m_error_threshold(1e-4),
+	m_refine_steps_count(1),
+	m_correction(false)
 {
-	m_tmpy = NULL;
-	m_tmpk = NULL;
-	m_bt = t;
-	m_max_recursion = 8;
-	m_substep_subdivisions = 8;
-	m_error_threshold = 1e-4;
-	m_refine_steps_count = 1;
 }
 
 nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
@@ -19,6 +21,7 @@ nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 	engine()->free_buffers(m_k);;
 	engine()->free_buffer(m_tmpy);
 	engine()->free_buffer(m_tmpk);
+	engine()->free_buffer(m_corr_data);
 	engine()->free_buffers(m_y_stack);
 }
 
@@ -47,6 +50,11 @@ void nbody_solver_rk_butcher::set_refine_steps_count(size_t v)
 	m_refine_steps_count = v;
 }
 
+void nbody_solver_rk_butcher::set_correction(bool corr)
+{
+	m_correction = corr;
+}
+
 void nbody_solver_rk_butcher::advise(nbcoord_t dt)
 {
 	nbody_engine::memory*	y = engine()->get_y();
@@ -64,6 +72,7 @@ void nbody_solver_rk_butcher::print_info() const
 	qDebug() << "\tsubstep_subdivisions" << m_substep_subdivisions;
 	qDebug() << "\terror_threshold" << m_error_threshold;
 	qDebug() << "\trefine_steps_count" << m_refine_steps_count;
+	qDebug() << "\tcorrection" << m_correction;
 }
 
 void nbody_solver_rk_butcher::sub_step_implicit(size_t steps, const nbcoord_t** a,
@@ -145,6 +154,11 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 		m_tmpy = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_tmpk = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_y_stack = engine()->create_buffers(sizeof(nbcoord_t) * ps, m_max_recursion);
+		if(m_correction)
+		{
+			m_corr_data = engine()->create_buffer(sizeof(nbcoord_t) * ps);
+			engine()->fill_buffer(m_corr_data, 0);
+		}
 	}
 
 	for(size_t sub_n = 0; sub_n != substeps_count; ++sub_n, t += dt)
@@ -191,7 +205,14 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 			{
 				coeff[n] = b2[n] * dt;
 			}
-			engine()->fmaddn_inplace(y, m_k, coeff.data());
+			if(m_correction)
+			{
+				engine()->fmaddn_corr(y, m_corr_data, m_k, coeff.data());
+			}
+			else
+			{
+				engine()->fmaddn_inplace(y, m_k, coeff.data());
+			}
 		}
 	}//for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n )
 }

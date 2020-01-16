@@ -88,7 +88,7 @@ Argument | Description
 `--max_step`| Solvers max time step
 `--min_step`| Embedded solvers min time step
 `--rank`   | Adams–Bashforth solver rank (1...5).
-`--correction` | Kahan summation at each integration step
+`--correction` | Kahan summation at each integration step (for now at Adams–Bashforth and Runge-Kutta solvers)
 `--starter_solver`   | Adams–Bashforth starter solver.
 `--refine_steps_count` | Refine step count for __implicit__ solvers.
 `--error_threshold` | Step error threshold for __embeded__ solvers. If the error at the current step is greater than the threshold, then we decrease the time step and repeat the step.
