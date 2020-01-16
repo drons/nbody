@@ -8,9 +8,10 @@
 
 ## Features
 ### Integration methods
-Method alias | Order | Description | Implicit | Embedded
+Method alias | Order | Description | Implicit | Dynamic step
 -------------|-------|-------------|----------|----------
 adams | up to 5 | [Adams–Bashforth method](https://en.wikipedia.org/wiki/Linear_multistep_method#Adams%E2%80%93Bashforth_methods) |  :heavy_minus_sign: |  :heavy_minus_sign:
+bs | 2*`max_level` | [Bulirsch-Stoer method](https://en.wikipedia.org/wiki/Bulirsch%E2%80%93Stoer_algorithm) |  :heavy_minus_sign: |  :star:
 euler | 1 | [Classic Euler method](https://en.wikipedia.org/wiki/Euler_method) |  :heavy_minus_sign: |  :heavy_minus_sign:
 rk4 | 4 | [Classic Runge-Kutta 4-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Classic_fourth-order_method) |  :heavy_minus_sign: |  :heavy_minus_sign:
 rk_butcher | - | [Runge-Kutta method with arbitrary Butcher tableu](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) |  :heavy_minus_sign: |  :heavy_minus_sign:
@@ -91,9 +92,10 @@ Argument | Description
 `--correction` | Kahan summation at each integration step (for now at Adams–Bashforth and Runge-Kutta solvers)
 `--starter_solver`   | Adams–Bashforth starter solver.
 `--refine_steps_count` | Refine step count for __implicit__ solvers.
-`--error_threshold` | Step error threshold for __embeded__ solvers. If the error at the current step is greater than the threshold, then we decrease the time step and repeat the step.
+`--error_threshold` | Step error threshold for solvers with __dynamic step__. If the error at the current step is greater than the threshold, then we decrease the time step and repeat the step.
 `--max_recursion`   | Max recursion level for __embeded__ solvers.
 `--substep_subdivisions` | Number of __embeded__ solver substeps into which the current step is divided at the next level of recursion when the error greater than `error_threshold`.
+`--max_level` | Maximum extrapolation table size for Bulirsch-Stoer solver
 
 #### Player
 To view simulation results run 'nbody-player' programm.
