@@ -22,6 +22,7 @@ TEST_DATA += \
     ../data/bulirsch-stoer.txt \
     ../data/euler.txt \
     ../data/midpoint.txt \
+    ../data/midpoint-st.txt \
     ../data/initial_state.txt \
     ../data/rk4.txt \
     ../data/rkck.txt \

@@ -44,6 +44,10 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 	{
 		solver = new nbody_solver_midpoint();
 	}
+	else if(type == "midpoint-st")
+	{
+		solver = new nbody_solver_midpoint_stetter();
+	}
 	else if(type == "rk4")
 	{
 		solver = new nbody_solver_rk4();
