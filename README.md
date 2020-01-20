@@ -13,6 +13,8 @@ Method alias | Order | Description | Implicit | Dynamic step
 adams | up to 5 | [Adams–Bashforth method](https://en.wikipedia.org/wiki/Linear_multistep_method#Adams%E2%80%93Bashforth_methods) |  :heavy_minus_sign: |  :heavy_minus_sign:
 bs | 2*`max_level` | [Bulirsch-Stoer method](https://en.wikipedia.org/wiki/Bulirsch%E2%80%93Stoer_algorithm) |  :heavy_minus_sign: |  :star:
 euler | 1 | [Classic Euler method](https://en.wikipedia.org/wiki/Euler_method) |  :heavy_minus_sign: |  :heavy_minus_sign:
+midpoint | 2 | [Midpoint method](https://en.wikipedia.org/wiki/Midpoint_method) |  :heavy_minus_sign: |  :heavy_minus_sign:
+midpoint-st | 2 | Midpoint method (Stetter modification. See [1)](README.md#refs) p. 228) |  :star: |  :heavy_minus_sign:
 rk4 | 4 | [Classic Runge-Kutta 4-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Classic_fourth-order_method) |  :heavy_minus_sign: |  :heavy_minus_sign:
 rk_butcher | - | [Runge-Kutta method with arbitrary Butcher tableu](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) |  :heavy_minus_sign: |  :heavy_minus_sign:
 rkck | 5 | [Runge-Kutta-Cash–Karp 5-order method](https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) |  :heavy_minus_sign: |  :star:
