@@ -19,7 +19,7 @@ rk4 | 4 | [Classic Runge-Kutta 4-order method](https://en.wikipedia.org/wiki/Lis
 rk_butcher | - | [Runge-Kutta method with arbitrary Butcher tableu](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) |  :heavy_minus_sign: |  :heavy_minus_sign:
 rkck | 5 | [Runge-Kutta-Cash–Karp 5-order method](https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) |  :heavy_minus_sign: |  :star:
 rkdp | 5 | [Runge-Kutta-Dormand–Prince 5-order method](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) |  :heavy_minus_sign: |  :star:
-rkdverk | 7 | Runge-Kutta-Verner 6-order method. See [1)](README.md#refs) p. 181 |  :heavy_minus_sign: |  :star:
+rkdverk | 5 | Runge-Kutta-Verner 5-order method. See [1)](README.md#refs) p. 181 |  :heavy_minus_sign: |  :star:
 rkf | 7 | Runge-Kutta-Fehlberg 7-order method. See [1)](README.md#refs) p. 180 |  :heavy_minus_sign: |  :star:
 rkgl | 6 | [Gauss–Legendre 6-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Gauss%E2%80%93Legendre_methods) |  :star: |  :heavy_minus_sign:
 rklc | 4 | [Runge-Kutta-Lobatto IIIC 4-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Lobatto_IIIC_methods) |  :star: |  :star:
