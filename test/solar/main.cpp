@@ -71,11 +71,20 @@ void bench_solver(const QString& format,
 		{"expected_state", expected_state},
 		{"min_step", "-1"}
 	}));
-	QVariantMap param05(std::map<QString, QVariant>(
+	QVariantMap param05a(std::map<QString, QVariant>(
 	{
 		{"name", "midpoint"},
 		{"engine", engine},
 		{"solver", "midpoint"},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param05b(std::map<QString, QVariant>(
+	{
+		{"name", "midpoint-st"},
+		{"engine", engine},
+		{"solver", "midpoint-st"},
 		{"initial_state", initial_state},
 		{"expected_state", expected_state},
 		{"min_step", "-1"}
@@ -154,7 +163,7 @@ void bench_solver(const QString& format,
 		{"min_step", "-1"}
 	}));
 
-	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05, param06, param07, param08, param09, param10, param11, param12};
+	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05a, param05b, param06, param07, param08, param09, param10, param11, param12};
 	std::vector<QVariant>					steps = {16.0, 4.0, 1.0, 1.0 / 4.0, 1.0 / 16.0, 1.0 / 64.0, 1.0 / 256.0};
 	QString									variable_field = "max_step";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
