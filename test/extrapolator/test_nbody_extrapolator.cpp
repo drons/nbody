@@ -38,6 +38,7 @@ test_nbody_extrapolator::~test_nbody_extrapolator()
 
 void test_nbody_extrapolator::initTestCase()
 {
+	QVERIFY(std::numeric_limits<nbcoord_t>::is_specialized);
 	qDebug() << "Engine" << m_e->type_name() << "Problem size" << m_problem_size;
 	qDebug() << "Extrapolator" << m_extrapolator_type;
 	m_e->print_info();
@@ -58,8 +59,8 @@ void test_nbody_extrapolator::extrapolate()
 																	 m_e, 1, sc));
 	auto	func = [](nbcoord_t x) {return 1_f / (1_f + x * x) + 1_f;};
 
-	nbcoord_t		last_error_estimation = 1e30;
-	nbcoord_t		last_error_absolute = 1e30;
+	nbcoord_t	last_error_estimation = std::numeric_limits<nbcoord_t>::max();
+	nbcoord_t	last_error_absolute = std::numeric_limits<nbcoord_t>::max();
 	for(size_t level = 0; level != sc.size(); ++level)
 	{
 		std::vector<nbcoord_t>	host_y(m_e->problem_size(), func(sc[level]));
@@ -76,7 +77,7 @@ void test_nbody_extrapolator::extrapolate()
 		ex->extrapolate(level, y);
 		m_e->read_buffer(host_y.data(), y);
 
-		nbcoord_t expected_value = func(1e15_f);
+		nbcoord_t expected_value = func(std::numeric_limits<nbcoord_t>::max());
 		nbcoord_t error_absolute = fabs(host_y[0] - expected_value);
 		qDebug() << "func(inf) =" << expected_value
 				 << "func(x) =" << func(sc[level])
