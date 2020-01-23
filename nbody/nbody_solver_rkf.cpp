@@ -42,7 +42,7 @@ const nbcoord_t** nbody_butcher_table_rkf::get_a() const
 	static const nbcoord_t	a11[] = { 2383_f / 4100_f, 0_f, 0_f, -341_f / 164_f, 4496_f / 1025_f, -301_f / 82_f, 2133_f / 4100_f, 45_f / 82_f, 45_f / 164_f, 18_f / 41_f };
 	static const nbcoord_t	a12[] = { 3_f / 205_f, 0_f, 0_f, 0_f, 0_f, -6_f / 41_f, -3_f / 205_f, -3_f / 41_f, 3 / 41_f, 6_f / 41_f, 0_f };
 
-	static const nbcoord_t	a13[] = { -1777_f / 4100_f, 0_f, 0_f, -341_f / 164_f, 4496_f / 1025_f, -289_f / 82_f, 2193_f / 4100_f, 51_f / 82_f, 33_f / 164_f, 19_f / 41_f, 0_f, 1_f };
+	static const nbcoord_t	a13[] = { -1777_f / 4100_f, 0_f, 0_f, -341_f / 164_f, 4496_f / 1025_f, -289_f / 82_f, 2193_f / 4100_f, 51_f / 82_f, 33_f / 164_f, 12_f / 41_f, 0_f, 1_f };
 
 	static const nbcoord_t*	a[] = { a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13 };
 
