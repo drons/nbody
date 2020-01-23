@@ -21,6 +21,7 @@ private Q_SLOTS:
 	void initTestCase();
 	void cleanupTestCase();
 	void run();
+	void butcher_table_check();
 };
 
 test_nbody_solver::test_nbody_solver(const QString& apppath, nbody_engine* _e,
@@ -78,7 +79,41 @@ void test_nbody_solver::run()
 	QString		data_path(m_apppath + "/../data/" + m_test_name + ".txt");
 	//m_data.save(data_path);
 	QVERIFY(expected.load(data_path));
-	QVERIFY(expected.is_equal(m_data, 1e-13));
+	QVERIFY(expected.is_equal(m_data, 1e-12));
+}
+
+void test_nbody_solver::butcher_table_check()
+{
+	nbody_solver_rk_butcher*	rk_butcher =
+		dynamic_cast<nbody_solver_rk_butcher*>(m_s);
+	if(rk_butcher == nullptr)
+	{
+		return;
+	}
+	const nbody_butcher_table*	table = rk_butcher->table();
+	QVERIFY(table != nullptr);
+
+	nbcoord_t	b1 = 0_f;
+	nbcoord_t	b2 = 0_f;
+	for(size_t i = 0; i != table->get_steps(); ++i)
+	{
+		b1 += table->get_b1()[i];
+		b2 += table->get_b2()[i];
+	}
+	nbcoord_t	eps(10 * std::numeric_limits<nbcoord_t>::epsilon());
+	QVERIFY(fabs(b1 - 1_f) < eps);
+	QVERIFY(fabs(b2 - 1_f) < eps);
+
+	for(size_t i = 0; i != table->get_steps(); ++i)
+	{
+		nbcoord_t	a = 0_f;
+		size_t		jmax = (table->is_implicit() ? table->get_steps() : i);
+		for(size_t j = 0; j != jmax; ++j)
+		{
+			a += table->get_a()[i][j];
+		}
+		QVERIFY(fabs(b2 - 1_f) < eps);
+	}
 }
 
 typedef nbody_engine_simple	nbody_engine_active;

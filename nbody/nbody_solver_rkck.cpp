@@ -42,7 +42,7 @@ const nbcoord_t** nbody_butcher_table_rkck::get_a() const
 
 const nbcoord_t* nbody_butcher_table_rkck::get_b1() const
 {
-	static const nbcoord_t	b1[] = { 35_f / 378_f, 0_f, 250_f / 621_f, 125_f / 594_f, 0, 512_f / 1771_f };
+	static const nbcoord_t	b1[] = { 37_f / 378_f, 0_f, 250_f / 621_f, 125_f / 594_f, 0, 512_f / 1771_f };
 
 	return b1;
 }

@@ -75,6 +75,11 @@ void nbody_solver_rk_butcher::print_info() const
 	qDebug() << "\tcorrection" << m_correction;
 }
 
+const nbody_butcher_table* nbody_solver_rk_butcher::table() const
+{
+	return m_bt;
+}
+
 void nbody_solver_rk_butcher::sub_step_implicit(size_t steps, const nbcoord_t** a,
 												nbcoord_t* coeff,
 												const nbody_engine::memory* y,

@@ -29,6 +29,8 @@ public:
 	const char* type_name() const override;
 	void advise(nbcoord_t dt) override;
 	void print_info() const override;
+
+	const nbody_butcher_table* table() const;
 private:
 	void sub_step(size_t substeps_count, nbcoord_t t, nbcoord_t dt,
 				  nbody_engine::memory* y, size_t recursion_level);
