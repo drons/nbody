@@ -38,13 +38,17 @@ inline __float128 fabs(__float128 x)
 
 inline QDebug operator << (QDebug g, __float128 v)
 {
-	g << static_cast<double>(v);
+	char	buf[256] = {0};
+	quadmath_snprintf(buf, sizeof(buf), "%+-#*.20Qe", 32, v);
+	g << buf;
 	return g;
 }
 
 inline QTextStream& operator << (QTextStream& g, __float128 v)
 {
-	g << static_cast<double>(v);
+	char	buf[256] = {0};
+	quadmath_snprintf(buf, sizeof(buf), "%+-#*.20Qe", g.realNumberPrecision(), v);
+	g << buf;
 	return g;
 }
 
