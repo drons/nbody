@@ -2,7 +2,8 @@
 
 nbody_solver_midpoint_stetter::nbody_solver_midpoint_stetter() :
 	m_tmp(nullptr),
-	m_du(nullptr)
+	m_du(nullptr),
+	m_uv_initiated(false)
 {
 }
 
@@ -32,9 +33,14 @@ void nbody_solver_midpoint_stetter::advise(nbcoord_t dt)
 		m_du = engine()->create_buffer(size);
 		m_fu = engine()->create_buffers(size, 2);
 		m_uv = engine()->create_buffers(size, 2);
+	}
 
+	if(!m_uv_initiated || first_run)
+	{
 		engine()->copy_buffer(m_uv[0], y);
 		engine()->copy_buffer(m_uv[1], y);
+		first_run = true;
+		m_uv_initiated = true;
 	}
 
 	//Compute u_{k+1}
@@ -62,4 +68,9 @@ void nbody_solver_midpoint_stetter::advise(nbcoord_t dt)
 
 
 	engine()->advise_time(dt);
+}
+
+void nbody_solver_midpoint_stetter::reset()
+{
+	m_uv_initiated = false;
 }

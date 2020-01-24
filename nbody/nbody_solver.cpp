@@ -104,3 +104,7 @@ e_ode_order nbody_solver::get_ode_order() const
 	return eode_first_order;
 }
 
+void nbody_solver::reset()
+{
+}
+

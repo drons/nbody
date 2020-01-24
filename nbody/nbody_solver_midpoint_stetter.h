@@ -18,11 +18,13 @@ class NBODY_DLL nbody_solver_midpoint_stetter : public nbody_solver
 	nbody_engine::memory_array	m_fu;
 	nbody_engine::memory*		m_tmp;
 	nbody_engine::memory*		m_du;
+	bool						m_uv_initiated;
 public:
 	nbody_solver_midpoint_stetter();
 	~nbody_solver_midpoint_stetter();
 	const char* type_name() const override;
 	void advise(nbcoord_t dt) override;
+	void reset() override;
 };
 
 #endif // NBODY_SOLVER_MIDPOINT_STETTER_H

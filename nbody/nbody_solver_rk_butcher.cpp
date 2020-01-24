@@ -75,6 +75,14 @@ void nbody_solver_rk_butcher::print_info() const
 	qDebug() << "\tcorrection" << m_correction;
 }
 
+void nbody_solver_rk_butcher::reset()
+{
+	if(m_corr_data != nullptr)
+	{
+		engine()->fill_buffer(m_corr_data, 0);
+	}
+}
+
 const nbody_butcher_table* nbody_solver_rk_butcher::table() const
 {
 	return m_bt;

@@ -32,6 +32,8 @@ public:
 	virtual void advise(nbcoord_t dt) = 0;
 	virtual void print_info() const;
 	virtual e_ode_order get_ode_order() const;
+	//! Reset solver's state to initial
+	virtual void reset();
 };
 
 #endif // NBODY_SOLVER_H

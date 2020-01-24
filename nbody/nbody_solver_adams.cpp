@@ -10,6 +10,7 @@ nbody_solver_adams::nbody_solver_adams(nbody_solver* starter,
 	m_starter(starter),
 	m_corr_data(nullptr),
 	m_rank(rank),
+	m_step(0),
 	m_correction(corr)
 {
 }
@@ -38,8 +39,7 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 
 	nbody_engine::memory*	y = engine()->get_y();
 	nbcoord_t				t = engine()->get_time();
-	size_t					step = engine()->get_step();
-	size_t					fnum = step % m_rank;
+	size_t					fnum = m_step % m_rank;
 	size_t					ps = engine()->problem_size();
 
 	if(m_f.empty())
@@ -53,7 +53,7 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 		}
 	}
 
-	if(step > m_rank)
+	if(m_step > m_rank)
 	{
 		std::vector<nbcoord_t>	coeff(m_rank);
 
@@ -80,6 +80,7 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 		engine()->fcompute(t, y, m_f[fnum]);
 		m_starter->advise(dt);
 	}
+	++m_step;
 }
 
 void nbody_solver_adams::print_info() const
@@ -88,4 +89,13 @@ void nbody_solver_adams::print_info() const
 	qDebug() << "\trank" << m_rank;
 	qDebug() << "\tcorrection" << m_correction;
 	qDebug() << "\tstarter" << m_starter->type_name();
+}
+
+void nbody_solver_adams::reset()
+{
+	if(m_corr_data != nullptr)
+	{
+		engine()->fill_buffer(m_corr_data, 0);
+	}
+	m_step = 0;
 }

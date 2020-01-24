@@ -29,6 +29,7 @@ public:
 	const char* type_name() const override;
 	void advise(nbcoord_t dt) override;
 	void print_info() const override;
+	void reset() override;
 
 	const nbody_butcher_table* table() const;
 private:
