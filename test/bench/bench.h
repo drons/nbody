@@ -312,6 +312,30 @@ int run_bench(const std::vector<QVariantMap>& params,
 			  const QString& check_list,
 			  nbcoord_t max_time)
 {
+	std::cout << "%% " << variable_field.toLocal8Bit().data() << " = {";
+	for(size_t i = 0; i < variable.size(); ++i)
+	{
+		if(i != 0)
+		{
+			std::cout << ", ";
+		}
+		std::cout << variable[i].toString().toLocal8Bit().data();
+	}
+	std::cout << "};" << std::endl;
+	std::cout << "%% Parameters:" << std::endl;
+
+	for(size_t i = 0; i < params.size(); ++i)
+	{
+		const QVariantMap&	p(params[i]);
+		std::cout << "%%\tset #" << i << "{" << std::endl;
+		for(auto ii = p.begin(); ii != p.end(); ++ii)
+		{
+			std::cout << "%%\t\t" << ii.key().toLocal8Bit().data() << "="
+					  << ii.value().toByteArray().data() << "," << std::endl;
+		}
+		std::cout << "%%\t}" << std::endl;
+	}
+
 	for(size_t i = 0; i < params.size(); ++i)
 	{
 		for(size_t j = 0; j < variable.size(); ++j)
