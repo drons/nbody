@@ -1,5 +1,5 @@
 #include "nbody_solver_bulirsch_stoer.h"
-#include "nbody_solver_midpoint.h"
+#include "nbody_solver_midpoint_stetter.h"
 #include "nbody_extrapolator.h"
 #include <QDebug>
 
@@ -72,6 +72,8 @@ void nbody_solver_bulirsch_stoer::compute_substep(size_t level, nbcoord_t dt, nb
 	// Compute ODE solution with step 'dt / substeps_count'
 	size_t		substeps_count = m_sub_steps_count[level];
 	nbcoord_t	substep_dt = dt / substeps_count;
+
+	m_internal->reset();
 	for(size_t substep_n = 0; substep_n != substeps_count; ++substep_n)
 	{
 		m_internal->advise(substep_dt);
@@ -87,7 +89,7 @@ void nbody_solver_bulirsch_stoer::advise(nbcoord_t dt)
 		size_t size = sizeof(nbcoord_t) * engine()->problem_size();
 		m_y0 = engine()->create_buffer(size);
 		m_extrapolator = nbody_create_extrapolator("neville", engine(), 2, m_sub_steps_count);
-		m_internal = new nbody_solver_midpoint();
+		m_internal = new nbody_solver_midpoint_stetter();
 		m_internal->set_engine(engine());
 	}
 
