@@ -101,18 +101,23 @@ void test_nbody_solver::butcher_table_check()
 		b2 += table->get_b2()[i];
 	}
 	nbcoord_t	eps(10 * std::numeric_limits<nbcoord_t>::epsilon());
+	qDebug() << "(b1 - 1_f) =" << b1 - 1_f << "eps =" << eps;
+	qDebug() << "(b2 - 1_f) =" << b2 - 1_f << "eps =" << eps;
 	QVERIFY(fabs(b1 - 1_f) < eps);
 	QVERIFY(fabs(b2 - 1_f) < eps);
 
 	for(size_t i = 0; i != table->get_steps(); ++i)
 	{
 		nbcoord_t	a = 0_f;
+		nbcoord_t	c = table->get_c()[i];
 		size_t		jmax = (table->is_implicit() ? table->get_steps() : i);
 		for(size_t j = 0; j != jmax; ++j)
 		{
 			a += table->get_a()[i][j];
 		}
-		QVERIFY(fabs(b2 - 1_f) < eps);
+		qDebug() << i << "Sum{a[i]} =" << a << "c = " << c
+				 << "(Sum{a[i]} - c[i]) =" << (a - c) << "eps =" << eps;
+		QVERIFY(fabs(a - c) < eps);
 	}
 }
 
@@ -200,6 +205,16 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkf"}}));
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkf");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkfeagin10"}}));
+		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkfeagin10");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkfeagin10"}, {"correction", true}}));
+		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkfeagin10-corr");
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{

@@ -11,6 +11,7 @@
 #include "nbody_solver_rkdp.h"
 #include "nbody_solver_rkdverk.h"
 #include "nbody_solver_rkf.h"
+#include "nbody_solver_rkfeagin10.h"
 #include "nbody_solver_rkgl.h"
 #include "nbody_solver_rklc.h"
 #include "nbody_solver_stormer.h"

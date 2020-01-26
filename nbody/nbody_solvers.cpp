@@ -68,6 +68,10 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 	{
 		solver = create_butcher_solver<nbody_solver_rkf>(param);
 	}
+	else if(type == "rkfeagin10")
+	{
+		solver = create_butcher_solver<nbody_solver_rkfeagin10>(param);
+	}
 	else if(type == "rkgl")
 	{
 		solver = create_butcher_solver<nbody_solver_rkgl>(param);
