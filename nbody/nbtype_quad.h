@@ -26,6 +26,15 @@ struct numeric_limits<__float128>
 };
 }// namespace std
 
+template<>
+struct strtonbcoord<__float128>
+{
+	static __float128 convert(const char* x)
+	{
+		return strtoflt128(x, nullptr);
+	}
+};
+
 inline __float128 sqrt(__float128 x)
 {
 	return sqrtq(x);

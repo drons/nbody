@@ -1,6 +1,17 @@
 #ifndef NBTYPE_H
 #define NBTYPE_H
 
+#include <cstdlib>
+
+template<class T>
+struct strtonbcoord
+{
+	static T convert(const char*)
+	{
+		return static_cast<T>(0);
+	}
+};
+
 #ifndef NB_COORD_PRECISION
 #define NB_COORD_PRECISION 2
 #endif
@@ -23,6 +34,31 @@ typedef vertex3<double>			nb3d_t;
 typedef vertex4<float>			nb4f_t;
 typedef vertex4<double>			nb4d_t;
 
+template<>
+struct strtonbcoord<float>
+{
+	static float convert(const char* x)
+	{
+		return std::strtof(x, nullptr);
+	}
+};
+template<>
+struct strtonbcoord<double>
+{
+	static double convert(const char* x)
+	{
+		return std::strtod(x, nullptr);
+	}
+};
+template<>
+struct strtonbcoord<long double>
+{
+	static long double convert(const char* x)
+	{
+		return std::strtold(x, nullptr);
+	}
+};
+
 constexpr nbcoord_t operator"" _f(unsigned long long int x)
 {
 	return static_cast<nbcoord_t>(x);
@@ -31,6 +67,11 @@ constexpr nbcoord_t operator"" _f(unsigned long long int x)
 constexpr nbcoord_t operator"" _f(long double x)
 {
 	return static_cast<nbcoord_t>(x);
+}
+
+inline nbcoord_t operator"" _f(const char* x, size_t /*unused*/)
+{
+	return strtonbcoord<nbcoord_t>::convert(x);
 }
 
 #define NBODY_DATA_BLOCK_SIZE	64
