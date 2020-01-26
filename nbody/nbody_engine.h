@@ -70,11 +70,13 @@ public:
 	virtual void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) = 0;
 	//! a[i] = b[i] + c[i]*d
 	virtual void fmadd(memory* a, const memory* b, const memory* c, const nbcoord_t& d) = 0;
-	//! a[i] += sum( b[k][i]*c[k], k=[0...b.size()) )
-	virtual void fmaddn_inplace(memory* a, const memory_array& b, const nbcoord_t* c);
-	//! a[i] += sum( b[k][i]*c[k], k=[0...b.size()) ) Kahan summation with correction
-	virtual void fmaddn_corr(memory* a, memory* corr, const memory_array& b, const nbcoord_t* c);
-	//! a[i] = b[i] + sum( c[k][i]*d[k], k=[0...c.size()) )
+	//! a[i] += sum( b[k][i]*c[k], k=[0...csize) )
+	virtual void fmaddn_inplace(memory* a, const memory_array& b,
+								const nbcoord_t* c, size_t csize);
+	//! a[i] += sum( b[k][i]*c[k], k=[0...csize) ) Kahan summation with correction
+	virtual void fmaddn_corr(memory* a, memory* corr, const memory_array& b,
+							 const nbcoord_t* c, size_t csize);
+	//! a[i] = b[i] + sum( c[k][i]*d[k], k=[0...dsize) )
 	virtual void fmaddn(memory* a, const memory* b, const memory_array& c,
 						const nbcoord_t* d, size_t dsize);
 	//! @result = max( fabs(a[k]), k=[0...asize) )

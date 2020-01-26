@@ -217,7 +217,7 @@ bool test_fmaddn1(nbody_engine* e, size_t csize)
 	}
 
 	//! a[i] += sum( b[k][i]*c[k], k=[0...b.size()) )
-	e->fmaddn_inplace(mem_a, mem_b, c.data());
+	e->fmaddn_inplace(mem_a, mem_b, c.data(), c.size());
 
 	e->read_buffer(a_res.data(), mem_a);
 
@@ -395,7 +395,7 @@ bool test_fmaddn_corr(nbody_engine* e, size_t csize)
 	}
 
 	//! a[i] += sum( b[k][i]*c[k], k=[0...b.size()) )
-	e->fmaddn_corr(mem_a, mem_corr, mem_b, c.data());
+	e->fmaddn_corr(mem_a, mem_corr, mem_b, c.data(), c.size());
 
 	e->read_buffer(a_res.data(), mem_a);
 
@@ -749,13 +749,13 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine_memory_fake	a(0);
 		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
 		nbcoord_t					c[1] = {};
-		m_e->fmaddn_inplace(&a, b, c);
+		m_e->fmaddn_inplace(&a, b, c, 1);
 		m_e->free_buffers(b);
 	}
 	{
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
-		m_e->fmaddn_inplace(a, b, NULL);
+		m_e->fmaddn_inplace(a, b, NULL, 1);
 		m_e->free_buffer(a);
 		m_e->free_buffers(b);
 	}
@@ -764,8 +764,16 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory_array	b(1, &b0);
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
 		nbcoord_t					c[1] = {};
-		m_e->fmaddn_inplace(a, b, c);
+		m_e->fmaddn_inplace(a, b, c, 1);
 		m_e->free_buffer(a);
+	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_inplace(a, b, c, 100);
+		m_e->free_buffer(a);
+		m_e->free_buffers(b);
 	}
 	qDebug() << "fmaddn_corr";
 	{
@@ -773,7 +781,7 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
 		nbcoord_t					c[1] = {};
-		m_e->fmaddn_corr(a, corr, b, c);
+		m_e->fmaddn_corr(a, corr, b, c, 1);
 		m_e->free_buffer(corr);
 		m_e->free_buffers(b);
 	}
@@ -782,7 +790,7 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory*		corr = nullptr;
 		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
 		nbcoord_t					c[1] = {};
-		m_e->fmaddn_corr(a, corr, b, c);
+		m_e->fmaddn_corr(a, corr, b, c, 1);
 		m_e->free_buffer(a);
 		m_e->free_buffers(b);
 	}
@@ -791,7 +799,7 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory_array	b(1, nullptr);
 		nbcoord_t					c[1] = {};
-		m_e->fmaddn_corr(a, corr, b, c);
+		m_e->fmaddn_corr(a, corr, b, c, 1);
 		m_e->free_buffer(a);
 		m_e->free_buffer(corr);
 	}
@@ -799,7 +807,17 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
 		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
-		m_e->fmaddn_corr(a, corr, b, nullptr);
+		m_e->fmaddn_corr(a, corr, b, nullptr, 1);
+		m_e->free_buffer(a);
+		m_e->free_buffer(corr);
+		m_e->free_buffers(b);
+	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbcoord_t					c[1] = {};
+		m_e->fmaddn_corr(a, corr, b, c, 100);
 		m_e->free_buffer(a);
 		m_e->free_buffer(corr);
 		m_e->free_buffers(b);

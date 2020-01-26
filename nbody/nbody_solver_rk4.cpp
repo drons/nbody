@@ -42,7 +42,7 @@ void nbody_solver_rk4::advise(nbcoord_t dt)
 	//y += 	dt( k1/6 + k2/3 + k3/3 + k4/8 )
 	const nbcoord_t	coeff[] = { dt / 6_f, dt / 3_f, dt / 3_f, dt / 6_f };
 
-	engine()->fmaddn_inplace(y, m_k, coeff);
+	engine()->fmaddn_inplace(y, m_k, coeff, 4);
 
 	engine()->advise_time(dt);
 }

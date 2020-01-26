@@ -66,11 +66,11 @@ void nbody_solver_adams::advise(nbcoord_t dt)
 
 		if(m_correction)
 		{
-			engine()->fmaddn_corr(y, m_corr_data, m_f, coeff.data());
+			engine()->fmaddn_corr(y, m_corr_data, m_f, coeff.data(), m_rank);
 		}
 		else
 		{
-			engine()->fmaddn_inplace(y, m_f, coeff.data());
+			engine()->fmaddn_inplace(y, m_f, coeff.data(), m_rank);
 		}
 
 		engine()->advise_time(dt);

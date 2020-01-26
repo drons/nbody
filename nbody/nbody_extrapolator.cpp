@@ -66,13 +66,9 @@ nbcoord_t nbody_extrapolator_berrut::estimate_error(size_t level) const
 	{
 		w1[n] -= w0[n];
 	}
-	nbody_engine::memory_array	table;
-	for(size_t n = 0; n != level; ++n)
-	{
-		table.push_back(m_table[n]);
-	}
+
 	engine()->fill_buffer(m_diff, 0_f);
-	engine()->fmaddn_inplace(m_diff, table, w1.data());
+	engine()->fmaddn_inplace(m_diff, m_table, w1.data(), level);
 	engine()->fmaxabs(m_diff, maxdiff);
 	return maxdiff;
 }
@@ -80,13 +76,12 @@ nbcoord_t nbody_extrapolator_berrut::estimate_error(size_t level) const
 void nbody_extrapolator_berrut::extrapolate(size_t level, nbody_engine::memory* ext_y) const
 {
 	const std::vector<nbcoord_t>	w(weights(level));
-	nbody_engine::memory_array		table;
-	for(size_t n = 0; n != level; ++n)
-	{
-		table.push_back(m_table[n]);
-	}
 	engine()->fill_buffer(ext_y, 0_f);
-	engine()->fmaddn_inplace(ext_y, table, w.data());
+	if(level == 0)
+	{
+		return;
+	}
+	engine()->fmaddn_inplace(ext_y, m_table, w.data(), level);
 }
 
 std::vector<nbcoord_t> nbody_extrapolator_berrut::weights(size_t level) const

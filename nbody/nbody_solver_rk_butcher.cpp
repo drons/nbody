@@ -220,11 +220,11 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 			}
 			if(m_correction)
 			{
-				engine()->fmaddn_corr(y, m_corr_data, m_k, coeff.data());
+				engine()->fmaddn_corr(y, m_corr_data, m_k, coeff.data(), m_k.size());
 			}
 			else
 			{
-				engine()->fmaddn_inplace(y, m_k, coeff.data());
+				engine()->fmaddn_inplace(y, m_k, coeff.data(), m_k.size());
 			}
 		}
 	}//for( size_t sub_n = 0; sub_n != substeps_count; ++sub_n )

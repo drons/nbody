@@ -45,11 +45,11 @@ void nbody_solver_trapeze::advise(nbcoord_t dt)
 
 		if(s == m_refine_steps_count)
 		{
-			engine()->fmaddn_inplace(y, m_f, coeff);
+			engine()->fmaddn_inplace(y, m_f, coeff, 2);
 		}
 		else
 		{
-			engine()->fmaddn(m_predictor, y, m_f, coeff, m_f.size());
+			engine()->fmaddn(m_predictor, y, m_f, coeff, 2);
 		}
 	}
 	engine()->advise_time(dt);

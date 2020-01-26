@@ -307,7 +307,8 @@ void nbody_engine_simple::fmadd(memory* __a, const memory* __b, const memory* __
 	}
 }
 
-void nbody_engine_simple::fmaddn_corr(memory* __a, memory* __corr, const memory_array& __b, const nbcoord_t* c)
+void nbody_engine_simple::fmaddn_corr(memory* __a, memory* __corr, const memory_array& __b,
+									  const nbcoord_t* c, size_t csize)
 {
 	smemory*	_a = dynamic_cast<smemory*>(__a);
 	smemory*	_corr = dynamic_cast<smemory*>(__corr);
@@ -326,6 +327,11 @@ void nbody_engine_simple::fmaddn_corr(memory* __a, memory* __corr, const memory_
 		qDebug() << "c is not smemory";
 		return;
 	}
+	if(csize > __b.size())
+	{
+		qDebug() << "csize > b.size()";
+		return;
+	}
 	std::vector<const nbcoord_t*>	b;
 	for(auto i : __b)
 	{
@@ -342,10 +348,9 @@ void nbody_engine_simple::fmaddn_corr(memory* __a, memory* __corr, const memory_
 	volatile nbcoord_t*	a = reinterpret_cast<nbcoord_t*>(_a->data());
 	volatile nbcoord_t*	corr = reinterpret_cast<nbcoord_t*>(_corr->data());
 	size_t	count = problem_size();
-	size_t	count_b = b.size();
 	for(size_t i = 0; i < count; ++i)
 	{
-		for(size_t k = 0; k < count_b; ++k)
+		for(size_t k = 0; k < csize; ++k)
 		{
 			volatile nbcoord_t	term(b[k][i] * c[k]);
 			a[i] = summation_k(a[i], term, corr[i]);

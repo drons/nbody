@@ -57,7 +57,7 @@ void nbody_solver_midpoint_stetter::advise(nbcoord_t dt)
 	{
 		nbcoord_t	v_coeff[] = {dt / 2_f, dt / 2_f};
 		engine()->fcompute(t + dt, m_uv[0], m_fu[1]);		// m_fu[1] =  f(t, u_{k+1})
-		engine()->fmaddn_inplace(m_uv[1], m_fu, v_coeff);	// v_{k+1} = v_k + (m_fu[1] + m_fu[0])/2
+		engine()->fmaddn_inplace(m_uv[1], m_fu, v_coeff, 2);// v_{k+1} = v_k + (m_fu[1] + m_fu[0])/2
 	}
 	//Compute y
 	nbcoord_t	y_coeff[] = {1_f / 2_f, 1_f / 2_f};
