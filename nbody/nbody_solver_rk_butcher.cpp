@@ -4,9 +4,10 @@
 nbody_solver_rk_butcher::nbody_solver_rk_butcher(nbody_butcher_table* t) :
 	nbody_solver(),
 	m_bt(t),
-	m_tmpy(nullptr),
+	m_t(nullptr),
 	m_tmpk(nullptr),
-	m_corr_data(nullptr),
+	m_ycorr_data(nullptr),
+	m_tcorr_data(nullptr),
 	m_max_recursion(8),
 	m_substep_subdivisions(8),
 	m_error_threshold(1e-4),
@@ -19,9 +20,10 @@ nbody_solver_rk_butcher::~nbody_solver_rk_butcher()
 {
 	delete m_bt;
 	engine()->free_buffers(m_k);;
-	engine()->free_buffer(m_tmpy);
+	engine()->free_buffer(m_t);
 	engine()->free_buffer(m_tmpk);
-	engine()->free_buffer(m_corr_data);
+	engine()->free_buffer(m_ycorr_data);
+	engine()->free_buffer(m_tcorr_data);
 	engine()->free_buffers(m_y_stack);
 }
 
@@ -77,9 +79,13 @@ void nbody_solver_rk_butcher::print_info() const
 
 void nbody_solver_rk_butcher::reset()
 {
-	if(m_corr_data != nullptr)
+	if(m_ycorr_data != nullptr)
 	{
-		engine()->fill_buffer(m_corr_data, 0);
+		engine()->fill_buffer(m_ycorr_data, 0);
+	}
+	if(m_tcorr_data != nullptr)
+	{
+		engine()->fill_buffer(m_tcorr_data, 0);
 	}
 }
 
@@ -101,8 +107,8 @@ void nbody_solver_rk_butcher::sub_step_implicit(size_t steps, const nbcoord_t** 
 		engine()->fcompute(t, y, m_tmpk);
 		for(size_t i = 0; i != steps; ++i)
 		{
-			engine()->fmadd(m_tmpy, y, m_tmpk, dt * c[i]);
-			engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
+			engine()->fmadd(m_t, y, m_tmpk, dt * c[i]);
+			engine()->fcompute(t + c[i]*dt, m_t, m_k[i]);
 		}
 	}
 
@@ -115,8 +121,8 @@ void nbody_solver_rk_butcher::sub_step_implicit(size_t steps, const nbcoord_t** 
 			{
 				coeff[n] = dt * a[i][n];
 			}
-			engine()->fmaddn(m_tmpy, y, m_k, coeff, m_k.size());
-			engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
+			engine()->fmaddn(m_t, y, m_k, coeff, m_k.size());
+			engine()->fcompute(t + c[i]*dt, m_t, m_k[i]);
 		}
 	}
 }
@@ -139,8 +145,17 @@ void nbody_solver_rk_butcher::sub_step_explicit(size_t steps, const nbcoord_t** 
 			{
 				coeff[n] = dt * a[i][n];
 			}
-			engine()->fmaddn(m_tmpy, y, m_k, coeff, i);
-			engine()->fcompute(t + c[i]*dt, m_tmpy, m_k[i]);
+			if(m_correction)
+			{
+				engine()->copy_buffer(m_tcorr_data, m_ycorr_data);
+				engine()->copy_buffer(m_t, y);
+				engine()->fmaddn_corr(m_t, m_tcorr_data, m_k, coeff, i);
+			}
+			else
+			{
+				engine()->fmaddn(m_t, y, m_k, coeff, i);
+			}
+			engine()->fcompute(t + c[i]*dt, m_t, m_k[i]);
 		}
 	}
 }
@@ -164,13 +179,15 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 	{
 		need_first_approach_k  = true;
 		m_k = engine()->create_buffers(sizeof(nbcoord_t) * ps, steps);
-		m_tmpy = engine()->create_buffer(sizeof(nbcoord_t) * ps);
+		m_t = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_tmpk = engine()->create_buffer(sizeof(nbcoord_t) * ps);
 		m_y_stack = engine()->create_buffers(sizeof(nbcoord_t) * ps, m_max_recursion);
 		if(m_correction)
 		{
-			m_corr_data = engine()->create_buffer(sizeof(nbcoord_t) * ps);
-			engine()->fill_buffer(m_corr_data, 0);
+			m_ycorr_data = engine()->create_buffer(sizeof(nbcoord_t) * ps);
+			m_tcorr_data = engine()->create_buffer(sizeof(nbcoord_t) * ps);
+			engine()->fill_buffer(m_ycorr_data, 0);
+			engine()->fill_buffer(m_tcorr_data, 0);
 		}
 	}
 
@@ -193,8 +210,8 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 			{
 				coeff[n] = (b2[n] - b1[n]);
 			}
-			engine()->fmaddn(m_tmpy, NULL, m_k, coeff.data(), steps);
-			engine()->fmaxabs(m_tmpy, max_error);
+			engine()->fmaddn(m_t, NULL, m_k, coeff.data(), steps);
+			engine()->fmaxabs(m_t, max_error);
 		}
 
 //		qDebug() << max_error;
@@ -220,7 +237,7 @@ void nbody_solver_rk_butcher::sub_step(size_t substeps_count, nbcoord_t t, nbcoo
 			}
 			if(m_correction)
 			{
-				engine()->fmaddn_corr(y, m_corr_data, m_k, coeff.data(), m_k.size());
+				engine()->fmaddn_corr(y, m_ycorr_data, m_k, coeff.data(), m_k.size());
 			}
 			else
 			{
