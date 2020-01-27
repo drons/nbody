@@ -4,6 +4,7 @@
 
 #include "nbody_solvers.h"
 #include "nbody_engines.h"
+#include "summation.h"
 
 
 class test_nbody_solver : public QObject
@@ -108,16 +109,22 @@ void test_nbody_solver::butcher_table_check()
 
 	for(size_t i = 0; i != table->get_steps(); ++i)
 	{
-		nbcoord_t	a = 0_f;
+		nbcoord_t	a_absmax = 0_f;
+		nbcoord_t	a_sum = 0_f;
+		nbcoord_t	a_corr = 0_f;
 		nbcoord_t	c = table->get_c()[i];
 		size_t		jmax = (table->is_implicit() ? table->get_steps() : i);
+		if(jmax == 0) { a_absmax = 1_f; }
 		for(size_t j = 0; j != jmax; ++j)
 		{
-			a += table->get_a()[i][j];
+			nbcoord_t a = table->get_a()[i][j];
+			a_sum = summation_k(a_sum, a, a_corr);
+			a_absmax = std::max(a_absmax, static_cast<nbcoord_t>(fabs(a)));
 		}
-		qDebug() << i << "Sum{a[i]} =" << a << "c = " << c
-				 << "(Sum{a[i]} - c[i]) =" << (a - c) << "eps =" << eps;
-		QVERIFY(fabs(a - c) < eps);
+		qDebug() << i << "Sum{a[i]} =" << a_sum << "c = " << c
+				 << "(Sum{a[i]} - c[i]) =" << (a_sum - c)
+				 << "eps =" << eps << "max(|a|) =" << a_absmax;
+		QVERIFY(fabs(a_sum - c) / a_absmax < eps);
 	}
 }
 
@@ -215,6 +222,11 @@ int main(int argc, char* argv[])
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkfeagin10"}, {"correction", true}}));
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkfeagin10-corr");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"solver", "rkfeagin14"}}));
+		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "rkfeagin14");
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{

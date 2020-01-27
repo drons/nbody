@@ -21,7 +21,8 @@ rkck | 5 | [Runge-Kutta-Cash–Karp 5-order method](https://en.wikipedia.org/wik
 rkdp | 5 | [Runge-Kutta-Dormand–Prince 5-order method](https://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method) |  :heavy_minus_sign: |  :star:
 rkdverk | 5 | Runge-Kutta-Verner 5-order method. See [1)](README.md#refs) p. 181 |  :heavy_minus_sign: |  :star:
 rkf | 7 | Runge-Kutta-Fehlberg 7-order method. See [1)](README.md#refs) p. 180 |  :heavy_minus_sign: |  :star:
-rkfeagin10 | 10 | Runge-Kutta-Feagin 10-order method. See [4)](README.md#refs)|  :heavy_minus_sign: |  :star:
+rkfeagin10 | 10 | Runge-Kutta-Feagin [10-order method](https://sce.uhcl.edu/rungekutta/). See [4)](README.md#refs)|  :heavy_minus_sign: |  :star:
+rkfeagin14 | 14 | Runge-Kutta-Feagin [14-order method](https://sce.uhcl.edu/rungekutta/).|  :heavy_minus_sign: |  :star:
 rkgl | 6 | [Gauss–Legendre 6-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Gauss%E2%80%93Legendre_methods) |  :star: |  :heavy_minus_sign:
 rklc | 4 | [Runge-Kutta-Lobatto IIIC 4-order method](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods#Lobatto_IIIC_methods) |  :star: |  :star:
 trapeze | 2 | [Trapeze method](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) |  :star: |  :heavy_minus_sign:

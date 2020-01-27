@@ -32,6 +32,7 @@ TEST_DATA += \
     ../data/rkf.txt \
     ../data/rkfeagin10-corr.txt \
     ../data/rkfeagin10.txt \
+    ../data/rkfeagin14.txt \
     ../data/rkgl.txt \
     ../data/rklc.txt \
     ../data/trapeze2.txt

@@ -39,7 +39,8 @@ void bench_solver(const QString& format,
 		{"rank", 5},
 		{"starter_solver", "rkdp"},
 		{"initial_state", initial_state},
-		{"expected_state", expected_state}
+		{"expected_state", expected_state},
+		{"end_state", initial_state + ".end"}
 	}));
 	QVariantMap param02(std::map<QString, QVariant>(
 	{
@@ -162,9 +163,30 @@ void bench_solver(const QString& format,
 		{"expected_state", expected_state},
 		{"min_step", "-1"}
 	}));
+	QVariantMap param13(std::map<QString, QVariant>(
+	{
+		{"name", "rkfeagin10-fixed-step"},
+		{"engine", engine},
+		{"solver", "rkfeagin10"},
+		{"correction", false},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
+	QVariantMap param14(std::map<QString, QVariant>(
+	{
+		{"name", "rkfeagin10-fixed-step-corr"},
+		{"engine", engine},
+		{"solver", "rkfeagin10"},
+		{"correction", true},
+		{"initial_state", initial_state},
+		{"expected_state", expected_state},
+		{"min_step", "-1"}
+	}));
 
-	std::vector<QVariantMap>				params = {param01, param02, param03, param04, param05a, param05b, param06, param07, param08, param09, param10, param11, param12};
-	std::vector<QVariant>					steps = {16.0, 4.0, 1.0, 1.0 / 4.0, 1.0 / 16.0, 1.0 / 64.0, 1.0 / 256.0};
+	std::vector<QVariantMap>				params = {param01};//, param02, param03, param04, param05a, param05b, param06, param07, param08, param09, param10, param11, param12, param13, param14};
+//	std::vector<QVariantMap>				params = {param12, param13, param14};
+	std::vector<QVariant>					steps = {1.0};//, 16.0, 4.0, 1.0, 1.0 / 4.0, 1.0 / 16.0, 1.0 / 64.0};//, 1.0 / 256.0};
 	QString									variable_field = "max_step";
 	std::vector<std::vector<QVariantMap>>	result(params.size(), std::vector<QVariantMap>(steps.size()));
 
