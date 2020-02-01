@@ -12,6 +12,7 @@
 #include "nbody_solver_rkdverk.h"
 #include "nbody_solver_rkf.h"
 #include "nbody_solver_rkfeagin10.h"
+#include "nbody_solver_rkfeagin12.h"
 #include "nbody_solver_rkfeagin14.h"
 #include "nbody_solver_rkgl.h"
 #include "nbody_solver_rklc.h"

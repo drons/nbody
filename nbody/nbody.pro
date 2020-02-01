@@ -37,6 +37,7 @@ SOURCES	+= \
 	nbody_solver_rkdverk.cpp \
 	nbody_solver_rkf.cpp \
 	nbody_solver_rkfeagin10.cpp \
+	nbody_solver_rkfeagin12.cpp \
 	nbody_solver_rkfeagin14.cpp \
 	nbody_solver_rkgl.cpp \
 	nbody_solver_rklc.cpp \
@@ -77,6 +78,7 @@ HEADERS	+= \
 	nbody_solver_rkdverk.h \
 	nbody_solver_rkf.h \
 	nbody_solver_rkfeagin10.h \
+	nbody_solver_rkfeagin12.h \
 	nbody_solver_rkfeagin14.h \
 	nbody_solver_rkgl.h \
 	nbody_solver_rklc.h \
