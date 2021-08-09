@@ -413,12 +413,14 @@ matrix:
           - cat ./pvs-error-list.txt
           - test "$(cat ./pvs-error-list.txt | wc -l)" -le 1
     - os: linux
-      dist: xenial
+      dist: focal
       compiler: gcc
       env: NAME="Astyle check"
+      addons:
+        apt:
+          packages:
+          - astyle
       script:
-      - wget --no-check-certificate https://docs.google.com/uc?id=1sVk01iIGzG-hdR1OBDarpUP-WYSzzNyQ -O astyle_3.1-1_amd64.deb
-      - sudo dpkg -i astyle_3.1-1_amd64.deb
       - astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
       - git diff --exit-code
     - os: linux
