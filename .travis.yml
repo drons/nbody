@@ -424,7 +424,7 @@ matrix:
       - astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
       - git diff --exit-code
     - os: linux
-      dist: bionic
+      dist: focal
       compiler: gcc
       env: NAME="cppcheck"
       addons:
@@ -432,9 +432,9 @@ matrix:
           packages:
           - cppcheck
       script:
-          - cppcheck -DNB_COORD_PRECISION=4 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
-          - cppcheck -DNB_COORD_PRECISION=2 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
-          - cppcheck -DNB_COORD_PRECISION=1 --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_PRECISION=4 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_PRECISION=2 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+          - cppcheck -DNB_COORD_PRECISION=1 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
     - os: linux
       dist: xenial
       compiler: gcc
