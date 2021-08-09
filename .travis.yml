@@ -1,10 +1,10 @@
 matrix:
   include:
     - os: linux
-      dist: xenial
+      dist: bionic
       sudo: required
       compiler: gcc
-      env: NAME="gcc5 + Qt4 + release"
+      env: NAME="gcc7 + Qt4 + release"
       addons:
         apt:
           packages:
@@ -16,8 +16,9 @@ matrix:
       script:
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release
+      - gcc --version
       - cd build-release
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release
+      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=3"
       - make -j2
       - oclgrind ./test/engine/engine
       - ./test/solver/solver

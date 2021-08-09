@@ -1,5 +1,7 @@
 #include "nbody_extrapolator.h"
 
+#include <numeric>
+
 nbody_extrapolator::nbody_extrapolator(
 	nbody_engine* e, size_t order,
 	const std::vector<size_t>& substeps_count):
