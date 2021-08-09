@@ -29,9 +29,13 @@ bool nbody_frame_compressor_opencv::set_destination(const QString& fn)
 void nbody_frame_compressor_opencv::push_frame(const QImage& frame, size_t)
 {
 	cv::Size    size(frame.width(), frame.height());
-
+#if CV_MAJOR_VERSION >= 4 // OPENCV >= 4
+	int fourcc = cv::VideoWriter::fourcc('M', 'P', 'E', 'G');
+#else // OPENCV < 4
+	int fourcc = CV_FOURCC('M', 'P', 'E', 'G');
+#endif
 	if((!d->m_writer.isOpened()) &&
-	   (!d->m_writer.open(d->m_dst_file.toLocal8Bit().data(), CV_FOURCC('M', 'P', 'E', 'G'), 24, size, true)))
+	   (!d->m_writer.open(d->m_dst_file.toLocal8Bit().data(), fourcc, 24, size, true)))
 	{
 		qDebug() << "Can't open output" << d->m_dst_file;
 		return;

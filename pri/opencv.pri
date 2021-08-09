@@ -15,3 +15,6 @@ LIBS += -lopencv_video$${OPEN_CV_LIB_SUFFIX}
 greaterThan(OPEN_CV_VERSION_MAJOR, 2){
 	LIBS += -lopencv_videoio$${OPEN_CV_LIB_SUFFIX}
 }
+greaterThan(OPEN_CV_VERSION_MAJOR, 3){
+	INCLUDEPATH += /usr/include/opencv4
+}
