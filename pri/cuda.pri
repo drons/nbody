@@ -1,6 +1,7 @@
 # Try to detect Nvidia SDK
 exists( /usr/local/cuda/bin ){
 	LIBS += -L/usr/local/cuda/lib64
+	LIBS += -L/usr/local/cuda/lib64/stubs
 	INCLUDEPATH += /usr/local/cuda/include
 	QMAKE_CUC = /usr/local/cuda/bin/nvcc
 
