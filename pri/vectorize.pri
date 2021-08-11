@@ -1,7 +1,7 @@
 unix{
 	!clang {
 		NBODY_FLAGS += -ftree-vectorizer-verbose=1
-		NBODY_FLAGS += -O3 -mavx -ftree-vectorize
+		NBODY_FLAGS += -O3 -march=native -ftree-vectorize
 	}
 	QMAKE_CFLAGS_RELEASE -= -O2
 	QMAKE_CXXFLAGS_RELEASE -= -O2

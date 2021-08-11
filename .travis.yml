@@ -204,6 +204,31 @@ matrix:
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
+      dist: focal
+      arch: arm64
+      compiler: gcc
+      env: NAME="gcc9 + Qt5 + release + ARM64"
+      addons:
+        apt:
+          packages:
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+      script:
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+      - mkdir build-release-arm64
+      - cd build-release-arm64
+      - which /usr/lib/*/qt5/bin/qmake
+      - /usr/lib/aarch64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=4"
+      - make -j2
+      - ./test/engine/engine
+      - ./test/solver/solver
+      - ./test/extrapolator/extrapolator
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
       dist: trusty
       sudo: required
       compiler: clang
