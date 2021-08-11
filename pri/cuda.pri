@@ -19,7 +19,16 @@ exists( /usr/local/cuda/bin ){
 	isEmpty(QMAKE_CPP_MOD_CU):QMAKE_CPP_MOD_CU = 
 	isEmpty(QMAKE_EXT_CPP_CU):QMAKE_EXT_CPP_CU = .cu
 
-	QMAKE_CUEXTRAFLAGS += -m64 -std=c++11
+	QMAKE_CUEXTRAFLAGS += -m64
+	!greaterThan(COMPILER_MAJOR_VERSION, 6){
+		QMAKE_CUEXTRAFLAGS += -std=c++11
+	}
+	greaterThan(COMPILER_MAJOR_VERSION, 6){
+		QMAKE_CUEXTRAFLAGS += -std=c++14
+	}
+	greaterThan(COMPILER_MAJOR_VERSION, 8){
+		QMAKE_CXXFLAGS += -Wno-old-style-cast
+	}
 	QMAKE_CUEXTRAFLAGS += $$QMAKE_CUDA_SM --compile
 	QMAKE_CUEXTRAFLAGS += $$join(INCLUDEPATH,'" -I"','-I"','"')
 	QMAKE_CUEXTRAFLAGS += $$join(DEFINES,'" -D"','-D"','"')

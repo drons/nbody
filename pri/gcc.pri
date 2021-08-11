@@ -89,11 +89,10 @@ greaterThan(COMPILER_MAJOR_VERSION, 7){
 	QMAKE_CXXFLAGS += -Werror=old-style-cast
 }
 
-greaterThan(COMPILER_MAJOR_VERSION, 9){
+greaterThan(COMPILER_MAJOR_VERSION, 8){
 	# GCC 9+
 	QMAKE_CXXFLAGS += -Werror=address-of-packed-member
 	QMAKE_CXXFLAGS += -Werror=array-bounds
-	QMAKE_CXXFLAGS += -Werror=absolute-value
 	QMAKE_CXXFLAGS += -Werror=deprecated-copy
 	QMAKE_CXXFLAGS += -Werror=init-list-lifetime
 	QMAKE_CXXFLAGS += -Werror=class-conversion
