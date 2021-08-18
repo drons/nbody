@@ -16,5 +16,12 @@ SUBDIRS += test
 test.subdir = test
 test.depends = nbody
 
-OTHER_FILES += appveyor.yml .travis.yml README.md .astylerc
+OTHER_FILES += \
+	appveyor.yml \
+	.astylerc \
+	.github/workflows/ubuntu-gpu-build.sh \
+	.github/workflows/ubuntu-gpu-build.yml \
+	README.md \
+	.travis.yml
+
 OTHER_FILES += test/pvs/plog.cfg
