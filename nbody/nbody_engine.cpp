@@ -57,6 +57,10 @@ void nbody_engine::fmaddn_inplace(memory* a, const memory_array& b, const nbcoor
 	}
 	for(size_t i = 0; i != csize; ++i)
 	{
+		if(c[i] == 0_f)
+		{
+			continue;
+		}
 		fmadd(a, a, b[i], c[i]);
 	}
 }
@@ -83,21 +87,28 @@ void nbody_engine::fmaddn(memory* a, const memory* b, const memory_array& c,
 		return;
 	}
 
+	bool	a_initiated = false;
 	if(b == NULL)
 	{
 		fill_buffer(a, 0);
+		a_initiated = true;
 	}
 
 	for(size_t i = 0; i != dsize; ++i)
 	{
-		if(i == 0 && b != NULL)
+		if(d[i] == 0_f)
 		{
-			fmadd(a, b, c[i], d[i]);
+			continue;
 		}
-		else
+		if(a_initiated)
 		{
 			fmadd(a, a, c[i], d[i]);
 		}
+		else
+		{
+			fmadd(a, b, c[i], d[i]);
+		}
+		a_initiated = true;
 	}
 }
 

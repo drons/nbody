@@ -96,17 +96,25 @@ void test_nbody_solver::butcher_table_check()
 
 	nbcoord_t	b1 = 0_f;
 	nbcoord_t	b2 = 0_f;
+	int			zero_count = 0;
 	for(size_t i = 0; i != table->get_steps(); ++i)
 	{
 		b1 += table->get_b1()[i];
 		b2 += table->get_b2()[i];
+		if((table->get_b1()[i] - table->get_b2()[i]) == 0_f)
+		{
+			zero_count++;
+		}
 	}
 	nbcoord_t	eps(10 * std::numeric_limits<nbcoord_t>::epsilon());
 	qDebug() << "(b1 - 1_f) =" << b1 - 1_f << "eps =" << eps;
 	qDebug() << "(b2 - 1_f) =" << b2 - 1_f << "eps =" << eps;
+	qDebug() << "zero_count(b2 - b2) =" << zero_count << "of" << table->get_steps();
 	QVERIFY(fabs(b1 - 1_f) < eps);
 	QVERIFY(fabs(b2 - 1_f) < eps);
 
+	size_t total = 0;
+	zero_count = 0;
 	for(size_t i = 0; i != table->get_steps(); ++i)
 	{
 		nbcoord_t	a_absmax = 0_f;
@@ -120,12 +128,18 @@ void test_nbody_solver::butcher_table_check()
 			nbcoord_t a = table->get_a()[i][j];
 			a_sum = summation_k(a_sum, a, a_corr);
 			a_absmax = std::max(a_absmax, static_cast<nbcoord_t>(fabs(a)));
+			if(a == 0_f)
+			{
+				zero_count++;
+			}
 		}
+		total += jmax;
 		qDebug() << i << "Sum{a[i]} =" << a_sum << "c = " << c
 				 << "(Sum{a[i]} - c[i]) =" << (a_sum - c)
 				 << "eps =" << eps << "max(|a|) =" << a_absmax;
 		QVERIFY(fabs(a_sum - c) / a_absmax < eps);
 	}
+	qDebug() << "zero_count(a) =" << zero_count << "of" << total;
 }
 
 typedef nbody_engine_simple	nbody_engine_active;

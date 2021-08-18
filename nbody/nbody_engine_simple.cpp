@@ -352,6 +352,10 @@ void nbody_engine_simple::fmaddn_corr(memory* __a, memory* __corr, const memory_
 	{
 		for(size_t k = 0; k < csize; ++k)
 		{
+			if(c[k] == 0_f)
+			{
+				continue;
+			}
 			volatile nbcoord_t	term(b[k][i] * c[k]);
 			a[i] = summation_k(a[i], term, corr[i]);
 		}

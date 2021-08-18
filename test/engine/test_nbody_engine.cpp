@@ -209,6 +209,11 @@ bool test_fmaddn1(nbody_engine* e, size_t csize)
 	{
 		c[n] = rand() % 10000;
 	}
+	if(csize > 1)
+	{
+		c[0] = 0_f;
+		c[csize / 2] = 0_f;
+	}
 
 	e->write_buffer(mem_a, a.data());
 	for(size_t n = 0; n != mem_b.size(); ++n)
@@ -270,6 +275,11 @@ bool test_fmaddn2(nbody_engine* e, size_t dsize)
 	{
 		d[n] = rand() % 10000;
 	}
+	if(dsize > 1)
+	{
+		d[0] = 0_f;
+		d[dsize / 2] = 0_f;
+	}
 
 	e->write_buffer(mem_a, a.data());
 	e->write_buffer(mem_b, b.data());
@@ -326,6 +336,11 @@ bool test_fmaddn3(nbody_engine* e, size_t dsize)
 	for(size_t n = 0; n != d.size(); ++n)
 	{
 		d[n] = rand() % 10000;
+	}
+	if(dsize > 1)
+	{
+		d[0] = 0_f;
+		d[dsize / 2] = 0_f;
 	}
 
 	e->write_buffer(mem_a, a.data());
