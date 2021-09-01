@@ -645,11 +645,13 @@ void test_nbody_engine::test_fmaddn_null_b()
 
 void test_nbody_engine::test_fmaddn_corr()
 {
-	if(dynamic_cast<nbody_engine_simple*>(m_e) == nullptr)
+#ifdef HAVE_CUDA
+	if(dynamic_cast<nbody_engine_cuda*>(m_e) != nullptr)
 	{
 		qDebug() << "Skip" << m_e->type_name();
 		return;
 	}
+#endif // HAVE_CUDA
 	QVERIFY(::test_fmaddn_corr(m_e, 10));
 }
 

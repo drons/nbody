@@ -97,6 +97,7 @@ typedef cl::make_kernel< cl_int,	//Block offset
 
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplace;
+typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplaceCorr;
 typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd;
 typedef cl::make_kernel< cl::Buffer, cl_int, cl_int, cl::Buffer, cl_int > FMaxabs;
 
@@ -112,6 +113,7 @@ struct nbody_engine_opencl::data
 		ComputeHeapBH		m_fcompute_hbh;
 		FMfill				m_fill;
 		FMaddInplace		m_fmadd_inplace;
+		FMaddInplaceCorr	m_fmadd_inplace_corr;
 		FMadd				m_fmadd;
 		FMaxabs				m_fmaxabs;
 
@@ -204,6 +206,7 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_fcompute_hbh(m_prog, "ComputeHeapBH"),
 	m_fill(m_prog, "fill"),
 	m_fmadd_inplace(m_prog, "fmadd_inplace"),
+	m_fmadd_inplace_corr(m_prog, "fmadd_inplace_corr"),
 	m_fmadd(m_prog, "fmadd"),
 	m_fmaxabs(m_prog, "fmaxabs")
 {
@@ -919,6 +922,67 @@ void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, 
 	}
 
 	cl::Event::waitForEvents(events);
+}
+
+void nbody_engine_opencl::fmaddn_corr(nbody_engine::memory* _a, nbody_engine::memory* _corr,
+									  const nbody_engine::memory_array& _b, const nbcoord_t* c, size_t csize)
+{
+	smemory*		a = dynamic_cast<smemory*>(_a);
+	smemory*		corr = dynamic_cast<smemory*>(_corr);
+
+	if(a == nullptr)
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if(corr == nullptr)
+	{
+		qDebug() << "corr is not smemory";
+		return;
+	}
+	if(c == nullptr)
+	{
+		qDebug() << "c must not be nullptr";
+		return;
+	}
+	if(csize > _b.size())
+	{
+		qDebug() << "csize > b.size()";
+		return;
+	}
+
+	for(size_t k = 0; k < csize; ++k)
+	{
+		if(c[k] == 0_f)
+		{
+			continue;
+		}
+		const smemory* b = dynamic_cast<const smemory*>(_b[k]);
+		if(b == nullptr)
+		{
+			qDebug() << "b is not smemory";
+			return;
+		}
+		size_t					device_count(d->m_devices.size());
+		size_t					device_data_size = problem_size() / device_count;
+		cl::NDRange				global_range(device_data_size);
+		cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+		std::vector<cl::Event>	events;
+
+		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+		{
+			size_t			offset = dev_n * device_data_size;
+			data::devctx&	ctx(d->m_devices[dev_n]);
+			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+			cl::Event		ev(ctx.m_fmadd_inplace_corr(eargs, offset,
+														a->buffer(dev_n),
+														corr->buffer(dev_n),
+														b->buffer(dev_n),
+														c[k]));
+			events.push_back(ev);
+		}
+		cl::Event::waitForEvents(events);
+	}
 }
 
 void nbody_engine_opencl::fmaxabs(const memory* _a, nbcoord_t& result)

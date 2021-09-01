@@ -61,7 +61,7 @@ void nbody_engine::fmaddn_inplace(memory* a, const memory_array& b, const nbcoor
 		{
 			continue;
 		}
-		fmadd(a, a, b[i], c[i]);
+		fmadd_inplace(a, b[i], c[i]);
 	}
 }
 

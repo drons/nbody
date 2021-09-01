@@ -296,6 +296,20 @@ __kernel void fmadd_inplace(int offset, __global nbcoord_t* a,
 	a[i] += b[i] * c;
 }
 
+//! a[i] += b[i]*c with correction
+__kernel void fmadd_inplace_corr(int offset, __global nbcoord_t* _a, __global nbcoord_t* corr,
+								 __global const nbcoord_t* b, nbcoord_t c)
+{
+	int			i = get_global_id(0) + offset;
+	nbcoord_t	term = b[i] * c;
+	nbcoord_t	a = _a[i];
+	nbcoord_t	corrected = term - corr[i];
+	nbcoord_t	new_sum = a + corrected;
+
+	corr[i] = (new_sum - a) - corrected;
+	_a[i] =  new_sum;
+}
+
 //! a[i+aoff] = b[i+boff] + c[i+coff]*d
 __kernel void fmadd(__global nbcoord_t* a, __global const nbcoord_t* b, __global const nbcoord_t* c,
 					nbcoord_t d, int aoff, int boff, int coff)
