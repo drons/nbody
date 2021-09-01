@@ -289,15 +289,16 @@ __kernel void fill(__global nbcoord_t* a, nbcoord_t value)
 }
 
 //! a[i] += b[i]*c
-__kernel void fmadd1(int offset, __global nbcoord_t* a, __global const nbcoord_t* b, nbcoord_t c)
+__kernel void fmadd_inplace(int offset, __global nbcoord_t* a,
+							__global const nbcoord_t* b, nbcoord_t c)
 {
 	int		i = get_global_id(0) + offset;
 	a[i] += b[i] * c;
 }
 
 //! a[i+aoff] = b[i+boff] + c[i+coff]*d
-__kernel void fmadd2(__global nbcoord_t* a, __global const nbcoord_t* b, __global const nbcoord_t* c,
-					 nbcoord_t d, int aoff, int boff, int coff)
+__kernel void fmadd(__global nbcoord_t* a, __global const nbcoord_t* b, __global const nbcoord_t* c,
+					nbcoord_t d, int aoff, int boff, int coff)
 {
 	int		i = get_global_id(0);
 	a[i + aoff] = b[i + boff] + c[i + coff] * d;

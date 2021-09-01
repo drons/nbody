@@ -96,8 +96,8 @@ typedef cl::make_kernel< cl_int,	//Block offset
 		> ComputeHeapBH;
 
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
-typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMadd1;
-typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd2;
+typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplace;
+typedef cl::make_kernel< cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t, cl_int, cl_int, cl_int > FMadd;
 typedef cl::make_kernel< cl::Buffer, cl_int, cl_int, cl::Buffer, cl_int > FMaxabs;
 
 struct nbody_engine_opencl::data
@@ -111,8 +111,8 @@ struct nbody_engine_opencl::data
 		ComputeBlockBH		m_fcompute_bh;
 		ComputeHeapBH		m_fcompute_hbh;
 		FMfill				m_fill;
-		FMadd1				m_fmadd1;
-		FMadd2				m_fmadd2;
+		FMaddInplace		m_fmadd_inplace;
+		FMadd				m_fmadd;
 		FMaxabs				m_fmaxabs;
 
 		static QString build_options(int block_size);
@@ -203,8 +203,8 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
 	m_fcompute_hbh(m_prog, "ComputeHeapBH"),
 	m_fill(m_prog, "fill"),
-	m_fmadd1(m_prog, "fmadd1"),
-	m_fmadd2(m_prog, "fmadd2"),
+	m_fmadd_inplace(m_prog, "fmadd_inplace"),
+	m_fmadd(m_prog, "fmadd"),
 	m_fmaxabs(m_prog, "fmaxabs")
 {
 }
@@ -872,8 +872,8 @@ void nbody_engine_opencl::fmadd_inplace(memory* _a, const memory* _b, const nbco
 		size_t			offset = dev_n * device_data_size;
 		data::devctx&	ctx(d->m_devices[dev_n]);
 		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-		cl::Event		ev(ctx.m_fmadd1(eargs, offset, a->buffer(dev_n),
-										b->buffer(dev_n), c));
+		cl::Event		ev(ctx.m_fmadd_inplace(eargs, offset, a->buffer(dev_n),
+											   b->buffer(dev_n), c));
 		events.push_back(ev);
 	}
 
@@ -913,8 +913,8 @@ void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, 
 		size_t			offset = dev_n * device_data_size;
 		data::devctx&	ctx(d->m_devices[dev_n]);
 		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-		cl::Event		ev(ctx.m_fmadd2(eargs, a->buffer(dev_n), b->buffer(dev_n), c->buffer(dev_n),
-										_d, offset, offset, offset));
+		cl::Event		ev(ctx.m_fmadd(eargs, a->buffer(dev_n), b->buffer(dev_n), c->buffer(dev_n),
+									   _d, offset, offset, offset));
 		events.push_back(ev);
 	}
 

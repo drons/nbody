@@ -95,7 +95,7 @@ bool test_fill_buffer(nbody_engine* e)
 	return ret;
 }
 
-bool test_fmadd1(nbody_engine* e)
+bool test_fmadd_inplace(nbody_engine* e)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = sizeof(nbcoord_t) * e->problem_size();
@@ -135,7 +135,7 @@ bool test_fmadd1(nbody_engine* e)
 	return ret;
 }
 
-bool test_fmadd2(nbody_engine* e)
+bool test_fmadd(nbody_engine* e)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -185,7 +185,7 @@ bool test_fmadd2(nbody_engine* e)
 	return ret;
 }
 
-bool test_fmaddn1(nbody_engine* e, size_t csize)
+bool test_fmaddn_inplace(nbody_engine* e, size_t csize)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -246,7 +246,7 @@ bool test_fmaddn1(nbody_engine* e, size_t csize)
 	return ret;
 }
 
-bool test_fmaddn2(nbody_engine* e, size_t dsize)
+bool test_fmaddn(nbody_engine* e, size_t dsize)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -314,7 +314,7 @@ bool test_fmaddn2(nbody_engine* e, size_t dsize)
 	return ret;
 }
 
-bool test_fmaddn3(nbody_engine* e, size_t dsize)
+bool test_fmaddn_null_b(nbody_engine* e, size_t dsize)
 {
 	nbcoord_t				eps = std::numeric_limits<nbcoord_t>::epsilon();
 	const size_t			size = e->problem_size();
@@ -558,10 +558,10 @@ private slots:
 	void test_copy_buffer();
 	void test_fill_buffer();
 	void test_fmadd1();
-	void test_fmadd2();
-	void test_fmaddn1();
-	void test_fmaddn2();
-	void test_fmaddn3();
+	void test_fmadd();
+	void test_fmaddn_inplace();
+	void test_fmaddn();
+	void test_fmaddn_null_b();
 	void test_fmaddn_corr();
 	void test_fmaxabs();
 	void test_fcompute();
@@ -614,33 +614,33 @@ void test_nbody_engine::test_fill_buffer()
 
 void test_nbody_engine::test_fmadd1()
 {
-	QVERIFY(::test_fmadd1(m_e));
+	QVERIFY(::test_fmadd_inplace(m_e));
 }
 
-void test_nbody_engine::test_fmadd2()
+void test_nbody_engine::test_fmadd()
 {
-	QVERIFY(::test_fmadd2(m_e));
+	QVERIFY(::test_fmadd(m_e));
 }
 
-void test_nbody_engine::test_fmaddn1()
+void test_nbody_engine::test_fmaddn_inplace()
 {
-	QVERIFY(::test_fmaddn1(m_e, 1));
-	QVERIFY(::test_fmaddn1(m_e, 3));
-	QVERIFY(::test_fmaddn1(m_e, 7));
+	QVERIFY(::test_fmaddn_inplace(m_e, 1));
+	QVERIFY(::test_fmaddn_inplace(m_e, 3));
+	QVERIFY(::test_fmaddn_inplace(m_e, 7));
 }
 
-void test_nbody_engine::test_fmaddn2()
+void test_nbody_engine::test_fmaddn()
 {
-	QVERIFY(::test_fmaddn2(m_e, 1));
-	QVERIFY(::test_fmaddn2(m_e, 3));
-	QVERIFY(::test_fmaddn2(m_e, 7));
+	QVERIFY(::test_fmaddn(m_e, 1));
+	QVERIFY(::test_fmaddn(m_e, 3));
+	QVERIFY(::test_fmaddn(m_e, 7));
 }
 
-void test_nbody_engine::test_fmaddn3()
+void test_nbody_engine::test_fmaddn_null_b()
 {
-	QVERIFY(::test_fmaddn3(m_e, 1));
-	QVERIFY(::test_fmaddn3(m_e, 3));
-	QVERIFY(::test_fmaddn3(m_e, 7));
+	QVERIFY(::test_fmaddn_null_b(m_e, 1));
+	QVERIFY(::test_fmaddn_null_b(m_e, 3));
+	QVERIFY(::test_fmaddn_null_b(m_e, 7));
 }
 
 void test_nbody_engine::test_fmaddn_corr()
