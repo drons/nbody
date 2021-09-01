@@ -450,6 +450,29 @@ __host__ void fmadd_inplace(int offset, nbcoord_t* a, const nbcoord_t* b, nbcoor
 	kfmadd_inplace <<< grid, block >>> (offset, a, b, c);
 }
 
+//! a[i] += b[i]*c with correction
+__global__ void kfmadd_inplace_corr(int offset, nbcoord_t* _a, nbcoord_t* corr,
+									const nbcoord_t* b, nbcoord_t c)
+{
+	int		i = blockDim.x * blockIdx.x + threadIdx.x + offset;
+	nbcoord_t	term = b[i] * c;
+	nbcoord_t	a = _a[i];
+	nbcoord_t	corrected = term - corr[i];
+	nbcoord_t	new_sum = a + corrected;
+
+	corr[i] = (new_sum - a) - corrected;
+	_a[i] =  new_sum;
+}
+
+__host__ void fmadd_inplace_corr(int offset, nbcoord_t* a, nbcoord_t* corr,
+								 const nbcoord_t* b, nbcoord_t c, int count)
+{
+	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
+	dim3 block(NBODY_DATA_BLOCK_SIZE);
+
+	kfmadd_inplace_corr <<< grid, block >>> (offset, a, corr, b, c);
+}
+
 //! a[i+aoff] = b[i+boff] + c[i+coff]*d
 __global__ void kfmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
 					   nbcoord_t d, int aoff, int boff, int coff)

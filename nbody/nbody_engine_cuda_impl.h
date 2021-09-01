@@ -37,6 +37,10 @@ __host__ void fill_buffer(nbcoord_t* ptr, nbcoord_t v, int count);
 //! a[i] += b[i]*c
 __host__ void fmadd_inplace(int offset, nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count);
 
+//! a[i] += b[i]*c with correction
+__host__ void fmadd_inplace_corr(int offset, nbcoord_t* a, nbcoord_t* corr,
+								 const nbcoord_t* b, nbcoord_t c, int count);
+
 //! a[i+aoff] = b[i+boff] + c[i+coff]*d
 __host__ void fmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
 					nbcoord_t d, int aoff, int boff, int coff, int count);

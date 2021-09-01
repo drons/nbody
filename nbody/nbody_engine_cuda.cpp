@@ -243,6 +243,51 @@ void nbody_engine_cuda::fmadd_inplace(memory* _a, const memory* _b, const nbcoor
 					static_cast<int>(a->size() / sizeof(nbcoord_t)));
 }
 
+void nbody_engine_cuda::fmaddn_corr(nbody_engine::memory* _a, nbody_engine::memory* _corr,
+									const nbody_engine::memory_array& _b, const nbcoord_t* c, size_t csize)
+{
+	smemory*		a = dynamic_cast<smemory*>(_a);
+	smemory*		corr = dynamic_cast<smemory*>(_corr);
+
+	if(a == nullptr)
+	{
+		qDebug() << "a is not smemory";
+		return;
+	}
+	if(corr == nullptr)
+	{
+		qDebug() << "corr is not smemory";
+		return;
+	}
+	if(c == nullptr)
+	{
+		qDebug() << "c must not be nullptr";
+		return;
+	}
+	if(csize > _b.size())
+	{
+		qDebug() << "csize > b.size()";
+		return;
+	}
+	for(size_t k = 0; k < csize; ++k)
+	{
+		if(c[k] == 0_f)
+		{
+			continue;
+		}
+		const smemory* b = dynamic_cast<const smemory*>(_b[k]);
+		if(b == nullptr)
+		{
+			qDebug() << "b is not smemory";
+			return;
+		}
+		::fmadd_inplace_corr(0, static_cast<nbcoord_t*>(a->data()),
+							 static_cast<nbcoord_t*>(corr->data()),
+							 static_cast<const nbcoord_t*>(b->data()), c[k],
+							 static_cast<int>(a->size() / sizeof(nbcoord_t)));
+	}
+}
+
 void nbody_engine_cuda::fmadd(memory* _a, const memory* _b, const memory* _c, const nbcoord_t& d)
 {
 	smemory*		a = dynamic_cast<smemory*>(_a);
