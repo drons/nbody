@@ -506,12 +506,6 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 		return;
 	}
 
-	if(d->m_devices.empty())
-	{
-		qDebug() << Q_FUNC_INFO << "m_devices.empty()";
-		return;
-	}
-
 	size_t	device_count(d->m_devices.size());
 
 	if(device_count > 1)
@@ -597,12 +591,6 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 	if(f == NULL)
 	{
 		qDebug() << "f is not smemory";
-		return;
-	}
-
-	if(d->m_devices.empty())
-	{
-		qDebug() << Q_FUNC_INFO << "m_devices.empty()";
 		return;
 	}
 
