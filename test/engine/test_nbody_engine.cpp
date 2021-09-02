@@ -785,6 +785,16 @@ void test_nbody_engine::test_negative_branches()
 		m_e->free_buffer(a);
 		m_e->free_buffers(b);
 	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbody_engine::memory_array	badb(b);
+		nbcoord_t					c[1] = {1};
+		badb[0] = nullptr;
+		m_e->fmaddn_inplace(a, badb, c, 1);
+		m_e->free_buffer(a);
+		m_e->free_buffers(b);
+	}
 	qDebug() << "fmaddn_corr";
 	{
 		nbody_engine::memory*		a = nullptr;
@@ -828,6 +838,18 @@ void test_nbody_engine::test_negative_branches()
 		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
 		nbcoord_t					c[1] = {};
 		m_e->fmaddn_corr(a, corr, b, c, 100);
+		m_e->free_buffer(a);
+		m_e->free_buffer(corr);
+		m_e->free_buffers(b);
+	}
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		corr = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	b = m_e->create_buffers(m_e->problem_size(), 1);
+		nbody_engine::memory_array	badb(b);
+		nbcoord_t					c[1] = {1};
+		badb[0] = nullptr;
+		m_e->fmaddn_corr(a, corr, badb, c, 1);
 		m_e->free_buffer(a);
 		m_e->free_buffer(corr);
 		m_e->free_buffers(b);
@@ -883,7 +905,18 @@ void test_nbody_engine::test_negative_branches()
 		m_e->free_buffer(a);
 		m_e->free_buffers(c);
 	}
-
+	{
+		nbody_engine::memory*		a = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory*		b = m_e->create_buffer(m_e->problem_size());
+		nbody_engine::memory_array	c = m_e->create_buffers(m_e->problem_size(), 1);
+		nbody_engine::memory_array	badc(c);
+		nbcoord_t					d[1] = {1};
+		badc[0] = nullptr;
+		m_e->fmaddn(a, b, badc, d, 1);
+		m_e->free_buffer(a);
+		m_e->free_buffer(b);
+		m_e->free_buffers(c);
+	}
 	qDebug() << "fmaxabs";
 	{
 		nbody_engine_memory_fake	a(0);
