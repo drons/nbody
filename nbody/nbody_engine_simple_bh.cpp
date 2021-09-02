@@ -15,11 +15,6 @@ nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius
 {
 }
 
-const char* nbody_engine_simple_bh::type_name() const
-{
-	return "nbody_engine_simple_bh";
-}
-
 template<class T>
 void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory* f)
 {
@@ -76,41 +71,6 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(const smemory* y, smemory
 	}
 }
 
-void nbody_engine_simple_bh::fcompute(const nbcoord_t& t, const memory* _y, memory* _f)
-{
-	Q_UNUSED(t);
-	const smemory*	y = dynamic_cast<const  smemory*>(_y);
-	smemory*		f = dynamic_cast<smemory*>(_f);
-
-	if(y == NULL)
-	{
-		qDebug() << "y is not smemory";
-		return;
-	}
-	if(f == NULL)
-	{
-		qDebug() << "f is not smemory";
-		return;
-	}
-
-	advise_compute_count();
-
-	switch(m_tree_layout)
-	{
-	case etl_tree:
-		space_subdivided_fcompute<nbody_space_tree>(y, f);
-		break;
-	case etl_heap:
-		space_subdivided_fcompute<nbody_space_heap>(y, f);
-		break;
-	case etl_heap_stackless:
-		space_subdivided_fcompute<nbody_space_heap_stackless>(y, f);
-		break;
-	default:
-		break;
-	}
-}
-
 const char* tree_layout_name(e_tree_layout tree_layout)
 {
 	switch(tree_layout)
@@ -147,9 +107,114 @@ e_tree_layout tree_layout_from_str(const QString& name)
 
 void nbody_engine_simple_bh::print_info() const
 {
-	nbody_engine_simple::print_info();
+	nbody_engine_openmp::print_info();
 	qDebug() << "\tdistance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
 	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
 	qDebug() << "\ttree_layout:" << tree_layout_name(m_tree_layout);
 }
 
+
+nbody_engine_simple_bh_tree::nbody_engine_simple_bh_tree(nbcoord_t ratio,
+														 e_traverse_type tt) :
+	nbody_engine_simple_bh(ratio, tt, etl_tree)
+{
+}
+
+const char* nbody_engine_simple_bh_tree::type_name() const
+{
+	return "nbody_engine_simple_bh_tree";
+}
+
+void nbody_engine_simple_bh_tree::fcompute(const nbcoord_t& t,
+										   const nbody_engine::memory* _y,
+										   nbody_engine::memory* _f)
+{
+	Q_UNUSED(t);
+	const smemory*	y = dynamic_cast<const  smemory*>(_y);
+	smemory*		f = dynamic_cast<smemory*>(_f);
+
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+	if(f == NULL)
+	{
+		qDebug() << "f is not smemory";
+		return;
+	}
+
+	advise_compute_count();
+
+	space_subdivided_fcompute<nbody_space_tree>(y, f);
+}
+
+nbody_engine_simple_bh_heap::nbody_engine_simple_bh_heap(nbcoord_t ratio,
+														 e_traverse_type tt) :
+	nbody_engine_simple_bh(ratio, tt, etl_heap)
+{
+}
+
+const char* nbody_engine_simple_bh_heap::type_name() const
+{
+	return "nbody_engine_simple_bh_heap";
+}
+
+void nbody_engine_simple_bh_heap::fcompute(const nbcoord_t& t,
+										   const nbody_engine::memory* _y,
+										   nbody_engine::memory* _f)
+{
+	Q_UNUSED(t);
+	const smemory*	y = dynamic_cast<const  smemory*>(_y);
+	smemory*		f = dynamic_cast<smemory*>(_f);
+
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+	if(f == NULL)
+	{
+		qDebug() << "f is not smemory";
+		return;
+	}
+
+	advise_compute_count();
+
+	space_subdivided_fcompute<nbody_space_heap>(y, f);
+}
+
+nbody_engine_simple_bh_heap_stackless::nbody_engine_simple_bh_heap_stackless(nbcoord_t ratio,
+																			 e_traverse_type tt) :
+	nbody_engine_simple_bh(ratio, tt, etl_heap_stackless)
+{
+}
+
+const char* nbody_engine_simple_bh_heap_stackless::type_name() const
+{
+	return "nbody_engine_simple_bh_heap_stackless";
+}
+
+void nbody_engine_simple_bh_heap_stackless::fcompute(const nbcoord_t& t,
+													 const nbody_engine::memory* _y,
+													 nbody_engine::memory* _f)
+{
+	Q_UNUSED(t);
+	const smemory*	y = dynamic_cast<const  smemory*>(_y);
+	smemory*		f = dynamic_cast<smemory*>(_f);
+
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+	if(f == NULL)
+	{
+		qDebug() << "f is not smemory";
+		return;
+	}
+
+	advise_compute_count();
+
+	space_subdivided_fcompute<nbody_space_heap_stackless>(y, f);
+}

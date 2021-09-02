@@ -132,13 +132,18 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		}
 
 		e_tree_layout tl = tree_layout_from_str(strtl);
-		if(tl == etl_unknown)
+		switch(tl)
 		{
+		case etl_unknown:
 			qDebug() << "Invalid tree_layout. Allowed values are 'tree', 'heap' or 'heap_stackless'";
-			return NULL;
+			return nullptr;
+		case etl_tree:
+			return new nbody_engine_simple_bh_tree(distance_to_node_radius_ratio, tt);
+		case etl_heap:
+			return new nbody_engine_simple_bh_heap(distance_to_node_radius_ratio, tt);
+		case etl_heap_stackless:
+			return new nbody_engine_simple_bh_heap_stackless(distance_to_node_radius_ratio, tt);
 		}
-
-		return new nbody_engine_simple_bh(distance_to_node_radius_ratio, tt, tl);
 	}
 
 	return NULL;
