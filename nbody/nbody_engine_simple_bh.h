@@ -3,11 +3,7 @@
 
 #include "nbody_engine_openmp.h"
 
-static constexpr	size_t SPACE_DIMENSIONS = 3;
-static constexpr	size_t DIM_NUM_X = 0;
-static constexpr	size_t DIM_NUM_Y = 1;
-static constexpr	size_t DIM_NUM_Z = 2;
-static constexpr	size_t MAX_STACK_SIZE = 64;
+#include "nbody_space_heap_stackless.h"
 
 enum e_traverse_type
 {
@@ -43,12 +39,13 @@ public:
 	void print_info() const override;
 protected:
 	template<class T>
-	void space_subdivided_fcompute(const smemory* y, smemory* f);
+	void space_subdivided_fcompute(T& tree, const nbcoord_t& t, const memory* y, memory* f);
 };
 
 //Tree layout
 class NBODY_DLL nbody_engine_simple_bh_tree : public nbody_engine_simple_bh
 {
+	nbody_space_tree	m_tree;
 public:
 	nbody_engine_simple_bh_tree(nbcoord_t distance_to_node_radius_ratio = 0,
 								e_traverse_type tt = ett_cycle);
@@ -59,6 +56,7 @@ public:
 //Heap layout
 class NBODY_DLL nbody_engine_simple_bh_heap : public nbody_engine_simple_bh
 {
+	nbody_space_heap	m_tree;
 public:
 	nbody_engine_simple_bh_heap(nbcoord_t distance_to_node_radius_ratio = 0,
 								e_traverse_type tt = ett_cycle);
@@ -69,6 +67,7 @@ public:
 //Heap-stackless layout
 class NBODY_DLL nbody_engine_simple_bh_heap_stackless : public nbody_engine_simple_bh
 {
+	nbody_space_heap_stackless	m_tree;
 public:
 	nbody_engine_simple_bh_heap_stackless(nbcoord_t distance_to_node_radius_ratio = 0,
 										  e_traverse_type tt = ett_cycle);

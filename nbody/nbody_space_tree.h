@@ -1,7 +1,13 @@
 #ifndef NBODY_SPACE_TREE_H
 #define NBODY_SPACE_TREE_H
 
-#include "nbody_engine_simple_bh.h"
+#include "nbody_data.h"
+
+static constexpr	size_t SPACE_DIMENSIONS = 3;
+static constexpr	size_t DIM_NUM_X = 0;
+static constexpr	size_t DIM_NUM_Y = 1;
+static constexpr	size_t DIM_NUM_Z = 2;
+static constexpr	size_t MAX_STACK_SIZE = 64;
 
 class nbody_space_tree
 {

@@ -1,7 +1,9 @@
 #ifndef NBODY_SPACE_HEAP_H
 #define NBODY_SPACE_HEAP_H
 
-#include "nbody_engine_simple_bh.h"
+#include <vector>
+#include "nbody_data.h"
+#include "nbody_space_tree.h"
 #include "nbody_space_heap_func.h"
 
 class nbody_space_heap : public nbody_heap_func<size_t>

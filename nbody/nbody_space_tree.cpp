@@ -140,7 +140,10 @@ void nbody_space_tree::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	{
 		bodies_indites[i] = i;
 	}
-
+	if(m_root != nullptr)
+	{
+		delete m_root;
+	}
 	m_root = new node();
 	#pragma omp parallel
 	#pragma omp single
