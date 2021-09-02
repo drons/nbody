@@ -32,9 +32,11 @@ private:
 	nbcoord_t			m_distance_to_node_radius_ratio;
 	e_traverse_type		m_traverse_type;
 	e_tree_layout		m_tree_layout;
+	size_t				m_tree_build_rate;
 protected:
 	nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio,
-						   e_traverse_type tt, e_tree_layout tl);
+						   e_traverse_type tt, size_t tree_build_rate,
+						   e_tree_layout tl);
 public:
 	void print_info() const override;
 protected:
@@ -48,7 +50,8 @@ class NBODY_DLL nbody_engine_simple_bh_tree : public nbody_engine_simple_bh
 	nbody_space_tree	m_tree;
 public:
 	nbody_engine_simple_bh_tree(nbcoord_t distance_to_node_radius_ratio = 0,
-								e_traverse_type tt = ett_cycle);
+								e_traverse_type tt = ett_cycle,
+								size_t tree_build_rate = 0);
 	const char* type_name() const override;
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 };
@@ -59,7 +62,8 @@ class NBODY_DLL nbody_engine_simple_bh_heap : public nbody_engine_simple_bh
 	nbody_space_heap	m_tree;
 public:
 	nbody_engine_simple_bh_heap(nbcoord_t distance_to_node_radius_ratio = 0,
-								e_traverse_type tt = ett_cycle);
+								e_traverse_type tt = ett_cycle,
+								size_t tree_build_rate = 0);
 	const char* type_name() const override;
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 };
@@ -70,7 +74,8 @@ class NBODY_DLL nbody_engine_simple_bh_heap_stackless : public nbody_engine_simp
 	nbody_space_heap_stackless	m_tree;
 public:
 	nbody_engine_simple_bh_heap_stackless(nbcoord_t distance_to_node_radius_ratio = 0,
-										  e_traverse_type tt = ett_cycle);
+										  e_traverse_type tt = ett_cycle,
+										  size_t tree_build_rate = 0);
 	const char* type_name() const override;
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
 };

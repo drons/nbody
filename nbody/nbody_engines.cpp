@@ -115,6 +115,7 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		QString		strtt(param.value("traverse_type", "cycle").toString());
 		QString		strtl(param.value("tree_layout", "tree").toString());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
+		size_t		tree_build_rate = param.value("tree_build_rate", 0).toULongLong();
 		e_traverse_type	tt;
 
 		if(strtt == "cycle")
@@ -138,11 +139,11 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 			qDebug() << "Invalid tree_layout. Allowed values are 'tree', 'heap' or 'heap_stackless'";
 			return nullptr;
 		case etl_tree:
-			return new nbody_engine_simple_bh_tree(distance_to_node_radius_ratio, tt);
+			return new nbody_engine_simple_bh_tree(distance_to_node_radius_ratio, tt, tree_build_rate);
 		case etl_heap:
-			return new nbody_engine_simple_bh_heap(distance_to_node_radius_ratio, tt);
+			return new nbody_engine_simple_bh_heap(distance_to_node_radius_ratio, tt, tree_build_rate);
 		case etl_heap_stackless:
-			return new nbody_engine_simple_bh_heap_stackless(distance_to_node_radius_ratio, tt);
+			return new nbody_engine_simple_bh_heap_stackless(distance_to_node_radius_ratio, tt, tree_build_rate);
 		}
 	}
 

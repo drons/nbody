@@ -3,11 +3,12 @@
 #include <QDebug>
 
 nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius_ratio,
-											   e_traverse_type tt,
+											   e_traverse_type tt, size_t tree_build_rate,
 											   e_tree_layout tl) :
 	m_distance_to_node_radius_ratio(distance_to_node_radius_ratio),
 	m_traverse_type(tt),
-	m_tree_layout(tl)
+	m_tree_layout(tl),
+	m_tree_build_rate(tree_build_rate)
 {
 }
 
@@ -49,8 +50,15 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(T& tree, const nbcoord_t&
 
 	const nbcoord_t*	mass = reinterpret_cast<const nbcoord_t*>(m_mass->data());
 
-	tree.build(count, rx, ry, rz, mass, m_distance_to_node_radius_ratio);
-
+	if(m_tree_build_rate == 0 || tree.is_empty() ||
+	   (m_data->get_step() % m_tree_build_rate) == 0)
+	{
+		tree.build(count, rx, ry, rz, mass, m_distance_to_node_radius_ratio);
+	}
+	else
+	{
+		tree.rebuild(count, rx, ry, rz, m_distance_to_node_radius_ratio);
+	}
 	auto update_f = [ = ](size_t body1, const nbvertex_t& total_force, nbcoord_t mass1)
 	{
 		frx[body1] = vx[body1];
@@ -124,12 +132,14 @@ void nbody_engine_simple_bh::print_info() const
 	qDebug() << "\tdistance_to_node_radius_ratio:" << m_distance_to_node_radius_ratio;
 	qDebug() << "\ttraverse_type:" << (m_traverse_type == ett_cycle ? "cycle" : "nested_tree");
 	qDebug() << "\ttree_layout:" << tree_layout_name(m_tree_layout);
+	qDebug() << "\ttree_build_rate" << m_tree_build_rate;
 }
 
 
 nbody_engine_simple_bh_tree::nbody_engine_simple_bh_tree(nbcoord_t ratio,
-														 e_traverse_type tt) :
-	nbody_engine_simple_bh(ratio, tt, etl_tree)
+														 e_traverse_type tt,
+														 size_t tree_build_rate) :
+	nbody_engine_simple_bh(ratio, tt, tree_build_rate, etl_tree)
 {
 }
 
@@ -146,8 +156,9 @@ void nbody_engine_simple_bh_tree::fcompute(const nbcoord_t& t,
 }
 
 nbody_engine_simple_bh_heap::nbody_engine_simple_bh_heap(nbcoord_t ratio,
-														 e_traverse_type tt) :
-	nbody_engine_simple_bh(ratio, tt, etl_heap)
+														 e_traverse_type tt,
+														 size_t tree_build_rate) :
+	nbody_engine_simple_bh(ratio, tt, tree_build_rate, etl_heap)
 {
 }
 
@@ -164,8 +175,9 @@ void nbody_engine_simple_bh_heap::fcompute(const nbcoord_t& t,
 }
 
 nbody_engine_simple_bh_heap_stackless::nbody_engine_simple_bh_heap_stackless(nbcoord_t ratio,
-																			 e_traverse_type tt) :
-	nbody_engine_simple_bh(ratio, tt, etl_heap_stackless)
+																			 e_traverse_type tt,
+																			 size_t tree_build_rate) :
+	nbody_engine_simple_bh(ratio, tt, tree_build_rate, etl_heap_stackless)
 {
 }
 

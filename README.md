@@ -80,6 +80,7 @@ Argument | Description
 `--distance_to_node_radius_ratio` | Simulation accuracy control for Burnes-Hut engines.
 `--traverse_type` | Space tree traverse type for Burnes-Hut engine. Possible values are `cycle` or `nested_tree`.
 `--tree_layout` | Space tree layout type for Burnes-Hut engine. Possible values are `tree` or `heap`.
+`--tree_build_rate` | Full tree build rate in cucles for Burnes-Hut engine. Only boxes geometry are rebuild between full builds, cells layout is not changed. If `0` than full tree build occurs on each compute.
 `--full_recompute_rate` | Full force recompute rate in cucles (Ahmad-Cohen engine).
 `--max_dist` | The maximum distance at which the force is calculated completely at each step  (Ahmad-Cohen engine).
 `--min_force` | The minimum force of attraction at which it is calculated completely at each step (Ahmad-Cohen engine).

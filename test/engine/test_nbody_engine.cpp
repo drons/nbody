@@ -469,65 +469,72 @@ bool test_fmaxabs(nbody_engine* e)
 	return ret;
 }
 
-bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data, const nbcoord_t eps)
+bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data,
+				   const nbcoord_t eps, size_t step_count)
 {
-	std::vector<nbcoord_t>	f0(e0->problem_size());
-
+	for(size_t step = 0; step != step_count; ++step)
 	{
-		double					tbegin = omp_get_wtime();
-		nbody_engine::memory*	fbuff;
-		fbuff = e0->create_buffer(sizeof(nbcoord_t) * e0->problem_size());
-		e0->fill_buffer(fbuff, 1e10);
-		e0->fcompute(0, e0->get_y(), fbuff);
+		std::vector<nbcoord_t>	f0(e0->problem_size());
 
-		e0->read_buffer(f0.data(), fbuff);
-		e0->free_buffer(fbuff);
-		qDebug() << "Time" << e0->type_name() << omp_get_wtime() - tbegin;
-	}
-
-	std::vector<nbcoord_t>	f(e->problem_size());
-
-	{
-		double					tbegin = omp_get_wtime();
-		nbody_engine::memory*	fbuff;
-		fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
-		e->fill_buffer(fbuff, -1e10);
-		e->fcompute(0, e->get_y(), fbuff);
-
-		e->read_buffer(f.data(), fbuff);
-		e->free_buffer(fbuff);
-		qDebug() << "Time" << e->type_name() << omp_get_wtime() - tbegin;
-	}
-
-	bool		ret = true;
-	nbcoord_t	total_err = 0;
-	nbcoord_t	total_relative_err = 0;
-	nbcoord_t	err_smooth = 1e-30;
-	size_t		outliers_count = 0;
-	for(size_t i = 0; i != f.size(); ++i)
-	{
-		total_err += fabs(f[i] - f0[i]);
-		total_relative_err += 2.0 * (fabs(f[i] - f0[i]) + err_smooth) /
-							  (fabs(f[i]) + fabs(f0[i]) + err_smooth);
-		if(fabs(f[i] - f0[i]) > eps)
 		{
-			++outliers_count;
-			ret = false;
+			double					tbegin = omp_get_wtime();
+			nbody_engine::memory*	fbuff;
+			fbuff = e0->create_buffer(sizeof(nbcoord_t) * e0->problem_size());
+			e0->fill_buffer(fbuff, 1e10);
+			e0->set_step(step);
+			e0->fcompute(0, e0->get_y(), fbuff);
+
+			e0->read_buffer(f0.data(), fbuff);
+			e0->free_buffer(fbuff);
+			qDebug() << "Time" << e0->type_name() << omp_get_wtime() - tbegin;
+		}
+
+		std::vector<nbcoord_t>	f(e->problem_size());
+
+		{
+			double					tbegin = omp_get_wtime();
+			nbody_engine::memory*	fbuff;
+			fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
+			e->fill_buffer(fbuff, -1e10);
+			e->set_step(step);
+			e->fcompute(0, e->get_y(), fbuff);
+
+			e->read_buffer(f.data(), fbuff);
+			e->free_buffer(fbuff);
+			qDebug() << "Time" << e->type_name() << omp_get_wtime() - tbegin;
+		}
+
+		bool		ret = true;
+		nbcoord_t	total_err = 0;
+		nbcoord_t	total_relative_err = 0;
+		nbcoord_t	err_smooth = 1e-30;
+		size_t		outliers_count = 0;
+		for(size_t i = 0; i != f.size(); ++i)
+		{
+			total_err += fabs(f[i] - f0[i]);
+			total_relative_err += 2.0 * (fabs(f[i] - f0[i]) + err_smooth) /
+								  (fabs(f[i]) + fabs(f0[i]) + err_smooth);
+			if(fabs(f[i] - f0[i]) > eps)
+			{
+				++outliers_count;
+				ret = false;
+			}
+		}
+
+		if(!ret)
+		{
+			qDebug() << "Stars count:         " << data->get_count();
+			qDebug() << "Problem size:        " << e->problem_size();
+			qDebug() << "Step:                " << step << "from" << step_count;
+			qDebug() << "Total count:         " << f.size();
+			qDebug() << "Total error:         " << total_err;
+			qDebug() << "Mean error:          " << total_err / f.size();
+			qDebug() << "Total relative error:" << total_relative_err;
+			qDebug() << "Outliers count:      " << outliers_count;
+			return false;
 		}
 	}
-
-	if(!ret)
-	{
-		qDebug() << "Stars count:         " << data->get_count();
-		qDebug() << "Problem size:        " << e->problem_size();
-		qDebug() << "Total count:         " << f.size();
-		qDebug() << "Total error:         " << total_err;
-		qDebug() << "Mean error:          " << total_err / f.size();
-		qDebug() << "Total relative error:" << total_relative_err;
-		qDebug() << "Outliers count:      " << outliers_count;
-	}
-
-	return ret;
+	return true;
 }
 
 bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
@@ -535,7 +542,7 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 	nbody_engine_simple		e0;
 	e0.init(data);
 
-	return test_fcompute(&e0, e, data, eps);
+	return test_fcompute(&e0, e, data, eps, 1);
 }
 
 class test_nbody_engine : public QObject
@@ -933,8 +940,12 @@ class test_nbody_engine_compare : public QObject
 	nbody_engine*	m_e2;
 	size_t			m_problem_size;
 	nbcoord_t		m_eps;
+	size_t			m_step_count;
 public:
-	test_nbody_engine_compare(nbody_engine* e1, nbody_engine* e2, size_t problen_size = 64, nbcoord_t eps = 1e-13);
+	test_nbody_engine_compare(nbody_engine* e1, nbody_engine* e2,
+							  size_t problen_size = 64,
+							  nbcoord_t eps = 1e-13,
+							  size_t step_count = 1);
 	~test_nbody_engine_compare();
 private slots:
 	void initTestCase();
@@ -942,11 +953,13 @@ private slots:
 };
 
 test_nbody_engine_compare::test_nbody_engine_compare(nbody_engine* e1, nbody_engine* e2,
-													 size_t problen_size, nbcoord_t eps) :
+													 size_t problen_size, nbcoord_t eps,
+													 size_t step_count) :
 	m_e1(e1),
 	m_e2(e2),
 	m_problem_size(problen_size),
-	m_eps(eps)
+	m_eps(eps),
+	m_step_count(step_count)
 {
 }
 
@@ -972,7 +985,7 @@ void test_nbody_engine_compare::initTestCase()
 
 void test_nbody_engine_compare::compare()
 {
-	QVERIFY(::test_fcompute(m_e1, m_e2, &m_data, m_eps));
+	QVERIFY(::test_fcompute(m_e1, m_e2, &m_data, m_eps, m_step_count));
 }
 
 class test_nbody_heap_func : public QObject
@@ -1317,6 +1330,42 @@ int main(int argc, char* argv[])
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
 									  1024, 1e-16);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e8},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "tree"},
+			{"tree_build_rate", 0}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e8},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "tree"},
+			{"tree_build_rate", 2}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-16, 2);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e8},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 0}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 1e8},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 2}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1e-16, 2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #ifdef HAVE_CUDA

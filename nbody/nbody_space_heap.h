@@ -18,8 +18,14 @@ protected:
 	nbcoord_t				m_distance_to_node_radius_ratio;
 public:
 	nbody_space_heap();
+	//! Check for empty tree
+	bool is_empty() const;
+	//! Build tree from scratch
 	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 			   const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio);
+	//! Rebuild cell boxes, radii and mass centers
+	void rebuild(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
+				 nbcoord_t distance_to_node_radius_ratio);
 
 	nbvertex_t traverse(const nbody_data* data, const nbvertex_t& v1, const nbcoord_t mass1) const;
 	template<class Visitor>
@@ -38,8 +44,11 @@ public:
 	const std::vector<nbcoord_t>& get_radius_sqr() const;
 	const std::vector<size_t>&	get_body_n() const;
 private:
-	void build(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
-			   const nbcoord_t* rz, const nbcoord_t* mass, size_t idx, size_t dimension);
+	void update(size_t idx, size_t left, size_t rght);
+	void build_p(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
+				 const nbcoord_t* rz, const nbcoord_t* mass, size_t idx, size_t dimension);
+	void rebuild_p(size_t count, const nbcoord_t* rx, const nbcoord_t* ry,
+				   const nbcoord_t* rz, size_t idx);
 };
 
 #endif //NBODY_SPACE_HEAP_H

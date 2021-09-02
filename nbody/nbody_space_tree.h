@@ -8,6 +8,7 @@ static constexpr	size_t DIM_NUM_X = 0;
 static constexpr	size_t DIM_NUM_Y = 1;
 static constexpr	size_t DIM_NUM_Z = 2;
 static constexpr	size_t MAX_STACK_SIZE = 64;
+static constexpr	size_t TREE_NO_BODY = std::numeric_limits<size_t>::max();
 
 class nbody_space_tree
 {
@@ -29,14 +30,23 @@ class nbody_space_tree
 				   const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 				   const nbcoord_t* mass, size_t dimension,
 				   nbcoord_t distance_to_node_radius_ratio_sqr);
+		void rebuild(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
+					 nbcoord_t distance_to_node_radius_ratio_sqr);
+		void update(nbcoord_t distance_to_node_radius_ratio_sqr);
 	};
 	node*		m_root;
 public:
 	nbody_space_tree();
 	~nbody_space_tree();
 
+	//! Check for empty tree
+	bool is_empty() const;
+	//! Build tree from scratch
 	void build(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 			   const nbcoord_t* mass, nbcoord_t distance_to_node_radius_ratio);
+	//! Rebuild cell boxes, radii and mass centers
+	void rebuild(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
+				 nbcoord_t distance_to_node_radius_ratio);
 
 	template<class Visitor>
 	void traverse(Visitor visit) const
