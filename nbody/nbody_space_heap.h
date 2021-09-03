@@ -15,7 +15,7 @@ protected:
 	std::vector<nbvertex_t>	m_box_min;
 	std::vector<nbvertex_t>	m_box_max;
 	std::vector<size_t>		m_body_n;
-	nbcoord_t				m_distance_to_node_radius_ratio;
+	nbcoord_t				m_distance_to_node_radius_ratio_sqr;
 public:
 	nbody_space_heap();
 	//! Check for empty tree
@@ -47,8 +47,6 @@ private:
 	void update(size_t idx, size_t left, size_t rght);
 	void build_p(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
 				 const nbcoord_t* rz, const nbcoord_t* mass, size_t idx, size_t dimension);
-	void rebuild_p(size_t count, const nbcoord_t* rx, const nbcoord_t* ry,
-				   const nbcoord_t* rz, size_t idx);
 };
 
 #endif //NBODY_SPACE_HEAP_H

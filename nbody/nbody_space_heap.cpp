@@ -1,7 +1,7 @@
 #include "nbody_space_heap.h"
 
 nbody_space_heap::nbody_space_heap() :
-	m_distance_to_node_radius_ratio(0)
+	m_distance_to_node_radius_ratio_sqr(0)
 {
 }
 
@@ -29,34 +29,35 @@ void nbody_space_heap::build(size_t count, const nbcoord_t* rx, const nbcoord_t*
 	m_body_n.resize(heap_size);
 	std::fill(m_body_n.begin(), m_body_n.end(), TREE_NO_BODY);
 
-	m_distance_to_node_radius_ratio = distance_to_node_radius_ratio;
+	m_distance_to_node_radius_ratio_sqr = distance_to_node_radius_ratio * distance_to_node_radius_ratio;
 
 	#pragma omp parallel
 	#pragma omp single
 	build_p(count, bodies_indites.data(), rx, ry, rz, mass, NBODY_HEAP_ROOT_INDEX, DIM_NUM_X);
-
-	nbcoord_t	distance_to_node_radius_ratio_sqr(distance_to_node_radius_ratio * distance_to_node_radius_ratio);
-	#pragma omp parallel for
-	for(size_t n = 0; n < m_radius_sqr.size(); ++n)
-	{
-		m_radius_sqr[n] *= distance_to_node_radius_ratio_sqr;
-	}
 }
 
 void nbody_space_heap::rebuild(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
 							   nbcoord_t distance_to_node_radius_ratio)
 {
-	m_distance_to_node_radius_ratio = distance_to_node_radius_ratio;
+	m_distance_to_node_radius_ratio_sqr = distance_to_node_radius_ratio * distance_to_node_radius_ratio;
 
-	#pragma omp parallel
-	#pragma omp single
-	rebuild_p(count, rx, ry, rz, NBODY_HEAP_ROOT_INDEX);
-
-	nbcoord_t	distance_to_node_radius_ratio_sqr(distance_to_node_radius_ratio * distance_to_node_radius_ratio);
 	#pragma omp parallel for
-	for(size_t n = 0; n < m_radius_sqr.size(); ++n)
+	for(size_t idx = count; idx < count * 2; ++idx)
 	{
-		m_radius_sqr[n] *= distance_to_node_radius_ratio_sqr;
+		size_t body_idx = m_body_n[idx];
+		m_mass_center[idx] = nbvertex_t(rx[body_idx], ry[body_idx], rz[body_idx]);
+		m_box_min[idx] = m_mass_center[idx];
+		m_box_max[idx] = m_mass_center[idx];
+	}
+	for(size_t level_count = count; level_count > 0; level_count /= 2)
+	{
+		#pragma omp parallel for
+		for(size_t idx = level_count / 2; idx < level_count; ++idx)
+		{
+			size_t	left(left_idx(idx));
+			size_t	rght(rght_idx(idx));
+			update(idx, left, rght);
+		}
 	}
 }
 
@@ -129,7 +130,7 @@ void nbody_space_heap::update(size_t idx, size_t left, size_t rght)
 								std::max(m_box_max[left].z, m_box_max[rght].z));
 	nbcoord_t	r = (m_box_max[idx] - m_box_min[idx]).length() * static_cast<nbcoord_t>(0.5) +
 					((m_box_max[idx] + m_box_min[idx]) / 2 - m_mass_center[idx]).length();
-	m_radius_sqr[idx] = r * r;
+	m_radius_sqr[idx] = (r * r) * m_distance_to_node_radius_ratio_sqr;
 }
 
 void nbody_space_heap::build_p(size_t count, size_t* indites, const nbcoord_t* rx, const nbcoord_t* ry,
@@ -184,40 +185,6 @@ void nbody_space_heap::build_p(size_t count, size_t* indites, const nbcoord_t* r
 	{
 		build_p(left_size, indites, rx, ry, rz, mass, left, next_dimension);
 		build_p(right_size, median, rx, ry, rz, mass, rght, next_dimension);
-	}
-
-	update(idx, left, rght);
-}
-
-void nbody_space_heap::rebuild_p(size_t count, const nbcoord_t* rx, const nbcoord_t* ry, const nbcoord_t* rz,
-								 size_t idx)
-{
-	if(count == 1) // It is a leaf
-	{
-		size_t body_idx = m_body_n[idx];
-		m_mass_center[idx] = nbvertex_t(rx[body_idx], ry[body_idx], rz[body_idx]);
-		m_box_min[idx] = m_mass_center[idx];
-		m_box_max[idx] = m_mass_center[idx];
-		return;
-	}
-
-	size_t	left_size = count / 2;
-	size_t	right_size = count - left_size;
-	size_t	left(left_idx(idx));
-	size_t	rght(rght_idx(idx));
-
-	if(count > NBODY_DATA_BLOCK_SIZE)
-	{
-		#pragma omp task
-		rebuild_p(left_size, rx, ry, rz, left);
-		#pragma omp task
-		rebuild_p(right_size, rx, ry, rz, rght);
-		#pragma omp taskwait
-	}
-	else
-	{
-		rebuild_p(left_size, rx, ry, rz, left);
-		rebuild_p(right_size, rx, ry, rz, rght);
 	}
 
 	update(idx, left, rght);
