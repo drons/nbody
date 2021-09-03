@@ -61,9 +61,10 @@ matrix:
           - libqt4-opengl-dev
           - libopencv-dev
           - ocl-icd-opencl-dev
+          - gnupg-curl
       script:
-      - sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
-      - echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
+      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+      - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
       - sudo apt-get install -y cuda-minimal-build-9-2
       - sudo ln -s /usr/local/cuda-9.2 /usr/local/cuda
@@ -87,9 +88,10 @@ matrix:
           - qtbase5-dev-tools
           - libqt5opengl5-dev
           - ocl-icd-opencl-dev
+          - gnupg-curl
       script:
-      - sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
-      - echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list      
+      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+      - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
       - sudo apt-get install -y cuda-minimal-build-10-2
       - sudo ln -s /usr/local/cuda-10.2 /usr/local/cuda
@@ -420,10 +422,10 @@ matrix:
           - wget
           - strace
       before_script:
-          - wget -q -O - http://files.viva64.com/etc/pubkey.txt | sudo apt-key add -
-          - sudo wget -O /etc/apt/sources.list.d/viva64.list http://files.viva64.com/etc/viva64.list
+          - wget -q -O - https://files.viva64.com/etc/pubkey.txt | sudo apt-key add -
+          - sudo wget -O /etc/apt/sources.list.d/viva64.list https://files.viva64.com/etc/viva64.list
           - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
-          - echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
+          - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
           - sudo apt update -y
           - sudo apt install -y cuda-minimal-build-11-4 pvs-studio
           - sudo ln -s /usr/local/cuda-11.4 /usr/local/cuda
