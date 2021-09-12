@@ -95,6 +95,24 @@ typedef cl::make_kernel< cl_int,	//Block offset
 		cl::Buffer	//body indites
 		> ComputeHeapBH;
 
+typedef cl::make_kernel< cl_int, // Points count
+		cl_int, // Tree size
+		cl::Buffer,	//y
+		cl::Buffer, cl::Buffer, cl::Buffer,	// mass center [x, y, z]
+		cl::Buffer, cl::Buffer, cl::Buffer,	// tree leaf box min [x, y, z]
+		cl::Buffer, cl::Buffer, cl::Buffer,	// tree leaf box max [x, y, z]
+		cl::Buffer	//body indites
+		> UpdateLeafBH;
+
+typedef cl::make_kernel< cl_int, // Level size
+		cl::Buffer, cl::Buffer, cl::Buffer,	// mass center [x, y, z]
+		cl::Buffer, cl::Buffer, cl::Buffer,	// tree leaf box min [x, y, z]
+		cl::Buffer, cl::Buffer, cl::Buffer,	// tree leaf box max [x, y, z]
+		cl::Buffer,	//tree mass
+		cl::Buffer,	//radii
+		nbcoord_t //distance_to_node_radius_ratio_sqr
+		> UpdateNodeBH;
+
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplace;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplaceCorr;
@@ -111,6 +129,8 @@ struct nbody_engine_opencl::data
 		ComputeBlock		m_fcompute;
 		ComputeBlockBH		m_fcompute_bh;
 		ComputeHeapBH		m_fcompute_hbh;
+		UpdateLeafBH		m_update_leaf_hbh;
+		UpdateNodeBH		m_update_node_hbh;
 		FMfill				m_fill;
 		FMaddInplace		m_fmadd_inplace;
 		FMaddInplaceCorr	m_fmadd_inplace_corr;
@@ -123,11 +143,18 @@ struct nbody_engine_opencl::data
 	};
 	cl::Context				m_context;
 	std::vector<devctx>		m_devices;
+	nbody_space_heap		m_heap;
 	smemory*				m_mass;
 	smemory*				m_y;
 	smemory*				m_tree_cmx;
 	smemory*				m_tree_cmy;
 	smemory*				m_tree_cmz;
+	smemory*				m_bmin_cmx;
+	smemory*				m_bmin_cmy;
+	smemory*				m_bmin_cmz;
+	smemory*				m_bmax_cmx;
+	smemory*				m_bmax_cmy;
+	smemory*				m_bmax_cmz;
 	smemory*				m_tree_mass;
 	smemory*				m_tree_r2;
 	smemory*				m_indites;
@@ -187,6 +214,7 @@ QString nbody_engine_opencl::data::devctx::build_options(int block_size)
 	options += "-DNBODY_MIN_R=" + QString::number(nbody::MinDistance) + " ";
 	options += "-DNBODY_HEAP_ROOT_INDEX=" + QString::number(NBODY_HEAP_ROOT_INDEX) + " ";
 	options += "-Dnbcoord_t=" + QString(nbtype_info<nbcoord_t>::type_name()) + " ";
+	options += "-Dnbcoord3_t=" + QString(nbtype_info<nbvertex_t>::type_name()) + " ";
 	options += "-cl-fast-relaxed-math -cl-unsafe-math-optimizations -cl-finite-math-only -w -Werror ";
 
 	return options;
@@ -204,6 +232,8 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& dev
 	m_fcompute(m_prog, "ComputeBlockLocal"),
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
 	m_fcompute_hbh(m_prog, "ComputeHeapBH"),
+	m_update_leaf_hbh(m_prog, "UpdateLeafBH"),
+	m_update_node_hbh(m_prog, "UpdateNodeBH"),
 	m_fill(m_prog, "fill"),
 	m_fmadd_inplace(m_prog, "fmadd_inplace"),
 	m_fmadd_inplace_corr(m_prog, "fmadd_inplace_corr"),
@@ -218,6 +248,12 @@ nbody_engine_opencl::data::data() :
 	m_tree_cmx(NULL),
 	m_tree_cmy(NULL),
 	m_tree_cmz(NULL),
+	m_bmin_cmx(NULL),
+	m_bmin_cmy(NULL),
+	m_bmin_cmz(NULL),
+	m_bmax_cmx(NULL),
+	m_bmax_cmy(NULL),
+	m_bmax_cmz(NULL),
 	m_tree_mass(NULL),
 	m_tree_r2(NULL),
 	m_indites(NULL),
@@ -234,6 +270,12 @@ nbody_engine_opencl::data::~data()
 	delete m_tree_cmx;
 	delete m_tree_cmy;
 	delete m_tree_cmz;
+	delete m_bmin_cmx;
+	delete m_bmin_cmy;
+	delete m_bmin_cmz;
+	delete m_bmax_cmx;
+	delete m_bmax_cmy;
+	delete m_bmax_cmz;
 	delete m_tree_mass;
 	delete m_tree_r2;
 	delete m_indites;
@@ -569,7 +611,7 @@ void nbody_engine_opencl::synchronize_f(smemory* f)
 
 void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y, memory* _f,
 										   nbcoord_t distance_to_node_radius_ratio,
-										   bool cycle_traverse)
+										   bool cycle_traverse, size_t tree_build_rate)
 {
 	if(d->m_devices.empty())
 	{
@@ -606,49 +648,125 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 	size_t					device_data_size = data_size / device_count;
 	cl::NDRange				global_range(device_data_size);
 	cl::NDRange				local_range(d->m_block_size);
-	std::vector<cl::Event>	events;
-	std::vector<nbcoord_t>	y_host(y->size() / sizeof(nbcoord_t));
-	std::vector<nbcoord_t>	mass_host(d->m_mass->size() / sizeof(nbcoord_t));
-
-	read_buffer(y_host.data(), y);
-	read_buffer(mass_host.data(), d->m_mass);
-
-	const nbcoord_t*	rx = y_host.data();
-	const nbcoord_t*	ry = rx + data_size;
-	const nbcoord_t*	rz = rx + 2 * data_size;
-	const nbcoord_t*	mass = mass_host.data();
-
-	nbody_space_heap	heap;
-	heap.build(data_size, rx, ry, rz, mass, distance_to_node_radius_ratio);
-
-	size_t					tree_size = heap.get_radius_sqr().size();
-	if(d->m_tree_cmx == NULL)
+	nbody_space_heap&		heap(d->m_heap);
+	size_t					tree_size;
+	if(tree_build_rate == 0 || heap.is_empty() || d->m_tree_cmx == nullptr ||
+	   (d->m_data->get_step() % tree_build_rate) == 0)
 	{
-		d->m_tree_cmx = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
-		d->m_tree_cmy = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
-		d->m_tree_cmz = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
-		d->m_tree_mass = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
-		d->m_tree_r2 = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+		std::vector<nbcoord_t>	y_host(y->size() / sizeof(nbcoord_t));
+		std::vector<nbcoord_t>	mass_host(d->m_mass->size() / sizeof(nbcoord_t));
+
+		read_buffer(y_host.data(), y);
+		read_buffer(mass_host.data(), d->m_mass);
+
+		const nbcoord_t*	rx = y_host.data();
+		const nbcoord_t*	ry = rx + data_size;
+		const nbcoord_t*	rz = rx + 2 * data_size;
+		const nbcoord_t*	mass = mass_host.data();
+
+		heap.build(data_size, rx, ry, rz, mass, distance_to_node_radius_ratio);
+		tree_size = heap.get_radius_sqr().size();
+		if(d->m_tree_cmx == nullptr)
+		{
+			d->m_tree_cmx = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_tree_cmy = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_tree_cmz = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_bmin_cmx = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_bmin_cmy = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_bmin_cmz = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_bmax_cmx = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_bmax_cmy = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_bmax_cmz = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_tree_mass = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_tree_r2 = new smemory(tree_size * sizeof(nbcoord_t), d->m_devices);
+			d->m_indites = new smemory(tree_size * sizeof(cl_int), d->m_devices);
+		}
+		std::vector<nbcoord_t>	tree_cmx_host(tree_size), tree_cmy_host(tree_size), tree_cmz_host(tree_size);
+		std::vector<cl_int>		indites_host(tree_size);
+
+		#pragma omp parallel for
+		for(size_t n = 0; n < tree_size; ++n)
+		{
+			tree_cmx_host[n] = heap.get_mass_center()[n].x;
+			tree_cmy_host[n] = heap.get_mass_center()[n].y;
+			tree_cmz_host[n] = heap.get_mass_center()[n].z;
+		}
+		#pragma omp parallel for
+		for(size_t n = 0; n < tree_size; ++n)
+		{
+			indites_host[n] = static_cast<cl_int>(heap.get_body_n()[n]);
+		}
+
+		write_buffer(d->m_tree_cmx, tree_cmx_host.data());
+		write_buffer(d->m_tree_cmy, tree_cmy_host.data());
+		write_buffer(d->m_tree_cmz, tree_cmz_host.data());
+		write_buffer(d->m_tree_mass, heap.get_mass().data());
+		write_buffer(d->m_tree_r2, heap.get_radius_sqr().data());
+		write_buffer(d->m_indites, indites_host.data());
 	}
-
-	std::vector<nbcoord_t>	tree_cmx_host(tree_size), tree_cmy_host(tree_size), tree_cmz_host(tree_size);
-
-	#pragma omp parallel for
-	for(size_t n = 0; n < tree_size; ++n)
+	else
 	{
-		tree_cmx_host[n] = heap.get_mass_center()[n].x;
-		tree_cmy_host[n] = heap.get_mass_center()[n].y;
-		tree_cmz_host[n] = heap.get_mass_center()[n].z;
-	}
+		tree_size = heap.get_radius_sqr().size();
+		// Each device update own tree copy
+		{
+			std::vector<cl::Event>	events;
+			for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+			{
+				data::devctx&	ctx(d->m_devices[dev_n]);
+				cl::NDRange		range(data_size);
+				cl::EnqueueArgs	eargs(ctx.m_queue, range, local_range);
+				cl::Event		ev(
+					ctx.m_update_leaf_hbh(eargs, data_size, tree_size,
+										  y->buffer(dev_n),
+										  d->m_tree_cmx->buffer(dev_n),
+										  d->m_tree_cmy->buffer(dev_n),
+										  d->m_tree_cmz->buffer(dev_n),
+										  d->m_bmin_cmx->buffer(dev_n),
+										  d->m_bmin_cmy->buffer(dev_n),
+										  d->m_bmin_cmz->buffer(dev_n),
+										  d->m_bmax_cmx->buffer(dev_n),
+										  d->m_bmax_cmy->buffer(dev_n),
+										  d->m_bmax_cmz->buffer(dev_n),
+										  d->m_indites->buffer(dev_n)));
+				events.push_back(ev);
+			}
+			cl::Event::waitForEvents(events);
+		}
+		for(size_t level_count = data_size; level_count > 0; level_count /= 2)
+		{
+			std::vector<cl::Event>	events;
 
-	write_buffer(d->m_tree_cmx, tree_cmx_host.data());
-	write_buffer(d->m_tree_cmy, tree_cmy_host.data());
-	write_buffer(d->m_tree_cmz, tree_cmz_host.data());
-	write_buffer(d->m_tree_mass, heap.get_mass().data());
-	write_buffer(d->m_tree_r2, heap.get_radius_sqr().data());
+			nbcoord_t distance_to_node_radius_ratio_sqr
+				= distance_to_node_radius_ratio * distance_to_node_radius_ratio;
+			size_t		level_size = level_count / 2;
+			cl::NDRange	level_range(std::max(level_size, local_range[0]));
+			for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+			{
+				data::devctx&	ctx(d->m_devices[dev_n]);
+				cl::EnqueueArgs	eargs(ctx.m_queue, level_range, local_range);
+				cl::Event		ev(
+					ctx.m_update_node_hbh(eargs, level_size,
+										  d->m_tree_cmx->buffer(dev_n),
+										  d->m_tree_cmy->buffer(dev_n),
+										  d->m_tree_cmz->buffer(dev_n),
+										  d->m_bmin_cmx->buffer(dev_n),
+										  d->m_bmin_cmy->buffer(dev_n),
+										  d->m_bmin_cmz->buffer(dev_n),
+										  d->m_bmax_cmx->buffer(dev_n),
+										  d->m_bmax_cmy->buffer(dev_n),
+										  d->m_bmax_cmz->buffer(dev_n),
+										  d->m_tree_mass->buffer(dev_n),
+										  d->m_tree_r2->buffer(dev_n),
+										  distance_to_node_radius_ratio_sqr));
+				events.push_back(ev);
+			}
+			cl::Event::waitForEvents(events);
+		}
+	}
 
 	if(cycle_traverse)
 	{
+		std::vector<cl::Event>	events;
 		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
 		{
 			size_t			offset = dev_n * device_data_size;
@@ -664,22 +782,12 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 								  d->m_tree_r2->buffer(dev_n)));
 			events.push_back(ev);
 		}
+		cl::Event::waitForEvents(events);
+		d->print_profile_info(events, "fcompute_bh");
 	}
 	else
 	{
-		std::vector<cl_int>	indites_host(tree_size);
-		#pragma omp parallel for
-		for(size_t n = 0; n < tree_size; ++n)
-		{
-			indites_host[n] = static_cast<cl_int>(heap.get_body_n()[n]);
-		}
-		if(d->m_indites == NULL)
-		{
-			d->m_indites = new smemory(tree_size * sizeof(cl_int), d->m_devices);
-		}
-
-		write_buffer(d->m_indites, indites_host.data());
-
+		std::vector<cl::Event>	events;
 		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
 		{
 			size_t			offset = dev_n * device_data_size;
@@ -696,11 +804,9 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 								   d->m_indites->buffer(dev_n)));
 			events.push_back(ev);
 		}
+		cl::Event::waitForEvents(events);
+		d->print_profile_info(events, "fcompute_hbh");
 	}
-
-	cl::Event::waitForEvents(events);
-
-	d->print_profile_info(events, "fcompute_bh");
 
 	if(device_count > 1)
 	{

@@ -469,9 +469,15 @@ bool test_fmaxabs(nbody_engine* e)
 	return ret;
 }
 
-bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data,
+bool test_fcompute(nbody_engine* e0, nbody_engine* e1, nbody_data* data,
 				   const nbcoord_t eps, size_t step_count)
 {
+	nbody_engine::memory*	e0y = e0->create_buffer(e0->get_y()->size());
+	nbody_engine::memory*	e1y = e1->create_buffer(e1->get_y()->size());
+
+	e0->copy_buffer(e0y, e0->get_y());
+	e1->copy_buffer(e1y, e1->get_y());
+
 	for(size_t step = 0; step != step_count; ++step)
 	{
 		std::vector<nbcoord_t>	f0(e0->problem_size());
@@ -482,26 +488,26 @@ bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data,
 			fbuff = e0->create_buffer(sizeof(nbcoord_t) * e0->problem_size());
 			e0->fill_buffer(fbuff, 1e10);
 			e0->set_step(step);
-			e0->fcompute(0, e0->get_y(), fbuff);
+			e0->fcompute(0, e0y, fbuff);
 
 			e0->read_buffer(f0.data(), fbuff);
 			e0->free_buffer(fbuff);
 			qDebug() << "Time" << e0->type_name() << omp_get_wtime() - tbegin;
 		}
 
-		std::vector<nbcoord_t>	f(e->problem_size());
+		std::vector<nbcoord_t>	f(e1->problem_size());
 
 		{
 			double					tbegin = omp_get_wtime();
 			nbody_engine::memory*	fbuff;
-			fbuff = e->create_buffer(sizeof(nbcoord_t) * e->problem_size());
-			e->fill_buffer(fbuff, -1e10);
-			e->set_step(step);
-			e->fcompute(0, e->get_y(), fbuff);
+			fbuff = e1->create_buffer(sizeof(nbcoord_t) * e1->problem_size());
+			e1->fill_buffer(fbuff, -1e10);
+			e1->set_step(step);
+			e1->fcompute(0, e1y, fbuff);
 
-			e->read_buffer(f.data(), fbuff);
-			e->free_buffer(fbuff);
-			qDebug() << "Time" << e->type_name() << omp_get_wtime() - tbegin;
+			e1->read_buffer(f.data(), fbuff);
+			e1->free_buffer(fbuff);
+			qDebug() << "Time" << e1->type_name() << omp_get_wtime() - tbegin;
 		}
 
 		bool		ret = true;
@@ -524,16 +530,22 @@ bool test_fcompute(nbody_engine* e0, nbody_engine* e, nbody_data* data,
 		if(!ret)
 		{
 			qDebug() << "Stars count:         " << data->get_count();
-			qDebug() << "Problem size:        " << e->problem_size();
-			qDebug() << "Step:                " << step << "from" << step_count;
+			qDebug() << "Problem size:        " << e1->problem_size();
+			qDebug() << "Step:                " << step + 1 << "from" << step_count;
 			qDebug() << "Total count:         " << f.size();
 			qDebug() << "Total error:         " << total_err;
 			qDebug() << "Mean error:          " << total_err / f.size();
 			qDebug() << "Total relative error:" << total_relative_err;
 			qDebug() << "Outliers count:      " << outliers_count;
+			e0->free_buffer(e0y);
+			e1->free_buffer(e1y);
 			return false;
 		}
+		e0->fmadd_inplace(e0y, e0y, 0.99);
+		e1->fmadd_inplace(e1y, e1y, 0.99);
 	}
+	e0->free_buffer(e0y);
+	e1->free_buffer(e1y);
 	return true;
 }
 
@@ -1463,6 +1475,58 @@ int main(int argc, char* argv[])
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
 									  128, 1e-13);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  128, 1e-13);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 2}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 2}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1.6874e-13, 2);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 2}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 2}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  1024, 1.6874e-13, 2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #endif // HAVE_OPENCL

@@ -278,6 +278,84 @@ __kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
 	fvz[n1] = res_z;
 }
 
+// Update leaf coordinates (Barnes-Hut engine)
+__kernel void UpdateLeafBH(int points_count, int tree_size,
+						   __global const nbcoord_t* y,
+						   __global nbcoord_t* tree_cmx,
+						   __global nbcoord_t* tree_cmy,
+						   __global nbcoord_t* tree_cmz,
+						   __global nbcoord_t* bmin_cmx,
+						   __global nbcoord_t* bmin_cmy,
+						   __global nbcoord_t* bmin_cmz,
+						   __global nbcoord_t* bmax_cmx,
+						   __global nbcoord_t* bmax_cmy,
+						   __global nbcoord_t* bmax_cmz,
+						   __global const int* body_n)
+{
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+	int		stride = points_count;
+	int		idx = get_global_id(0) + tree_offset;
+	int		n = body_n[idx];
+	bmin_cmx[idx] = bmax_cmx[idx] = tree_cmx[idx] = y[0 * stride + n];
+	bmin_cmy[idx] = bmax_cmy[idx] = tree_cmy[idx] = y[1 * stride + n];
+	bmin_cmz[idx] = bmax_cmz[idx] = tree_cmz[idx] = y[2 * stride + n];
+}
+
+// Update node coordinates (Barnes-Hut engine)
+__kernel void UpdateNodeBH(int level_size,
+						   __global nbcoord_t* tree_cmx,
+						   __global nbcoord_t* tree_cmy,
+						   __global nbcoord_t* tree_cmz,
+						   __global nbcoord_t* bmin_cmx,
+						   __global nbcoord_t* bmin_cmy,
+						   __global nbcoord_t* bmin_cmz,
+						   __global nbcoord_t* bmax_cmx,
+						   __global nbcoord_t* bmax_cmy,
+						   __global nbcoord_t* bmax_cmz,
+						   __global nbcoord_t* tree_mass,
+						   __global nbcoord_t* tree_crit_r2,
+						   nbcoord_t distance_to_node_radius_ratio_sqr)
+{
+	int		idx = get_global_id(0) + level_size;
+	if(idx >= 2 * level_size)
+	{
+		return;
+	}
+	int		left = left_idx(idx);
+	int		rght = rght_idx(idx);
+	nbcoord_t	mass = tree_mass[left] + tree_mass[rght];
+	nbcoord3_t	mass_center = {(tree_cmx[left] * tree_mass[left] +
+								tree_cmx[rght] * tree_mass[rght]) / mass,
+							   (tree_cmy[left] * tree_mass[left] +
+								tree_cmy[rght] * tree_mass[rght]) / mass,
+							   (tree_cmz[left] * tree_mass[left] +
+								tree_cmz[rght] * tree_mass[rght]) / mass
+							 };
+	tree_mass[idx] = mass;
+
+	tree_cmx[idx] = mass_center.x;
+	tree_cmy[idx] = mass_center.y;
+	tree_cmz[idx] = mass_center.z;
+	nbcoord3_t	bmin = {min(bmin_cmx[left], bmin_cmx[rght]),
+						min(bmin_cmy[left], bmin_cmy[rght]),
+						min(bmin_cmz[left], bmin_cmz[rght])
+					  };
+	nbcoord3_t	bmax = {max(bmax_cmx[left], bmax_cmx[rght]),
+						max(bmax_cmy[left], bmax_cmy[rght]),
+						max(bmax_cmz[left], bmax_cmz[rght])
+					  };
+	bmin_cmx[idx] = bmin.x;
+	bmin_cmy[idx] = bmin.y;
+	bmin_cmz[idx] = bmin.z;
+	bmax_cmx[idx] = bmax.x;
+	bmax_cmy[idx] = bmax.y;
+	bmax_cmz[idx] = bmax.z;
+
+	nbcoord_t	r = distance(bmin, bmax) / 2 +
+					distance((bmin + bmax) / 2, mass_center);
+	tree_crit_r2[idx] = (r * r) * distance_to_node_radius_ratio_sqr;
+}
+
 //! a[i] = value
 __kernel void fill(__global nbcoord_t* a, nbcoord_t value)
 {

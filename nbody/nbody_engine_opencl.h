@@ -45,7 +45,7 @@ public:
 protected:
 	void fcompute_bh_impl(const nbcoord_t& t, const memory* y, memory* f,
 						  nbcoord_t distance_to_node_radius_ratio,
-						  bool cycle_traverse);
+						  bool cycle_traverse, size_t tree_build_rate);
 private:
 	void synchronize_f(smemory* f);
 };
