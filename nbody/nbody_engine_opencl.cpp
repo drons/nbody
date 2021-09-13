@@ -928,7 +928,7 @@ void nbody_engine_opencl::fill_buffer(memory* _a, const nbcoord_t& value)
 
 	size_t					device_count(d->m_devices.size());
 	cl::NDRange				global_range(a->alloc_size() / sizeof(nbcoord_t));
-	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	cl::NDRange				local_range(d->m_block_size);
 	std::vector<cl::Event>	events;
 
 	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
@@ -961,7 +961,7 @@ void nbody_engine_opencl::fmadd_inplace(memory* _a, const memory* _b, const nbco
 	size_t					device_count(d->m_devices.size());
 	size_t					device_data_size = problem_size() / device_count;
 	cl::NDRange				global_range(device_data_size);
-	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	cl::NDRange				local_range(d->m_block_size);
 	std::vector<cl::Event>	events;
 
 	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
@@ -1002,7 +1002,7 @@ void nbody_engine_opencl::fmadd(memory* _a, const memory* _b, const memory* _c, 
 	size_t					device_count(d->m_devices.size());
 	size_t					device_data_size = problem_size() / device_count;
 	cl::NDRange				global_range(device_data_size);
-	cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+	cl::NDRange				local_range(d->m_block_size);
 	std::vector<cl::Event>	events;
 
 	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
@@ -1060,7 +1060,7 @@ void nbody_engine_opencl::fmaddn_corr(nbody_engine::memory* _a, nbody_engine::me
 		size_t					device_count(d->m_devices.size());
 		size_t					device_data_size = problem_size() / device_count;
 		cl::NDRange				global_range(device_data_size);
-		cl::NDRange				local_range(NBODY_DATA_BLOCK_SIZE);
+		cl::NDRange				local_range(d->m_block_size);
 		std::vector<cl::Event>	events;
 
 		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
@@ -1089,7 +1089,7 @@ void nbody_engine_opencl::fmaxabs(const memory* _a, nbcoord_t& result)
 		return;
 	}
 
-	size_t					rsize = problem_size() / NBODY_DATA_BLOCK_SIZE;
+	size_t					rsize = problem_size() / d->m_block_size;
 	size_t					device_count(d->m_devices.size());
 	size_t					device_data_size = problem_size() / device_count;
 	size_t					rdevice_data_size = rsize / device_count;

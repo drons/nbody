@@ -54,6 +54,7 @@ void test_nbody_solver::initTestCase()
 
 	qDebug() << "Solver =" << m_s->type_name() << "engine" << m_e->type_name();
 	m_s->print_info();
+	m_e->print_info();
 	QString	data_path(m_apppath + "/../data/initial_state.txt");
 	QVERIFY(m_data.load(data_path));
 
@@ -263,6 +264,37 @@ int main(int argc, char* argv[])
 		test_nbody_solver	tc1(argv[0], new nbody_engine_active(), nbody_create_solver(param), "trapeze2");
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+#ifdef HAVE_OPENCL
+	{
+		QVariantMap			sparam(std::map<QString, QVariant>({{"solver", "euler"}}));
+		QVariantMap			eparam(std::map<QString, QVariant>({{"engine", "opencl"}, {"block_size", 4}}));
+		test_nbody_solver	tc1(argv[0], nbody_create_engine(eparam), nbody_create_solver(sparam), "euler");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			sparam(std::map<QString, QVariant>({{"solver", "euler"}}));
+		QVariantMap			eparam(std::map<QString, QVariant>({{"engine", "opencl"}, {"block_size", 4}, {"device", "0:0,0"}}));
+		test_nbody_solver	tc1(argv[0], nbody_create_engine(eparam), nbody_create_solver(sparam), "euler");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			sparam(std::map<QString, QVariant>({{"solver", "euler"}}));
+		QVariantMap			eparam(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"block_size", 4},
+			{"distance_to_node_radius_ratio", 1e8}}));
+		test_nbody_solver	tc1(argv[0], nbody_create_engine(eparam), nbody_create_solver(sparam), "euler");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap			sparam(std::map<QString, QVariant>({{"solver", "euler"}}));
+		QVariantMap			eparam(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"block_size", 4},
+			{"distance_to_node_radius_ratio", 1e8},
+			{"device", "0:0,0"}}));
+		test_nbody_solver	tc1(argv[0], nbody_create_engine(eparam), nbody_create_solver(sparam), "euler");
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+#endif //HAVE_OPENCL
 	return res;
 }
 

@@ -21,7 +21,7 @@ matrix:
       - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=3"
       - make -j2
       - oclgrind ./test/engine/engine
-      - ./test/solver/solver
+      - oclgrind ./test/solver/solver
       - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
@@ -141,7 +141,7 @@ matrix:
       - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=build-gcov
       - make -j2
       - oclgrind ./test/engine/engine
-      - ./test/solver/solver
+      - oclgrind ./test/solver/solver
       - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
@@ -337,7 +337,7 @@ matrix:
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
       - make -j2
       - oclgrind ./test/engine/engine
-      - ./test/solver/solver
+      - oclgrind ./test/solver/solver
       - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
@@ -370,7 +370,7 @@ matrix:
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug
       - make -j2
       - oclgrind ./test/engine/engine
-      - ./test/solver/solver
+      - oclgrind ./test/solver/solver
       - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
