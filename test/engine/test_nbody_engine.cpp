@@ -1534,7 +1534,7 @@ int main(int argc, char* argv[])
 			{"tree_build_rate", 0}
 		}));
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
-			{"device", "0:0;0:0"},
+			{"device", "0:0;0:0;0:0;0:0"},
 			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"},
@@ -1543,6 +1543,26 @@ int main(int argc, char* argv[])
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
 									  1024, 1.6874e-13, 2);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 0}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+			{"device", "0:0;0:0;0:0;0:0"},
+			{"block_size", 64},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"tree_build_rate", 0}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  128, 1.6874e-13, 2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #endif // HAVE_OPENCL

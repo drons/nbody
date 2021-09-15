@@ -609,6 +609,35 @@ void nbody_engine_opencl::synchronize_f(smemory* f)
 	write_buffer(f, host_buffer.data());
 }
 
+void nbody_engine_opencl::synchronize_sum(smemory* f)
+{
+	size_t	device_count(d->m_devices.size());
+	size_t	size = f->size() / sizeof(nbcoord_t);
+	std::vector<std::vector<nbcoord_t>>	host_buffers(device_count);
+	{
+		std::vector<cl::Event>	events;
+		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+		{
+			data::devctx&	ctx(d->m_devices[dev_n]);
+			cl::Event		ev;
+			host_buffers[dev_n].resize(size);
+			ctx.m_queue.enqueueReadBuffer(f->buffer(dev_n), CL_FALSE, 0, size * sizeof(nbcoord_t),
+										  host_buffers[dev_n].data(), NULL, &ev);
+			events.push_back(ev);
+		}
+		cl::Event::waitForEvents(events);
+	}
+	#pragma omp parallel for
+	for(size_t i = 0; i < size; ++i)
+	{
+		for(size_t dev_n = 1; dev_n < device_count; ++dev_n)
+		{
+			host_buffers[0][i] += host_buffers[dev_n][i];
+		}
+	}
+	write_buffer(f, host_buffers[0].data());
+}
+
 void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y, memory* _f,
 										   nbcoord_t distance_to_node_radius_ratio,
 										   bool cycle_traverse, size_t tree_build_rate)
@@ -784,10 +813,16 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 		}
 		cl::Event::waitForEvents(events);
 		d->print_profile_info(events, "fcompute_bh");
+		if(device_count > 1)
+		{
+			// synchronize again
+			synchronize_f(f);
+		}
 	}
 	else
 	{
 		std::vector<cl::Event>	events;
+		fill_buffer(f, 0);
 		for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
 		{
 			size_t			offset = dev_n * device_data_size;
@@ -806,12 +841,11 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 		}
 		cl::Event::waitForEvents(events);
 		d->print_profile_info(events, "fcompute_hbh");
-	}
-
-	if(device_count > 1)
-	{
-		// synchronize again
-		synchronize_f(f);
+		if(device_count > 1)
+		{
+			// synchronize again
+			synchronize_sum(f);
+		}
 	}
 }
 
