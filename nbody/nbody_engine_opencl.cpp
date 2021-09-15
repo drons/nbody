@@ -141,7 +141,6 @@ struct nbody_engine_opencl::data
 		static QStringList sources();
 		devctx(cl::Context& context, cl::Device& device, const data* d);
 	};
-	cl::Context				m_context;
 	std::vector<devctx>		m_devices;
 	nbody_space_heap		m_heap;
 	smemory*				m_mass;
