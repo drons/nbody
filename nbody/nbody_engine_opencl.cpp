@@ -123,6 +123,7 @@ struct nbody_engine_opencl::data
 {
 	struct devctx
 	{
+		cl::Device			m_device;
 		cl::Context			m_context;
 		cl::Program			m_prog;
 		cl::CommandQueue	m_queue;
@@ -224,10 +225,11 @@ QStringList nbody_engine_opencl::data::devctx::sources()
 	return QStringList() << ":/nbody_engine_opencl.cl";
 }
 
-nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& device, const data* d) :
+nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& _device, const data* d) :
+	m_device(_device),
 	m_context(_context),
-	m_prog(load_programs(m_context, device, build_options(d->m_block_size), sources())),
-	m_queue(m_context, device, d->m_prof_enabled ? CL_QUEUE_PROFILING_ENABLE : 0),
+	m_prog(load_programs(m_context, _device, build_options(d->m_block_size), sources())),
+	m_queue(m_context, _device, d->m_prof_enabled ? CL_QUEUE_PROFILING_ENABLE : 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
 	m_fcompute_hbh(m_prog, "ComputeHeapBH"),
@@ -293,7 +295,54 @@ int nbody_engine_opencl::data::select_devices(const QString& devices,
 		qDebug() << e.err() << e.what();
 		return -1;
 	}
+	if(verbose)
+	{
+		qDebug() << "Available platforms & devices:";
+		for(size_t i = 0; i != platforms.size(); ++i)
+		{
+			const cl::Platform&			platform(platforms[i]);
+			std::vector<cl::Device>		devs;
 
+			qDebug() << i << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
+
+			platform.getDevices(CL_DEVICE_TYPE_ALL, &devs);
+
+			cl::Context	context(devs);
+
+			for(size_t j = 0; j != devs.size(); ++j)
+			{
+				cl::Device&		device(devs[j]);
+				qDebug() << "\t--device=" << QString("%1:%2").arg(i).arg(j);
+				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
+				qDebug() << "\t\t CL_DEVICE_TYPE" << device.getInfo<CL_DEVICE_TYPE>();
+				qDebug() << "\t\t CL_DRIVER_VERSION" << device.getInfo<CL_DRIVER_VERSION>().c_str();
+				qDebug() << "\t\t CL_DEVICE_PROFILE" << device.getInfo<CL_DEVICE_PROFILE>().c_str();
+				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
+				qDebug() << "\t\t CL_DEVICE_MAX_COMPUTE_UNITS" << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+				qDebug() << "\t\t CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS" << device.getInfo<CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS>();
+				qDebug() << "\t\t CL_DEVICE_MAX_WORK_GROUP_SIZE" << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+				qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT>();
+				qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT>();
+				qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE>();
+				qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE>();
+				qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE>();
+				qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_SIZE>();
+				qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>();
+				qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE" << device.getInfo<CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE>();
+				qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_ARGS" << device.getInfo<CL_DEVICE_MAX_CONSTANT_ARGS>();
+				qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_TYPE" << device.getInfo<CL_DEVICE_LOCAL_MEM_TYPE>();
+				qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_SIZE" << device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
+				try
+				{
+					nbody_engine_opencl::data::devctx	c(context, device, this);
+				}
+				catch(cl::Error& e)
+				{
+					qDebug() << e.err() << e.what();
+				}
+			}
+		}
+	}
 	m_prof_enabled = prof;
 
 	QStringList	platform_devices_list(devices.split(";"));
@@ -370,7 +419,7 @@ int nbody_engine_opencl::data::select_devices(const QString& devices,
 				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
 				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
 			}
-			m_devices.push_back(devctx(context, device, this));
+			m_devices.emplace_back(context, device, this);
 		}
 	}
 
@@ -1154,62 +1203,13 @@ void nbody_engine_opencl::fmaxabs(const memory* _a, nbcoord_t& result)
 
 void nbody_engine_opencl::print_info() const
 {
-	std::vector<cl::Platform>		platforms;
-	try
+	qDebug() << "\tOpenCL devices:";
+	for(size_t dev_n = 0; dev_n != d->m_devices.size(); ++dev_n)
 	{
-		cl::Platform::get(&platforms);
-	}
-	catch(cl::Error& e)
-	{
-		qDebug() << e.err() << e.what();
-		return;
-	}
-	qDebug() << "Available platforms & devices:";
-	for(size_t i = 0; i != platforms.size(); ++i)
-	{
-		const cl::Platform&			platform(platforms[i]);
-		std::vector<cl::Device>		devices;
-
-		qDebug() << i << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
-
-		platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
-
-		cl::Context	context(devices);
-
-		for(size_t j = 0; j != devices.size(); ++j)
-		{
-			cl::Device&		device(devices[j]);
-			qDebug() << "\t--device=" << QString("%1:%2").arg(i).arg(j);
-			qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
-			qDebug() << "\t\t CL_DEVICE_TYPE" << device.getInfo<CL_DEVICE_TYPE>();
-			qDebug() << "\t\t CL_DRIVER_VERSION" << device.getInfo<CL_DRIVER_VERSION>().c_str();
-			qDebug() << "\t\t CL_DEVICE_PROFILE" << device.getInfo<CL_DEVICE_PROFILE>().c_str();
-			qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
-			qDebug() << "\t\t CL_DEVICE_MAX_COMPUTE_UNITS" << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
-			qDebug() << "\t\t CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS" << device.getInfo<CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS>();
-			qDebug() << "\t\t CL_DEVICE_MAX_WORK_GROUP_SIZE" << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
-			qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT>();
-			qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT>();
-			qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE>();
-			qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE>();
-//			qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHE_TYPE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_TYPE>().c_str();
-			qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE>();
-			qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_SIZE>();
-			qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>();
-			qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE" << device.getInfo<CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE>();
-			qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_ARGS" << device.getInfo<CL_DEVICE_MAX_CONSTANT_ARGS>();
-			qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_TYPE" << device.getInfo<CL_DEVICE_LOCAL_MEM_TYPE>();
-			qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_SIZE" << device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
-
-			try
-			{
-				nbody_engine_opencl::data::devctx	c(context, device, d);
-			}
-			catch(cl::Error& e)
-			{
-				qDebug() << e.err() << e.what();
-			}
-		}
+		data::devctx&	ctx(d->m_devices[dev_n]);
+		qDebug() << "\t\t " << dev_n << "ctx" << ctx.m_context.get()
+				 << "CL_DEVICE_NAME " << QString(ctx.m_device.getInfo<CL_DEVICE_NAME>().c_str())
+				 << "CL_DEVICE_VERSION" << QString(ctx.m_device.getInfo<CL_DEVICE_VERSION>().c_str());
 	}
 	qDebug() << "\tblock_size" << d->m_block_size;
 	return;
