@@ -3,7 +3,7 @@ platform: x64
 shallow_clone: true
 
 install:
-  - ps: wget "https://drive.google.com/uc?export=download&id=0B2FFdHlMfJl_cW9PeUplRVFtUWs" -OutFile opencv-2.4.12-github-vc14-release-travis.rar
+  - ps: wget "https://drive.google.com/uc?export=download&id=1cmFSAUfAt8r6Sim_H3jokHpv00TXIp8k" -OutFile opencv-2.4.12-github-vc14-release-travis.rar
   - cmd: 7z x opencv-2.4.12-github-vc14-release-travis.rar -o"C:\projects" -y > nul
   - set PATH=C:\projects\opencv\x64\vc14\bin;%PATH%
   - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86_amd64
