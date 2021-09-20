@@ -48,6 +48,7 @@ protected:
 						  bool cycle_traverse, size_t tree_build_rate);
 private:
 	void synchronize_f(smemory* f);
+	void synchronize_y(smemory* y);
 	void synchronize_sum(smemory* f);
 };
 

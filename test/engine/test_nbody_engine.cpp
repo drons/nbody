@@ -1384,27 +1384,6 @@ int main(int argc, char* argv[])
 #endif // HAVE_CUDA
 #ifdef HAVE_OPENCL
 	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"},
-			{"verbose", "1"},
-			{"oclprof", "1"},
-			{"block_size", 32}
-		}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
-		//Two devices with same context
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0,0"}}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
-		//Two devices with separate contexts
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0;0:0"}}));
-		test_nbody_engine	tc1(nbody_create_engine(param), 128);
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
 		QVariantMap	param1(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "77:0"}}));
 		QVariantMap	param2(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:77"}}));
 		QVariantMap	param3(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0:0"}}));
@@ -1423,6 +1402,26 @@ int main(int argc, char* argv[])
 				delete e;
 			}
 		}
+	}
+	{
+		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl"},
+			{"verbose", "1"},
+			{"oclprof", "1"},
+			{"block_size", 32}
+		}));
+		test_nbody_engine	tc1(nbody_create_engine(param));
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	for(const char* device : {"0:0;0:0", "0:0,0", "0:0,0;0:0,0", "0:0,0,0,0", "0:0,0,0,0,0,0,0,0"})
+	{
+		QVariantMap			param1(std::map<QString, QVariant>({{"engine", "opencl"}, {"block_size", 16}, {"device", "0:0"}}));
+		QVariantMap			param2(param1); param2["device"] = device;
+		test_nbody_engine	tc1(nbody_create_engine(param2));
+		res += QTest::qExec(&tc1, argc, argv);
+		test_nbody_engine_compare tc2(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  64, 1e-16, 2);
+		res += QTest::qExec(&tc2, argc, argv);
 	}
 	{
 		QVariantMap			param(std::map<QString, QVariant>({{"engine", "opencl_bh"},
@@ -1505,7 +1504,7 @@ int main(int argc, char* argv[])
 		}));
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
-									  1024, 1.6874e-13, 2);
+									  128, 1.6874e-13, 2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 	{
@@ -1520,50 +1519,38 @@ int main(int argc, char* argv[])
 			{"traverse_type", "cycle"},
 			{"tree_layout", "heap"},
 			{"tree_build_rate", 2}
-		}));
-		test_nbody_engine_compare tc1(nbody_create_engine(param1),
-									  nbody_create_engine(param2),
-									  1024, 1.6874e-13, 2);
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
-		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "cycle"},
-			{"tree_layout", "heap"},
-			{"tree_build_rate", 0}
-		}));
-		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
-			{"device", "0:0;0:0;0:0;0:0"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "cycle"},
-			{"tree_layout", "heap"},
-			{"tree_build_rate", 0}
-		}));
-		test_nbody_engine_compare tc1(nbody_create_engine(param1),
-									  nbody_create_engine(param2),
-									  1024, 1.6874e-13, 2);
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
-		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"},
-			{"tree_build_rate", 0}
-		}));
-		QVariantMap param2(std::map<QString, QVariant>({{"engine", "opencl_bh"},
-			{"device", "0:0;0:0;0:0;0:0"},
-			{"block_size", 64},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"},
-			{"tree_build_rate", 0}
 		}));
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),
 									  128, 1.6874e-13, 2);
 		res += QTest::qExec(&tc1, argc, argv);
+	}
+	for(const char* device : {"0:0;0:0", "0:0,0", "0:0,0,0,0", "0:0,0,0,0,0,0,0,0"})
+	{
+		for(const char* traverse_type : {"cycle", "nested_tree"})
+		{
+			for(int tree_build_rate : {0, 2})
+			{
+				// Compare ONE device "fcompute_bh_impl heap/cycle" with FOUR devices in separate contexts
+				QVariantMap param1(std::map<QString, QVariant>({{"engine", "opencl_bh"},
+					{"device", "0:0"},
+					{"block_size", 16},
+					{"distance_to_node_radius_ratio", 3.1623},
+					{"traverse_type", traverse_type},
+					{"tree_layout", "heap"},
+					{"tree_build_rate", tree_build_rate}
+				}));
+				QVariantMap param2(param1); param2["device"] = device;
+				test_nbody_engine_compare tc1(nbody_create_engine(param1),
+											  nbody_create_engine(param2),
+											  64, 1e-16, 2);
+				res += QTest::qExec(&tc1, argc, argv);
+				if(res > 0)
+				{
+					return res;
+				}
+			}
+		}
 	}
 #endif // HAVE_OPENCL
 	{
