@@ -288,6 +288,12 @@ nbody_engine_opencl::data::~data()
 	delete m_indites;
 }
 
+namespace {
+bool is_power_of_two(size_t val)
+{
+	return (val > 0) && ((val & (val - 1)) == 0);
+}
+}
 int nbody_engine_opencl::data::select_devices(const QString& devices,
 											  bool verbose, bool prof)
 {
@@ -429,9 +435,9 @@ int nbody_engine_opencl::data::select_devices(const QString& devices,
 		}
 	}
 
-	if(m_devices.empty())
+	if(!is_power_of_two(m_devices.size()))
 	{
-		qDebug() << "No OpenCL device found";
+		qDebug() << "Device count must be power of TWO. Selected only" << m_devices.size() << "device(s)";
 		return -1;
 	}
 	m_all_in_same_context = (platform_devices_list.size() == 1);

@@ -1390,14 +1390,15 @@ int main(int argc, char* argv[])
 		QVariantMap	param4(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0"}}));
 		QVariantMap	param5(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "a:0"}}));
 		QVariantMap	param6(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:a"}}));
-		QVariantMap	param7(std::map<QString, QVariant>({{"engine", "opencl_bh"}, {"traverse_type", "infinite"}}));
-		QVariantMap	params[] = {param1, param2, param3, param4, param5, param6, param7};
-		for(size_t n = 0; n != 7; ++n)
+		QVariantMap	param7(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:0,0,0"}}));
+		QVariantMap	param8(std::map<QString, QVariant>({{"engine", "opencl_bh"}, {"traverse_type", "infinite"}}));
+		QVariantMap	params[] = {param1, param2, param3, param4, param5, param6, param7, param8};
+		for(const auto& param : params)
 		{
-			nbody_engine*	e(nbody_create_engine(params[n]));
+			nbody_engine*	e(nbody_create_engine(param));
 			if(e != NULL)
 			{
-				qDebug() << "Created engine with invalid device" << params[n];
+				qDebug() << "Created engine with invalid device" << param;
 				res += 1;
 				delete e;
 			}
