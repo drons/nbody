@@ -102,7 +102,54 @@ int rght_idx(int idx)
 {
 	return 2 * idx + 1;
 }
+int parent_idx(int idx)
+{
+	return (idx) >> 1;
+}
+bool is_left(int idx)
+{
+	return (idx & 1) == 0;
+}
+bool is_right(int idx)
+{
+	return idx & 1;
+}
+int left2right(int idx)
+{
+	return idx + 1;
+}
+int next_down(int idx)
+{
+#if __OPENCL_VERSION__ >= 200
+	idx = idx >> ctz(~idx);
+#else //__OPENCL_VERSION__ >= 200
+	// While index is 'right' -> go down
+	while(is_right(idx))
+	{
+		int parent = parent_idx(idx);
+		// We at root again. Stop traverse.
+		if(parent == NBODY_HEAP_ROOT_INDEX)
+		{
+			return NBODY_HEAP_ROOT_INDEX;
+		}
+		idx = parent;
+	}
+#endif //__OPENCL_VERSION__ >= 200
+	return left2right(idx);
+}
+int next_up(int idx, int tree_size)
+{
+	int left = left_idx(idx);
+	if(left < tree_size)
+	{
+		return left;
+	}
+	return next_down(idx);
+}
+
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
+// Cycle body access by index
+// Tree traverse with stack
 __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 							__global const nbcoord_t* y,
 							__global nbcoord_t* f,
@@ -190,7 +237,85 @@ __kernel void ComputeTreeBH(int offset_n1, int points_count, int tree_size,
 }
 
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
+// Cycle body access by index
+// Stackless tree traverse
+__kernel void ComputeTreeBHSL(int offset_n1, int points_count, int tree_size,
+							  __global const nbcoord_t* y,
+							  __global nbcoord_t* f,
+							  __global const nbcoord_t* tree_cmx,
+							  __global const nbcoord_t* tree_cmy,
+							  __global const nbcoord_t* tree_cmz,
+							  __global const nbcoord_t* tree_mass,
+							  __global const nbcoord_t* tree_crit_r2)
+{
+	int		n1 = get_global_id(0) + offset_n1;
+	int		stride = points_count;
+	__global const nbcoord_t*	rx = y;
+	__global const nbcoord_t*	ry = rx + stride;
+	__global const nbcoord_t*	rz = rx + 2 * stride;
+	__global const nbcoord_t*	vx = rx + 3 * stride;
+	__global const nbcoord_t*	vy = rx + 4 * stride;
+	__global const nbcoord_t*	vz = rx + 5 * stride;
+
+	__global nbcoord_t*	frx = f;
+	__global nbcoord_t*	fry = frx + stride;
+	__global nbcoord_t*	frz = frx + 2 * stride;
+	__global nbcoord_t*	fvx = frx + 3 * stride;
+	__global nbcoord_t*	fvy = frx + 4 * stride;
+	__global nbcoord_t*	fvz = frx + 5 * stride;
+
+	nbcoord_t	x1 = rx[n1];
+	nbcoord_t	y1 = ry[n1];
+	nbcoord_t	z1 = rz[n1];
+
+	nbcoord_t	res_x = 0.0;
+	nbcoord_t	res_y = 0.0;
+	nbcoord_t	res_z = 0.0;
+
+	int	curr = NBODY_HEAP_ROOT_INDEX;
+	do
+	{
+		nbcoord_t	dx = x1 - tree_cmx[curr];
+		nbcoord_t	dy = y1 - tree_cmy[curr];
+		nbcoord_t	dz = z1 - tree_cmz[curr];
+		nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
+
+		if(r2 > tree_crit_r2[curr])
+		{
+			if(r2 < NBODY_MIN_R)
+			{
+				r2 = NBODY_MIN_R;
+			}
+
+			nbcoord_t	r = sqrt(r2);
+			nbcoord_t	coeff = tree_mass[curr] / (r * r2);
+
+			dx *= coeff;
+			dy *= coeff;
+			dz *= coeff;
+			res_x -= dx;
+			res_y -= dy;
+			res_z -= dz;
+			curr = next_down(curr);
+		}
+		else
+		{
+			curr = next_up(curr, tree_size);
+		}
+	}
+	while(curr != NBODY_HEAP_ROOT_INDEX);
+
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+	fvx[n1] = res_x;
+	fvy[n1] = res_y;
+	fvz[n1] = res_z;
+}
+
+// Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 // Traverse starts form a tree node
+// Tree traverse with stack
 __kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
 							__global const nbcoord_t* y,
 							__global nbcoord_t* f,
@@ -258,6 +383,84 @@ __kernel void ComputeHeapBH(int offset_n1, int points_count, int tree_size,
 			}
 		}
 	}
+
+	__global const nbcoord_t*	vx = y + 3 * stride;
+	__global const nbcoord_t*	vy = y + 4 * stride;
+	__global const nbcoord_t*	vz = y + 5 * stride;
+
+	__global nbcoord_t*	frx = f;
+	__global nbcoord_t*	fry = frx + stride;
+	__global nbcoord_t*	frz = frx + 2 * stride;
+	__global nbcoord_t*	fvx = frx + 3 * stride;
+	__global nbcoord_t*	fvy = frx + 4 * stride;
+	__global nbcoord_t*	fvz = frx + 5 * stride;
+
+	frx[n1] = vx[n1];
+	fry[n1] = vy[n1];
+	frz[n1] = vz[n1];
+	fvx[n1] = res_x;
+	fvy[n1] = res_y;
+	fvz[n1] = res_z;
+}
+
+// Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
+// Traverse starts form a tree node
+// Stackless tree traverse
+__kernel void ComputeHeapBHSL(int offset_n1, int points_count, int tree_size,
+							  __global const nbcoord_t* y,
+							  __global nbcoord_t* f,
+							  __global const nbcoord_t* tree_cmx,
+							  __global const nbcoord_t* tree_cmy,
+							  __global const nbcoord_t* tree_cmz,
+							  __global const nbcoord_t* tree_mass,
+							  __global const nbcoord_t* tree_crit_r2,
+							  __global const int* body_n)
+{
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+	int		stride = points_count;
+	int		tn1 = get_global_id(0) + offset_n1 + tree_offset;
+
+	int			n1 = body_n[tn1];
+	nbcoord_t	x1 = tree_cmx[tn1];
+	nbcoord_t	y1 = tree_cmy[tn1];
+	nbcoord_t	z1 = tree_cmz[tn1];
+
+	nbcoord_t	res_x = 0.0;
+	nbcoord_t	res_y = 0.0;
+	nbcoord_t	res_z = 0.0;
+
+	int	curr = NBODY_HEAP_ROOT_INDEX;
+	do
+	{
+		nbcoord_t	dx = x1 - tree_cmx[curr];
+		nbcoord_t	dy = y1 - tree_cmy[curr];
+		nbcoord_t	dz = z1 - tree_cmz[curr];
+		nbcoord_t	r2 = (dx * dx + dy * dy + dz * dz);
+
+		if(r2 > tree_crit_r2[curr])
+		{
+			if(r2 < NBODY_MIN_R)
+			{
+				r2 = NBODY_MIN_R;
+			}
+
+			nbcoord_t	r = sqrt(r2);
+			nbcoord_t	coeff = tree_mass[curr] / (r * r2);
+
+			dx *= coeff;
+			dy *= coeff;
+			dz *= coeff;
+			res_x -= dx;
+			res_y -= dy;
+			res_z -= dz;
+			curr = next_down(curr);
+		}
+		else
+		{
+			curr = next_up(curr, tree_size);
+		}
+	}
+	while(curr != NBODY_HEAP_ROOT_INDEX);
 
 	__global const nbcoord_t*	vx = y + 3 * stride;
 	__global const nbcoord_t*	vy = y + 4 * stride;

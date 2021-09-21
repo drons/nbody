@@ -129,7 +129,9 @@ struct nbody_engine_opencl::data
 		cl::CommandQueue	m_queue;
 		ComputeBlock		m_fcompute;
 		ComputeBlockBH		m_fcompute_bh;
+		ComputeBlockBH		m_fcompute_bh_sl;
 		ComputeHeapBH		m_fcompute_hbh;
+		ComputeHeapBH		m_fcompute_hbh_sl;
 		UpdateLeafBH		m_update_leaf_hbh;
 		UpdateNodeBH		m_update_node_hbh;
 		FMfill				m_fill;
@@ -235,7 +237,9 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& _de
 	m_queue(m_context, _device, d->m_prof_enabled ? CL_QUEUE_PROFILING_ENABLE : 0),
 	m_fcompute(m_prog, "ComputeBlockLocal"),
 	m_fcompute_bh(m_prog, "ComputeTreeBH"),
+	m_fcompute_bh_sl(m_prog, "ComputeTreeBHSL"),
 	m_fcompute_hbh(m_prog, "ComputeHeapBH"),
+	m_fcompute_hbh_sl(m_prog, "ComputeHeapBHSL"),
 	m_update_leaf_hbh(m_prog, "UpdateLeafBH"),
 	m_update_node_hbh(m_prog, "UpdateNodeBH"),
 	m_fill(m_prog, "fill"),
@@ -870,7 +874,8 @@ void nbody_engine_opencl::synchronize_sum(smemory* f)
 
 void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y, memory* _f,
 										   nbcoord_t distance_to_node_radius_ratio,
-										   bool cycle_traverse, size_t tree_build_rate)
+										   bool cycle_traverse, size_t tree_build_rate,
+										   bool stackless)
 {
 	if(d->m_devices.empty())
 	{
@@ -1030,15 +1035,15 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 		{
 			size_t			offset = dev_n * device_data_size;
 			data::devctx&	ctx(d->m_devices[dev_n]);
+			auto&			fcompute_bh(stackless ? ctx.m_fcompute_bh_sl : ctx.m_fcompute_bh);
 			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-			cl::Event		ev(
-				ctx.m_fcompute_bh(eargs, offset, data_size, tree_size,
-								  y->buffer(dev_n), f->buffer(dev_n),
-								  d->m_tree_cmx->buffer(dev_n),
-								  d->m_tree_cmy->buffer(dev_n),
-								  d->m_tree_cmz->buffer(dev_n),
-								  d->m_tree_mass->buffer(dev_n),
-								  d->m_tree_r2->buffer(dev_n)));
+			cl::Event	ev(fcompute_bh(eargs, offset, data_size, tree_size,
+									   y->buffer(dev_n), f->buffer(dev_n),
+									   d->m_tree_cmx->buffer(dev_n),
+									   d->m_tree_cmy->buffer(dev_n),
+									   d->m_tree_cmz->buffer(dev_n),
+									   d->m_tree_mass->buffer(dev_n),
+									   d->m_tree_r2->buffer(dev_n)));
 			events.push_back(ev);
 		}
 		cl::Event::waitForEvents(events);
@@ -1057,16 +1062,16 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 		{
 			size_t			offset = dev_n * device_data_size;
 			data::devctx&	ctx(d->m_devices[dev_n]);
+			auto&			fcompute_hbh(stackless ? ctx.m_fcompute_hbh_sl : ctx.m_fcompute_hbh);
 			cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
-			cl::Event		ev(
-				ctx.m_fcompute_hbh(eargs, offset, data_size, tree_size,
-								   y->buffer(dev_n), f->buffer(dev_n),
-								   d->m_tree_cmx->buffer(dev_n),
-								   d->m_tree_cmy->buffer(dev_n),
-								   d->m_tree_cmz->buffer(dev_n),
-								   d->m_tree_mass->buffer(dev_n),
-								   d->m_tree_r2->buffer(dev_n),
-								   d->m_indites->buffer(dev_n)));
+			cl::Event	ev(fcompute_hbh(eargs, offset, data_size, tree_size,
+										y->buffer(dev_n), f->buffer(dev_n),
+										d->m_tree_cmx->buffer(dev_n),
+										d->m_tree_cmy->buffer(dev_n),
+										d->m_tree_cmz->buffer(dev_n),
+										d->m_tree_mass->buffer(dev_n),
+										d->m_tree_r2->buffer(dev_n),
+										d->m_indites->buffer(dev_n)));
 			events.push_back(ev);
 		}
 		cl::Event::waitForEvents(events);

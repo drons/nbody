@@ -79,21 +79,35 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		QString	devices(param.value("device", "0:0").toString());
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		QString		strtt(param.value("traverse_type", "cycle").toString());
+		QString		strtl(param.value("tree_layout", "heap").toString());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
 		size_t		tree_build_rate = param.value("tree_build_rate", 0).toULongLong();
+		e_tree_layout tl = tree_layout_from_str(strtl);
+		e_traverse_type tt;
 
-		if(strtt != "cycle" && strtt != "nested_tree")
+		if(tl != etl_heap && tl != etl_heap_stackless)
+		{
+			qDebug() << "Invalid tree_layout. Allowed values are 'heap' or 'heap_stackless'";
+			return NULL;
+		}
+		if(strtt == "cycle")
+		{
+			tt = ett_cycle;
+		}
+		else if(strtt == "nested_tree")
+		{
+			tt = ett_nested_tree;
+		}
+		else
 		{
 			qDebug() << "Invalid traverse_type. Allowed values are 'cycle' or 'nested_tree'";
 			return NULL;
 		}
 
 		nbody_engine_opencl_bh* engine = new nbody_engine_opencl_bh(distance_to_node_radius_ratio,
-																	tree_build_rate);
+																	tt, tree_build_rate, tl);
 
 		engine->set_block_size(block_size);
-		engine->set_cycle_traverse(strtt == "cycle");
-
 		if(0 != engine->select_devices(devices, param.value("verbose", "0").toInt() != 0,
 									   param.value("oclprof", "0").toInt() != 0))
 		{
