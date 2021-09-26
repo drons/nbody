@@ -94,58 +94,6 @@ __kernel void ComputeBlockLocal(int offset_n1, int offset_n2,
 }
 
 #define MAX_STACK_SIZE 64
-int left_idx(int idx)
-{
-	return 2 * idx;
-}
-int rght_idx(int idx)
-{
-	return 2 * idx + 1;
-}
-int parent_idx(int idx)
-{
-	return (idx) >> 1;
-}
-bool is_left(int idx)
-{
-	return (idx & 1) == 0;
-}
-bool is_right(int idx)
-{
-	return idx & 1;
-}
-int left2right(int idx)
-{
-	return idx + 1;
-}
-int next_down(int idx)
-{
-#if __OPENCL_VERSION__ >= 200
-	idx = idx >> ctz(~idx);
-#else //__OPENCL_VERSION__ >= 200
-	// While index is 'right' -> go down
-	while(is_right(idx))
-	{
-		int parent = parent_idx(idx);
-		// We at root again. Stop traverse.
-		if(parent == NBODY_HEAP_ROOT_INDEX)
-		{
-			return NBODY_HEAP_ROOT_INDEX;
-		}
-		idx = parent;
-	}
-#endif //__OPENCL_VERSION__ >= 200
-	return left2right(idx);
-}
-int next_up(int idx, int tree_size)
-{
-	int left = left_idx(idx);
-	if(left < tree_size)
-	{
-		return left;
-	}
-	return next_down(idx);
-}
 
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 // Cycle body access by index
