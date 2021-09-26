@@ -1,6 +1,6 @@
 #include "nbody_engine_cuda_impl.h"
 
-#define NB_CALL_TYPE __device__ inline
+#define NB_CALL_TYPE static __device__ inline
 
 #include "nbody_space_heap_func.h"
 

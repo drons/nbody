@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>nbody_engine_opencl.cl</file>
+        <file>nbody_space_heap_func_priv.h</file>
     </qresource>
 </RCC>

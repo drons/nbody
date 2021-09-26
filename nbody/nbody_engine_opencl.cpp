@@ -37,14 +37,15 @@ std::string load_program(const QString& filename)
 cl::Program load_programs(const cl::Context& context, const cl::Device& device, const QString& options,
 						  const QStringList& files)
 {
-	std::vector< std::string >	source_data;
-	cl::Program::Sources		sources;
+	std::string				source_data;
+	cl::Program::Sources	sources;
 
 	for(int i = 0; i != files.size(); ++i)
 	{
-		source_data.push_back(load_program(files[i]));
-		sources.push_back(std::make_pair(source_data.back().data(), source_data.back().size()));
+		source_data += load_program(files[i]);
+		source_data += "\n";
 	}
+	sources.push_back(std::make_pair(source_data.data(), source_data.size()));
 
 	cl::Program	prog(context, sources);
 
@@ -218,6 +219,8 @@ QString nbody_engine_opencl::data::devctx::build_options(int block_size)
 	options += "-DNBODY_DATA_BLOCK_SIZE=" + QString::number(block_size) + " ";
 	options += "-DNBODY_MIN_R=" + QString::number(nbody::MinDistance) + " ";
 	options += "-DNBODY_HEAP_ROOT_INDEX=" + QString::number(NBODY_HEAP_ROOT_INDEX) + " ";
+	options += "-DNB_CALL_TYPE= ";
+	options += "-Dindex_t=int ";
 	options += "-Dnbcoord_t=" + QString(nbtype_info<nbcoord_t>::type_name()) + " ";
 	options += "-Dnbcoord3_t=" + QString(nbtype_info<nbvertex_t>::type_name()) + " ";
 	options += "-cl-fast-relaxed-math -cl-unsafe-math-optimizations -cl-finite-math-only -w -Werror ";
@@ -227,7 +230,9 @@ QString nbody_engine_opencl::data::devctx::build_options(int block_size)
 
 QStringList nbody_engine_opencl::data::devctx::sources()
 {
-	return QStringList() << ":/nbody_engine_opencl.cl";
+	return QStringList()
+		   << ":/nbody_space_heap_func_priv.h"
+		   << ":/nbody_engine_opencl.cl";
 }
 
 nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& _device, const data* d) :
