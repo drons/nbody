@@ -112,7 +112,7 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 					 dev_tree_cmx, dev_tree_cmy, dev_tree_cmz,
 					 dev_tree_mass, dev_tree_crit_r2,
 					 dev_indites, get_block_size());
-	fcompute_xyz(dev_y, dev_f, static_cast<int>(count), get_block_size());
+	fcompute_xyz(dev_y, dev_f, count, static_cast<int>(count), get_block_size());
 }
 
 void nbody_engine_cuda_bh::print_info() const

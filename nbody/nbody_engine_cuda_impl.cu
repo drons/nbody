@@ -7,15 +7,15 @@
 #include <thrust/device_ptr.h>
 #include <thrust/extrema.h>
 
-__global__ void kfcompute_xyz(const nbcoord_t* y, int yoff, nbcoord_t* f, int foff, int stride)
+__global__ void kfcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int stride)
 {
 	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
 
-	const nbcoord_t*	vx = y + yoff + 3 * stride;
+	const nbcoord_t*	vx = y + 3 * stride;
 	const nbcoord_t*	vy = vx + stride;
 	const nbcoord_t*	vz = vx + 2 * stride;
 
-	nbcoord_t*	frx = f + foff;
+	nbcoord_t*	frx = f;
 	nbcoord_t*	fry = frx + stride;
 	nbcoord_t*	frz = frx + 2 * stride;
 
@@ -24,20 +24,21 @@ __global__ void kfcompute_xyz(const nbcoord_t* y, int yoff, nbcoord_t* f, int fo
 	frz[n1] = vz[n1];
 }
 
-__host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int count, int block_size)
+__host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, size_t count,
+						   size_t stride, int block_size)
 {
 	dim3 grid(count / block_size);
 	dim3 block(block_size);
 
-	kfcompute_xyz <<< grid, block >>> (y, 0, f, 0, count);
+	kfcompute_xyz <<< grid, block >>> (y, f, stride);
 }
 
-__global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t* f, int foff,
+__global__ void kfcompute(int offset_n1, const nbcoord_t* y, nbcoord_t* f,
 						  const nbcoord_t* mass, int points_count, int stride)
 {
-	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
+	int n1 = blockDim.x * blockIdx.x + threadIdx.x + offset_n1;
 
-	const nbcoord_t*	rx = y + yoff;
+	const nbcoord_t*	rx = y;
 	const nbcoord_t*	ry = rx + stride;
 	const nbcoord_t*	rz = rx + 2 * stride;
 
@@ -58,7 +59,7 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 
 	for(int b2 = 0; b2 < points_count; b2 += blockDim.x)
 	{
-		int			n2 = b2 + offset_n2 + threadIdx.x;
+		int			n2 = b2 + threadIdx.x;
 
 		// Copy data block to local memory
 		x2[ threadIdx.x ] = rx[n2];
@@ -105,20 +106,19 @@ __global__ void kfcompute(int offset_n2, const nbcoord_t* y, int yoff, nbcoord_t
 		res_z += local_res_z;
 	}
 
-	n1 += foff;
 	f[n1 + 3 * stride] = res_x;
 	f[n1 + 4 * stride] = res_y;
 	f[n1 + 5 * stride] = res_z;
 }
 
-__host__ void fcompute_block(const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
-							 int count, int block_size)
+__host__ void fcompute_block(size_t off, const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
+							 size_t count, size_t total_count, int block_size)
 {
 	dim3	grid(count / block_size);
 	dim3	block(block_size);
 	size_t	shared_size(4 * sizeof(nbcoord_t) * block_size);
 
-	kfcompute <<< grid, block, shared_size >>> (0, y, 0, f, 0, m, count, count);
+	kfcompute <<< grid, block, shared_size >>> (off, y, f, m, total_count, total_count);
 }
 
 #define MAX_STACK_SIZE 64
@@ -436,25 +436,25 @@ __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)
 }
 
 //! a[i] += b[i]*c
-__global__ void kfmadd_inplace(int offset, nbcoord_t* a, const nbcoord_t* b, nbcoord_t c)
+__global__ void kfmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c)
 {
-	int		i = blockDim.x * blockIdx.x + threadIdx.x + offset;
+	int		i = blockDim.x * blockIdx.x + threadIdx.x;
 	a[i] += b[i] * c;
 }
 
-__host__ void fmadd_inplace(int offset, nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count)
+__host__ void fmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count)
 {
 	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
-	kfmadd_inplace <<< grid, block >>> (offset, a, b, c);
+	kfmadd_inplace <<< grid, block >>> (a, b, c);
 }
 
 //! a[i] += b[i]*c with correction
-__global__ void kfmadd_inplace_corr(int offset, nbcoord_t* _a, nbcoord_t* corr,
+__global__ void kfmadd_inplace_corr(nbcoord_t* _a, nbcoord_t* corr,
 									const nbcoord_t* b, nbcoord_t c)
 {
-	int		i = blockDim.x * blockIdx.x + threadIdx.x + offset;
+	int		i = blockDim.x * blockIdx.x + threadIdx.x;
 	nbcoord_t	term = b[i] * c;
 	nbcoord_t	a = _a[i];
 	nbcoord_t	corrected = term - corr[i];
@@ -464,30 +464,30 @@ __global__ void kfmadd_inplace_corr(int offset, nbcoord_t* _a, nbcoord_t* corr,
 	_a[i] =  new_sum;
 }
 
-__host__ void fmadd_inplace_corr(int offset, nbcoord_t* a, nbcoord_t* corr,
+__host__ void fmadd_inplace_corr(nbcoord_t* a, nbcoord_t* corr,
 								 const nbcoord_t* b, nbcoord_t c, int count)
 {
 	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
-	kfmadd_inplace_corr <<< grid, block >>> (offset, a, corr, b, c);
+	kfmadd_inplace_corr <<< grid, block >>> (a, corr, b, c);
 }
 
 //! a[i+aoff] = b[i+boff] + c[i+coff]*d
 __global__ void kfmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
-					   nbcoord_t d, int aoff, int boff, int coff)
+					   nbcoord_t d)
 {
 	int		i = blockDim.x * blockIdx.x + threadIdx.x;
-	a[i + aoff] = b[i + boff] + c[i + coff] * d;
+	a[i] = b[i] + c[i] * d;
 }
 
 __host__ void fmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
-					nbcoord_t d, int aoff, int boff, int coff, int count)
+					nbcoord_t d, int count)
 {
 	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
-	kfmadd <<< grid, block >>> (a, b, c, d, aoff, boff, coff);
+	kfmadd <<< grid, block >>> (a, b, c, d);
 }
 
 //! @result = max( fabs(a[k]), k=[0...asize) )

@@ -20,9 +20,15 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 #ifdef HAVE_CUDA
 	else if(type == "cuda")
 	{
+		QString	devices(param.value("device", "0").toString());
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbody_engine_cuda*	engine = new nbody_engine_cuda();
 
+		if(0 != engine->select_devices(devices))
+		{
+			delete engine;
+			return NULL;
+		}
 		engine->set_block_size(block_size);
 
 		return engine;

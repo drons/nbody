@@ -98,17 +98,19 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 	if(m_tree_layout == etl_heap)
 	{
 		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-							 m_dev_tree_xyzr->tex(4), m_dev_tree_mass->tex(),
+							 m_dev_tree_xyzr->tex(0, smemory::evs4),
+							 m_dev_tree_mass->tex(0, smemory::evs1),
 							 dev_indites, get_block_size());
 	}
 	else if(m_tree_layout == etl_heap_stackless)
 	{
 		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-								   m_dev_tree_xyzr->tex(4), m_dev_tree_mass->tex(),
+								   m_dev_tree_xyzr->tex(0, smemory::evs4),
+								   m_dev_tree_mass->tex(0, smemory::evs1),
 								   dev_indites, get_block_size());
 	}
 
-	fcompute_xyz(dev_y, dev_f, static_cast<int>(count), get_block_size());
+	fcompute_xyz(dev_y, dev_f, count, static_cast<int>(count), get_block_size());
 }
 
 void nbody_engine_cuda_bh_tex::print_info() const
