@@ -25,12 +25,15 @@ const char* nbody_engine_cuda::type_name() const
 	return "nbody_engine_cuda";
 }
 
-void nbody_engine_cuda::init(nbody_data* body_data)
+bool nbody_engine_cuda::init(nbody_data* body_data)
 {
 	m_data = body_data;
 	m_mass = dynamic_cast<smemory*>(create_buffer(sizeof(nbcoord_t) * m_data->get_count()));
 	m_y = dynamic_cast<smemory*>(create_buffer(sizeof(nbcoord_t) * problem_size()));
-
+	if(m_mass == nullptr || m_y == nullptr)
+	{
+		return false;
+	}
 	std::vector<nbcoord_t>	ytmp(problem_size());
 	size_t					count = m_data->get_count();
 	nbcoord_t*				rx = ytmp.data();
@@ -54,6 +57,8 @@ void nbody_engine_cuda::init(nbody_data* body_data)
 
 	write_buffer(m_mass, const_cast<nbcoord_t*>(m_data->get_mass()));
 	write_buffer(m_y, ytmp.data());
+
+	return true;
 }
 
 void nbody_engine_cuda::get_data(nbody_data* body_data)
@@ -417,16 +422,8 @@ void nbody_engine_cuda::fmaxabs(const nbody_engine::memory* _a, nbcoord_t& resul
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_off(dev_count * dev_n);
 		cudaSetDevice(m_device_ids[dev_n]);
-		try
-		{
-			::fmaxabs(static_cast<const nbcoord_t*>(a->data(dev_n)) + dev_off,
-					  dev_count, devmax[dev_n]);
-		}
-		catch(std::exception& ex)
-		{
-			qDebug() << ex.what();
-			devmax[dev_n] = qQNaN();
-		}
+		::fmaxabs(static_cast<const nbcoord_t*>(a->data(dev_n)) + dev_off,
+				  dev_count, devmax[dev_n]);
 	}
 
 	result = *std::max_element(devmax.begin(), devmax.end());

@@ -50,7 +50,7 @@ void test_nbody_stream::initTestCase()
 	qDebug() << "Solver =" << m_s->type_name() << "engine" << m_e->type_name();
 	m_data.make_universe(128, box_size, box_size, box_size);
 
-	m_e->init(&m_data);
+	QVERIFY(m_e->init(&m_data));
 	m_s->set_time_step(1e-3, 3e-2);
 	m_s->set_engine(m_e);
 }
@@ -410,7 +410,7 @@ void test_nbody_stream_restart::run()
 
 		data.make_universe(128, box_size, box_size, box_size);
 
-		e.init(&data);
+		QVERIFY(e.init(&data));
 		s.set_time_step(0.01, 0.01);
 		s.set_engine(&e);
 		nbody_data_stream	stream;
@@ -427,7 +427,7 @@ void test_nbody_stream_restart::run()
 
 		data.make_universe(128, box_size, box_size, box_size);
 
-		e.init(&data);
+		QVERIFY(e.init(&data));
 		s.set_time_step(0.01, 0.01);
 		s.set_engine(&e);
 		nbody_data_stream	half_stream;
@@ -449,7 +449,7 @@ void test_nbody_stream_restart::run()
 		nbody_engine_simple	e;
 		nbody_solver_euler	s;
 
-		e.init(&data);
+		QVERIFY(e.init(&data));
 		s.set_time_step(0.01, 0.01);
 		s.set_engine(&e);
 		nbody_data_stream			half_stream;

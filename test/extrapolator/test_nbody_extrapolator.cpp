@@ -43,7 +43,7 @@ void test_nbody_extrapolator::initTestCase()
 	qDebug() << "Extrapolator" << m_extrapolator_type;
 	m_e->print_info();
 	m_data.resize(m_problem_size);
-	m_e->init(&m_data);
+	QVERIFY(m_e->init(&m_data));
 }
 
 void test_nbody_extrapolator::cleanupTestCase()

@@ -77,7 +77,11 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	engine->init(&data);
+	if(!engine->init(&data))
+	{
+		qDebug() << "Can't init engine" << engine->type_name();
+		return -1;
+	}
 	solver->set_engine(engine.get());
 
 	data.set_check_list(check_list);

@@ -310,147 +310,147 @@ int nbody_engine_opencl::data::select_devices(const QString& devices,
 	try
 	{
 		cl::Platform::get(&platforms);
+
+		if(verbose)
+		{
+			qDebug() << "Available platforms & devices:";
+			for(size_t i = 0; i != platforms.size(); ++i)
+			{
+				const cl::Platform&			platform(platforms[i]);
+				std::vector<cl::Device>		devs;
+
+				qDebug() << i << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
+
+				platform.getDevices(CL_DEVICE_TYPE_ALL, &devs);
+
+				for(size_t j = 0; j != devs.size(); ++j)
+				{
+					cl::Device&		device(devs[j]);
+					qDebug() << "\t--device=" << QString("%1:%2").arg(i).arg(j);
+					qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
+					qDebug() << "\t\t CL_DEVICE_TYPE" << device.getInfo<CL_DEVICE_TYPE>();
+					qDebug() << "\t\t CL_DRIVER_VERSION" << device.getInfo<CL_DRIVER_VERSION>().c_str();
+					qDebug() << "\t\t CL_DEVICE_PROFILE" << device.getInfo<CL_DEVICE_PROFILE>().c_str();
+					qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
+					qDebug() << "\t\t CL_DEVICE_MAX_COMPUTE_UNITS" << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+					qDebug() << "\t\t CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS" << device.getInfo<CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS>();
+					qDebug() << "\t\t CL_DEVICE_MAX_WORK_GROUP_SIZE" << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+					qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT>();
+					qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT>();
+					qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE>();
+					qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE>();
+					qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE>();
+					qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_SIZE>();
+					qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>();
+					qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE" << device.getInfo<CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE>();
+					qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_ARGS" << device.getInfo<CL_DEVICE_MAX_CONSTANT_ARGS>();
+					qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_TYPE" << device.getInfo<CL_DEVICE_LOCAL_MEM_TYPE>();
+					qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_SIZE" << device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
+					try
+					{
+						cl::Context	context(device);
+						nbody_engine_opencl::data::devctx	c(context, device, this);
+					}
+					catch(cl::Error& e)
+					{
+						qDebug() << e.err() << e.what();
+					}
+				}
+			}
+		}
+		m_prof_enabled = prof;
+
+		QStringList	platform_devices_list(devices.split(";"));
+
+		for(int n = 0; n != platform_devices_list.size(); ++n)
+		{
+			QStringList	plat_dev(platform_devices_list[n].split(":"));
+			if(plat_dev.size() != 2)
+			{
+				qDebug() << "Can't parse OpenCL platform-device pair";
+				return -1;
+			}
+
+			bool	platform_id_ok = false;
+			size_t	platform_n = static_cast<size_t>(plat_dev[0].toUInt(&platform_id_ok));
+
+			if(!platform_id_ok)
+			{
+				qDebug() << "Can't parse OpenCL platform-device pair";
+				return -1;
+			}
+
+			if(platform_n >= platforms.size())
+			{
+				qDebug() << "Platform #" << platform_n << "not found. Max platform ID is" << platforms.size() - 1;
+				return -1;
+			}
+
+			QStringList					devices_list(plat_dev[1].split(","));
+			const cl::Platform&			platform(platforms[platform_n]);
+			std::vector<cl::Device>		all_devices;
+			std::vector<cl::Device>		active_devices;
+			std::set<size_t>			dev_ids;
+
+			platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+
+			if(verbose)
+			{
+				qDebug() << platform_n << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
+			}
+
+			for(int i = 0; i != devices_list.size(); ++i)
+			{
+				bool	device_id_ok = false;
+				size_t	device_n = static_cast<size_t>(devices_list[i].toUInt(&device_id_ok));
+				if(!device_id_ok)
+				{
+					qDebug() << "Can't parse OpenCL device ID" << devices_list[i];
+					return -1;
+				}
+				if(device_n >= all_devices.size())
+				{
+					qDebug() << "Device #" << device_n << "not found. Max device ID is" << all_devices.size() - 1;
+					return -1;
+				}
+				active_devices.push_back(all_devices[device_n]);
+				dev_ids.insert(device_n);
+			}
+
+			std::vector<cl::Device>		context_devices;
+			for(auto ii = dev_ids.begin(); ii != dev_ids.end(); ++ii)
+			{
+				context_devices.push_back(all_devices[*ii]);
+			}
+
+			cl::Context	context(context_devices);
+
+			for(size_t device_n = 0; device_n != active_devices.size(); ++device_n)
+			{
+				cl::Device&		device(active_devices[device_n]);
+				if(verbose)
+				{
+					qDebug() << "\tDevice:";
+					qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
+					qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
+				}
+				m_devices.emplace_back(context, device, this);
+			}
+		}
+
+		if(!is_power_of_two(m_devices.size()))
+		{
+			qDebug() << "Device count must be power of TWO. Selected only" << m_devices.size() << "device(s)";
+			return -1;
+		}
+		m_all_in_same_context = (platform_devices_list.size() == 1);
+		return 0;
 	}
 	catch(cl::Error& e)
 	{
 		qDebug() << e.err() << e.what();
 		return -1;
 	}
-	if(verbose)
-	{
-		qDebug() << "Available platforms & devices:";
-		for(size_t i = 0; i != platforms.size(); ++i)
-		{
-			const cl::Platform&			platform(platforms[i]);
-			std::vector<cl::Device>		devs;
-
-			qDebug() << i << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
-
-			platform.getDevices(CL_DEVICE_TYPE_ALL, &devs);
-
-			cl::Context	context(devs);
-
-			for(size_t j = 0; j != devs.size(); ++j)
-			{
-				cl::Device&		device(devs[j]);
-				qDebug() << "\t--device=" << QString("%1:%2").arg(i).arg(j);
-				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
-				qDebug() << "\t\t CL_DEVICE_TYPE" << device.getInfo<CL_DEVICE_TYPE>();
-				qDebug() << "\t\t CL_DRIVER_VERSION" << device.getInfo<CL_DRIVER_VERSION>().c_str();
-				qDebug() << "\t\t CL_DEVICE_PROFILE" << device.getInfo<CL_DEVICE_PROFILE>().c_str();
-				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
-				qDebug() << "\t\t CL_DEVICE_MAX_COMPUTE_UNITS" << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
-				qDebug() << "\t\t CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS" << device.getInfo<CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS>();
-				qDebug() << "\t\t CL_DEVICE_MAX_WORK_GROUP_SIZE" << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
-				qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT>();
-				qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT>();
-				qDebug() << "\t\t CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE>();
-				qDebug() << "\t\t CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE" << device.getInfo<CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE>();
-				qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE>();
-				qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_CACHE_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_SIZE>();
-				qDebug() << "\t\t CL_DEVICE_GLOBAL_MEM_SIZE" << device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>();
-				qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE" << device.getInfo<CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE>();
-				qDebug() << "\t\t CL_DEVICE_MAX_CONSTANT_ARGS" << device.getInfo<CL_DEVICE_MAX_CONSTANT_ARGS>();
-				qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_TYPE" << device.getInfo<CL_DEVICE_LOCAL_MEM_TYPE>();
-				qDebug() << "\t\t CL_DEVICE_LOCAL_MEM_SIZE" << device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
-				try
-				{
-					nbody_engine_opencl::data::devctx	c(context, device, this);
-				}
-				catch(cl::Error& e)
-				{
-					qDebug() << e.err() << e.what();
-				}
-			}
-		}
-	}
-	m_prof_enabled = prof;
-
-	QStringList	platform_devices_list(devices.split(";"));
-
-	for(int n = 0; n != platform_devices_list.size(); ++n)
-	{
-		QStringList	plat_dev(platform_devices_list[n].split(":"));
-		if(plat_dev.size() != 2)
-		{
-			qDebug() << "Can't parse OpenCL platform-device pair";
-			return -1;
-		}
-
-		bool	platform_id_ok = false;
-		size_t	platform_n = static_cast<size_t>(plat_dev[0].toUInt(&platform_id_ok));
-
-		if(!platform_id_ok)
-		{
-			qDebug() << "Can't parse OpenCL platform-device pair";
-			return -1;
-		}
-
-		if(platform_n >= platforms.size())
-		{
-			qDebug() << "Platform #" << platform_n << "not found. Max platform ID is" << platforms.size() - 1;
-			return -1;
-		}
-
-		QStringList					devices_list(plat_dev[1].split(","));
-		const cl::Platform&			platform(platforms[platform_n]);
-		std::vector<cl::Device>		all_devices;
-		std::vector<cl::Device>		active_devices;
-		std::set<size_t>			dev_ids;
-
-		platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
-
-		if(verbose)
-		{
-			qDebug() << platform_n << platform.getInfo<CL_PLATFORM_VENDOR>().c_str();
-		}
-
-		for(int i = 0; i != devices_list.size(); ++i)
-		{
-			bool	device_id_ok = false;
-			size_t	device_n = static_cast<size_t>(devices_list[i].toUInt(&device_id_ok));
-			if(!device_id_ok)
-			{
-				qDebug() << "Can't parse OpenCL device ID" << devices_list[i];
-				return -1;
-			}
-			if(device_n >= all_devices.size())
-			{
-				qDebug() << "Device #" << device_n << "not found. Max device ID is" << all_devices.size() - 1;
-				return -1;
-			}
-			active_devices.push_back(all_devices[device_n]);
-			dev_ids.insert(device_n);
-		}
-
-		std::vector<cl::Device>		context_devices;
-		for(auto ii = dev_ids.begin(); ii != dev_ids.end(); ++ii)
-		{
-			context_devices.push_back(all_devices[*ii]);
-		}
-
-		cl::Context	context(context_devices);
-
-		for(size_t device_n = 0; device_n != active_devices.size(); ++device_n)
-		{
-			cl::Device&		device(active_devices[device_n]);
-			if(verbose)
-			{
-				qDebug() << "\tDevice:";
-				qDebug() << "\t\t CL_DEVICE_NAME" << device.getInfo<CL_DEVICE_NAME>().c_str();
-				qDebug() << "\t\t CL_DEVICE_VERSION" << device.getInfo<CL_DEVICE_VERSION>().c_str();
-			}
-			m_devices.emplace_back(context, device, this);
-		}
-	}
-
-	if(!is_power_of_two(m_devices.size()))
-	{
-		qDebug() << "Device count must be power of TWO. Selected only" << m_devices.size() << "device(s)";
-		return -1;
-	}
-	m_all_in_same_context = (platform_devices_list.size() == 1);
-	return 0;
 }
 
 void nbody_engine_opencl::data::print_profile_info(const std::vector<cl::Event>& events, const QString& func)
@@ -490,16 +490,20 @@ const char* nbody_engine_opencl::type_name() const
 	return "nbody_engine_opencl";
 }
 
-void nbody_engine_opencl::init(nbody_data* body_data)
+bool nbody_engine_opencl::init(nbody_data* body_data)
 {
 	if(d->m_devices.empty())
 	{
 		qDebug() << "No OpenCL device available";
-		return;
+		return false;
 	}
 	d->m_data = body_data;
 	d->m_mass = dynamic_cast<smemory*>(create_buffer(sizeof(nbcoord_t) * d->m_data->get_count()));
 	d->m_y = dynamic_cast<smemory*>(create_buffer(sizeof(nbcoord_t) * problem_size()));
+	if(d->m_mass == nullptr || d->m_y == nullptr)
+	{
+		return false;
+	}
 
 	std::vector<nbcoord_t>	ytmp(problem_size());
 	size_t					count = d->m_data->get_count();
@@ -524,6 +528,8 @@ void nbody_engine_opencl::init(nbody_data* body_data)
 
 	write_buffer(d->m_mass, const_cast<nbcoord_t*>(d->m_data->get_mass()));
 	write_buffer(d->m_y, ytmp.data());
+
+	return true;
 }
 
 void nbody_engine_opencl::get_data(nbody_data* body_data)

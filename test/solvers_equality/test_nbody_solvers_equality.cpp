@@ -69,11 +69,11 @@ void test_nbody_solvers_equality::initTestCase()
 
 	data.make_universe(64, box_size, box_size, box_size);
 
-	e1->init(&data);
+	QVERIFY(e1->init(&data));
 	s1->set_time_step(1e-3, 1e-2);
 	s1->set_engine(e1);
 
-	e2->init(&data);
+	QVERIFY(e2->init(&data));
 	s2->set_time_step(1e-3, 1e-2);
 	s2->set_engine(e2);
 }

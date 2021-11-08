@@ -16,6 +16,7 @@ nbody_engine_cuda::smemory::smemory(size_t size, const std::vector<int>& dev_ids
 		{
 			qDebug() << "Can't alloc " << size << "bytes for dev_id " << m_device_ids[dev_n];
 			qDebug() << "Err code" << res << cudaGetErrorString(res);
+			m_size = 0;
 		}
 	}
 }

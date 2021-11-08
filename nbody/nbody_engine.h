@@ -36,7 +36,8 @@ public:
 	//! Engine's type name
 	virtual const char* type_name() const = 0;
 	//! Initialize engine
-	virtual void init(nbody_data* data) = 0;
+	//! @return true on success
+	virtual bool init(nbody_data* data) = 0;
 	//! Load data from engine to nbody_data
 	virtual void get_data(nbody_data* data) = 0;
 	//! @returns vector <y> size

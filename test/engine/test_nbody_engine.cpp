@@ -599,12 +599,13 @@ test_nbody_engine::~test_nbody_engine()
 
 void test_nbody_engine::initTestCase()
 {
+	QVERIFY(m_e != nullptr);
 	nbcoord_t				box_size = 100;
 
 	qDebug() << "Engine" << m_e->type_name() << "Problem size" << m_problem_size;
 	m_e->print_info();
 	m_data.make_universe(m_problem_size, box_size, box_size, box_size);
-	m_e->init(&m_data);
+	QVERIFY(m_e->init(&m_data));
 }
 
 void test_nbody_engine::cleanupTestCase()
@@ -983,6 +984,8 @@ test_nbody_engine_compare::~test_nbody_engine_compare()
 
 void test_nbody_engine_compare::initTestCase()
 {
+	QVERIFY(m_e1 != nullptr);
+	QVERIFY(m_e2 != nullptr);
 	nbcoord_t				box_size = 100;
 
 	qDebug() << "Problem size" << m_problem_size;
@@ -991,8 +994,8 @@ void test_nbody_engine_compare::initTestCase()
 	qDebug() << "Engine2" << m_e2->type_name();
 	m_e2->print_info();
 	m_data.make_universe(m_problem_size, box_size, box_size, box_size);
-	m_e1->init(&m_data);
-	m_e2->init(&m_data);
+	QVERIFY(m_e1->init(&m_data));
+	QVERIFY(m_e2->init(&m_data));
 }
 
 void test_nbody_engine_compare::compare()

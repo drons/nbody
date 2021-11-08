@@ -20,12 +20,15 @@ const char* nbody_engine_simple::type_name() const
 	return "nbody_engine_simple";
 }
 
-void nbody_engine_simple::init(nbody_data* data)
+bool nbody_engine_simple::init(nbody_data* data)
 {
 	m_data = data;
 	m_mass = create_buffer(sizeof(nbcoord_t) * m_data->get_count());
 	m_y = create_buffer(sizeof(nbcoord_t) * problem_size());
-
+	if(m_mass == nullptr || m_y == nullptr)
+	{
+		return false;
+	}
 	size_t		count = m_data->get_count();
 	nbcoord_t*	m = reinterpret_cast<nbcoord_t*>(m_mass->data());
 	nbcoord_t*	rx = reinterpret_cast<nbcoord_t*>(m_y->data());
@@ -48,6 +51,8 @@ void nbody_engine_simple::init(nbody_data* data)
 		vz[i] = vel[i].z;
 		m[i] = mass[i];
 	}
+
+	return true;
 }
 
 void nbody_engine_simple::get_data(nbody_data* data)

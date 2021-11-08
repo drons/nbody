@@ -14,7 +14,7 @@ public:
 	nbody_engine_opencl();
 	~nbody_engine_opencl();
 	const char* type_name() const override;
-	void init(nbody_data* data) override;
+	bool init(nbody_data* data) override;
 	void get_data(nbody_data* data) override;
 	size_t problem_size() const override;
 	memory* get_y() override;

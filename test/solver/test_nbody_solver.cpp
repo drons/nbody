@@ -62,7 +62,7 @@ void test_nbody_solver::initTestCase()
 //	data.make_universe(8, box_size, box_size, box_size);
 //	data.save(data_path);
 
-	m_e->init(&m_data);
+	QVERIFY(m_e->init(&m_data));
 	m_s->set_time_step(1e-3, 3e-2);
 	m_s->set_engine(m_e);
 }
