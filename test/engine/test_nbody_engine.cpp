@@ -1154,6 +1154,7 @@ int main(int argc, char* argv[])
 									  1024, 1e-15);
 		res += QTest::qExec(&tc2, argc, argv);
 	}
+	for(const char* device : {"0", "0,0"})
 	{
 		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 3.1623},
@@ -1163,7 +1164,8 @@ int main(int argc, char* argv[])
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh"},
 			{"distance_to_node_radius_ratio", 3.1623},
 			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"}
+			{"tree_layout", "heap"},
+			{"device", device}
 		}));
 		test_nbody_engine_compare tc1(nbody_create_engine(param1),
 									  nbody_create_engine(param2),

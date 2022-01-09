@@ -8,7 +8,9 @@ __host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, size_t count,
 						   size_t stride, int block_size);
 __host__ void fcompute_block(size_t off, const nbcoord_t* y, nbcoord_t* f, const nbcoord_t* m,
 							 size_t count, size_t total_count, int block_size);
-__host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
+__host__ void fcompute_heap_bh(int offset_n1, int points_count,
+							   int compute_points_count, int tree_size,
+							   const nbcoord_t* y,
 							   nbcoord_t* f,
 							   const nbcoord_t* tree_cmx,
 							   const nbcoord_t* tree_cmy,

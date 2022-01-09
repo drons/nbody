@@ -53,6 +53,7 @@ public:
 
 	void synchronize_y(const smemory* y);
 	void synchronize_f(smemory* f);
+	void synchronize_sum(smemory* f);
 };
 
 #endif // NBODY_ENGINE_CUDA_H

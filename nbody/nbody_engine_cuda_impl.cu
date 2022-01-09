@@ -126,6 +126,7 @@ __host__ void fcompute_block(size_t off, const nbcoord_t* y, nbcoord_t* f, const
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
 // Traverse starts form a tree node
 __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size,
+								  const nbcoord_t* y,
 								  nbcoord_t* f,
 								  const nbcoord_t* tree_cmx,
 								  const nbcoord_t* tree_cmy,
@@ -192,12 +193,17 @@ __global__ void kfcompute_heap_bh(int offset_n1, int points_count, int tree_size
 		}
 	}
 
+	f[n1 + 0 * stride] = y[n1 + 3 * stride];
+	f[n1 + 1 * stride] = y[n1 + 4 * stride];
+	f[n1 + 2 * stride] = y[n1 + 5 * stride];
 	f[n1 + 3 * stride] = res_x;
 	f[n1 + 4 * stride] = res_y;
 	f[n1 + 5 * stride] = res_z;
 }
 
-__host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
+__host__ void fcompute_heap_bh(int offset_n1, int points_count,
+							   int compute_points_count, int tree_size,
+							   const nbcoord_t* y,
 							   nbcoord_t* f,
 							   const nbcoord_t* tree_cmx,
 							   const nbcoord_t* tree_cmy,
@@ -207,12 +213,12 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count, int tree_size,
 							   const int* body_n,
 							   int block_size)
 {
-	dim3 grid(points_count / block_size);
+	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
 	cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1);
 
-	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, f,
+	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 										   tree_cmx, tree_cmy, tree_cmz,
 										   tree_mass, tree_crit_r2, body_n);
 }

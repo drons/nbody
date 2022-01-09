@@ -536,3 +536,29 @@ void nbody_engine_cuda::synchronize_f(smemory* f)
 	write_buffer(f, host_buffer.data());
 }
 
+void nbody_engine_cuda::synchronize_sum(nbody_engine_cuda::smemory* f)
+{
+	size_t	size = f->size();
+	size_t	device_count = m_device_ids.size();
+	std::vector<std::vector<nbcoord_t>>	host_buffers(device_count);
+
+	#pragma omp parallel num_threads(device_count)
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		host_buffers[dev_n].resize(size);
+		cudaSetDevice(m_device_ids[dev_n]);
+		cudaMemcpy(host_buffers[dev_n].data(), f->data(dev_n), size, cudaMemcpyDeviceToHost);
+		cudaDeviceSynchronize();
+	}
+
+	#pragma omp parallel for
+	for(size_t i = 0; i < size; ++i)
+	{
+		for(size_t dev_n = 1; dev_n < device_count; ++dev_n)
+		{
+			host_buffers[0][i] += host_buffers[dev_n][i];
+		}
+	}
+	write_buffer(f, host_buffers[0].data());
+}
+
