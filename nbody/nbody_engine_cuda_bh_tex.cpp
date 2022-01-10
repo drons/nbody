@@ -1,5 +1,6 @@
 #include "nbody_engine_cuda_bh_tex.h"
 
+#include <omp.h>
 #include <QDebug>
 
 #include "nbody_engine_cuda_memory.h"
@@ -45,22 +46,30 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 		return;
 	}
 
+	size_t	device_count(m_device_ids.size());
+
+	if(device_count > 1)
+	{
+		// synchronize multiple devices
+		synchronize_y(const_cast<smemory*>(y));
+	}
+
 	advise_compute_count();
 
-	size_t					count = m_data->get_count();
+	size_t					data_size = m_data->get_count();
 	std::vector<nbcoord_t>	host_y(y->size() / sizeof(nbcoord_t));
-	std::vector<nbcoord_t>	host_mass(count);
+	std::vector<nbcoord_t>	host_mass(data_size);
 
 	read_buffer(host_y.data(), y);
 	read_buffer(host_mass.data(), m_mass);
 
 	const nbcoord_t*	rx = host_y.data();
-	const nbcoord_t*	ry = rx + count;
-	const nbcoord_t*	rz = rx + 2 * count;
+	const nbcoord_t*	ry = rx + data_size;
+	const nbcoord_t*	rz = rx + 2 * data_size;
 	const nbcoord_t*	mass = host_mass.data();
 
 	nbody_space_heap	heap;
-	heap.build(count, rx, ry, rz, mass, m_distance_to_node_radius_ratio);
+	heap.build(data_size, rx, ry, rz, mass, m_distance_to_node_radius_ratio);
 
 	size_t			tree_size = heap.get_radius_sqr().size();
 
@@ -70,10 +79,6 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 		m_dev_tree_mass = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(nbcoord_t)));
 		m_dev_indites = dynamic_cast<smemory*>(create_buffer(tree_size * sizeof(int)));
 	}
-
-	const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data());
-	nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data());
-	int*				dev_indites = static_cast<int*>(m_dev_indites->data());
 
 	static_assert(sizeof(vertex4<nbcoord_t>) == sizeof(nbcoord_t) * 4,
 				  "sizeof(vertex4) must be equal to sizeof(nbcoord_t)*4");
@@ -95,22 +100,42 @@ void nbody_engine_cuda_bh_tex::fcompute(const nbcoord_t& t, const memory* _y, me
 	write_buffer(m_dev_tree_mass, heap.get_mass().data());
 	write_buffer(m_dev_indites, host_indites.data());
 
-	if(m_tree_layout == etl_heap)
-	{
-		fcompute_heap_bh_tex(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-							 m_dev_tree_xyzr->tex(0, smemory::evs4),
-							 m_dev_tree_mass->tex(0, smemory::evs1),
-							 dev_indites, get_block_size());
-	}
-	else if(m_tree_layout == etl_heap_stackless)
-	{
-		fcompute_heap_bh_stackless(0, static_cast<int>(count), static_cast<int>(tree_size), dev_f,
-								   m_dev_tree_xyzr->tex(0, smemory::evs4),
-								   m_dev_tree_mass->tex(0, smemory::evs1),
-								   dev_indites, get_block_size());
-	}
+	fill_buffer(f, 0);
+	size_t	device_data_size = data_size / device_count;
 
-	fcompute_xyz(dev_y, dev_f, count, static_cast<int>(count), get_block_size());
+	#pragma omp parallel num_threads(device_count)
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		size_t	offset = dev_n * device_data_size;
+		cudaSetDevice(m_device_ids[dev_n]);
+		const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data(dev_n));
+		nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data(dev_n));
+		int*				dev_indites = static_cast<int*>(m_dev_indites->data(dev_n));
+		if(m_tree_layout == etl_heap)
+		{
+			fcompute_heap_bh_tex(static_cast<int>(offset), static_cast<int>(data_size),
+								 static_cast<int>(device_data_size), static_cast<int>(tree_size),
+								 dev_y, dev_f,
+								 m_dev_tree_xyzr->tex(dev_n, smemory::evs4),
+								 m_dev_tree_mass->tex(dev_n, smemory::evs1),
+								 dev_indites, get_block_size());
+		}
+		else if(m_tree_layout == etl_heap_stackless)
+		{
+			fcompute_heap_bh_stackless(static_cast<int>(offset), static_cast<int>(data_size),
+									   static_cast<int>(device_data_size), static_cast<int>(tree_size),
+									   dev_y, dev_f,
+									   m_dev_tree_xyzr->tex(dev_n, smemory::evs4),
+									   m_dev_tree_mass->tex(dev_n, smemory::evs1),
+									   dev_indites, get_block_size());
+		}
+		cudaDeviceSynchronize();
+	}
+	if(device_count > 1)
+	{
+		// synchronize again
+		synchronize_sum(f);
+	}
 }
 
 void nbody_engine_cuda_bh_tex::print_info() const

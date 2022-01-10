@@ -1108,19 +1108,15 @@ int main(int argc, char* argv[])
 		res += QTest::qExec(&tc1, argc, argv);
 	}
 #ifdef HAVE_CUDA
+	for(const char* engine : {"cuda", "cuda_bh", "cuda_bh_tex"})
 	{
-		QVariantMap	param1(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", ""}}));
-		QVariantMap	param2(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "a"}}));
-		QVariantMap	param3(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "0,a"}}));
-		QVariantMap	param4(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "-1"}}));
-		QVariantMap	param5(std::map<QString, QVariant>({{"engine", "cuda"}, {"device", "9999"}}));
-		QVariantMap	params[] = {param1, param2, param3, param4, param5};
-		for(size_t n = 0; n != 5; ++n)
+		for(const char* device : {"", "a", "0,a", "-1", "9999"})
 		{
-			nbody_engine*	e(nbody_create_engine(params[n]));
+			QVariantMap		params(std::map<QString, QVariant>({{"engine", engine}, {"device", device}}));
+			nbody_engine*	e(nbody_create_engine(params));
 			if(e != NULL)
 			{
-				qDebug() << "Created engine with invalid device" << params[n];
+				qDebug() << "Created engine with invalid device" << params;
 				res += 1;
 				delete e;
 			}
@@ -1172,53 +1168,29 @@ int main(int argc, char* argv[])
 									  128, 1e-13);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+	for(const char* device : {"0", "0,0"})
 	{
-		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"}
-		}));
-		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"}
-		}));
-		test_nbody_engine_compare tc1(nbody_create_engine(param1),
-									  nbody_create_engine(param2),
-									  128, 1e-13);
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
-		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"}
-		}));
-		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap_stackless"}
-		}));
-		test_nbody_engine_compare tc1(nbody_create_engine(param1),
-									  nbody_create_engine(param2),
-									  128, 1e-13);
-		res += QTest::qExec(&tc1, argc, argv);
-	}
-	{
-		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 1e8},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap"}
-		}));
-		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-			{"distance_to_node_radius_ratio", 1e8},
-			{"traverse_type", "nested_tree"},
-			{"tree_layout", "heap_stackless"}
-		}));
-		test_nbody_engine_compare tc1(nbody_create_engine(param1),
-									  nbody_create_engine(param2),
-									  128, 1e-13);
-		res += QTest::qExec(&tc1, argc, argv);
+		for(const char* tree_layout : {"heap", "heap_stackless"})
+		{
+			for(const double distance_to_node_radius_ratio : {3.1623, 1e8})
+			{
+				QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+					{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+					{"traverse_type", "nested_tree"},
+					{"tree_layout", "heap"}
+				}));
+				QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
+					{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+					{"traverse_type", "nested_tree"},
+					{"tree_layout", tree_layout},
+					{"device", device}
+				}));
+				test_nbody_engine_compare tc1(nbody_create_engine(param1),
+											  nbody_create_engine(param2),
+											  128, 1e-13);
+				res += QTest::qExec(&tc1, argc, argv);
+			}
+		}
 	}
 	{
 		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
@@ -1229,7 +1201,7 @@ int main(int argc, char* argv[])
 		nbody_engine*	e2(nbody_create_engine(param2));
 		if(e2 != NULL)
 		{
-			qDebug() << "Created engine with invalid traverse_type" << param2;
+			qDebug() << "Created engine with invalid tree_layout" << param2;
 			res += 1;
 			delete e2;
 		}
