@@ -234,6 +234,7 @@ struct nb1Dfetch
 template<>
 struct nb1Dfetch<double>
 {
+	typedef double3 vec3;
 	typedef double4 vec4;
 	static __device__ double fetch(cudaTextureObject_t tex, int i)
 	{
@@ -256,6 +257,7 @@ struct nb1Dfetch<double>
 template<>
 struct nb1Dfetch<float>
 {
+	typedef float3 vec3;
 	typedef float4 vec4;
 	static __device__ float fetch(cudaTextureObject_t tex, int i)
 	{
@@ -267,6 +269,7 @@ struct nb1Dfetch<float>
 	}
 };
 
+typedef nb1Dfetch<nbcoord_t>::vec3 nbvec3_t;
 typedef nb1Dfetch<nbcoord_t>::vec4 nbvec4_t;
 
 __global__ void kfcompute_heap_bh_tex(int offset_n1, int points_count, int tree_size,
@@ -441,6 +444,153 @@ __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count,
 	kfcompute_heap_bh_stackless <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 													 tree_xyzr, tree_mass, body_n);
 	//printf("%s\n", cudaGetErrorString(cudaGetLastError()));
+}
+
+inline __host__ __device__ nbcoord_t distance(nbvec3_t a, nbvec3_t b)
+{
+	nbcoord_t	dx = a.x - b.x;
+	nbcoord_t	dy = a.y - b.y;
+	nbcoord_t	dz = a.z - b.z;
+	return sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+inline __device__ nbvec3_t operator +(nbvec3_t a, nbvec3_t b)
+{
+	return {a.x + b.x, a.y + b.y, a.z + b.z};
+}
+
+inline __device__ nbvec3_t operator -(nbvec3_t a, nbvec3_t b)
+{
+	return {a.x - b.x, a.y - b.y, a.z - b.z};
+}
+
+inline __device__ nbvec3_t operator /(nbvec3_t a, nbcoord_t b)
+{
+	return {a.x / b, a.y / b, a.z / b};
+}
+
+// Update leaf coordinates (Barnes-Hut engine)
+__global__ void kupdate_leaf_bh(int points_count,
+								const nbcoord_t* y,
+								nbcoord_t* tree_cmx,
+								nbcoord_t* tree_cmy,
+								nbcoord_t* tree_cmz,
+								nbcoord_t* bmin_cmx,
+								nbcoord_t* bmin_cmy,
+								nbcoord_t* bmin_cmz,
+								nbcoord_t* bmax_cmx,
+								nbcoord_t* bmax_cmy,
+								nbcoord_t* bmax_cmz,
+								const int* body_n)
+{
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+	int		stride = points_count;
+	int		idx = blockDim.x * blockIdx.x + threadIdx.x + tree_offset;
+	int		n = body_n[idx];
+	bmin_cmx[idx] = bmax_cmx[idx] = tree_cmx[idx] = y[0 * stride + n];
+	bmin_cmy[idx] = bmax_cmy[idx] = tree_cmy[idx] = y[1 * stride + n];
+	bmin_cmz[idx] = bmax_cmz[idx] = tree_cmz[idx] = y[2 * stride + n];
+}
+
+__host__ void update_leaf_bh(int points_count,
+							 const nbcoord_t* y,
+							 nbcoord_t* tree_cmx,
+							 nbcoord_t* tree_cmy,
+							 nbcoord_t* tree_cmz,
+							 nbcoord_t* bmin_cmx,
+							 nbcoord_t* bmin_cmy,
+							 nbcoord_t* bmin_cmz,
+							 nbcoord_t* bmax_cmx,
+							 nbcoord_t* bmax_cmy,
+							 nbcoord_t* bmax_cmz,
+							 const int* body_n)
+{
+	dim3 grid(points_count / NBODY_DATA_BLOCK_SIZE);
+	dim3 block(NBODY_DATA_BLOCK_SIZE);
+
+	kupdate_leaf_bh <<< grid, block >>> (points_count, y, tree_cmx, tree_cmy, tree_cmz,
+										 bmin_cmx, bmin_cmy, bmin_cmz,
+										 bmax_cmx, bmax_cmy, bmax_cmz, body_n);
+}
+
+// Update node coordinates (Barnes-Hut engine)
+__global__ void kupdate_node_bh(int level_size,
+								nbcoord_t* tree_cmx,
+								nbcoord_t* tree_cmy,
+								nbcoord_t* tree_cmz,
+								nbcoord_t* bmin_cmx,
+								nbcoord_t* bmin_cmy,
+								nbcoord_t* bmin_cmz,
+								nbcoord_t* bmax_cmx,
+								nbcoord_t* bmax_cmy,
+								nbcoord_t* bmax_cmz,
+								nbcoord_t* tree_mass,
+								nbcoord_t* tree_crit_r2,
+								nbcoord_t distance_to_node_radius_ratio_sqr)
+{
+	int		idx = blockDim.x * blockIdx.x + threadIdx.x + level_size;
+	if(idx >= 2 * level_size)
+	{
+		return;
+	}
+	int		left = nbody_heap_func<int>::left_idx(idx);
+	int		rght = nbody_heap_func<int>::rght_idx(idx);
+	nbcoord_t	mass = tree_mass[left] + tree_mass[rght];
+	nbvec3_t	mass_center = {(tree_cmx[left] * tree_mass[left] +
+								tree_cmx[rght] * tree_mass[rght]) / mass,
+							   (tree_cmy[left] * tree_mass[left] +
+								tree_cmy[rght] * tree_mass[rght]) / mass,
+							   (tree_cmz[left] * tree_mass[left] +
+								tree_cmz[rght] * tree_mass[rght]) / mass
+						   };
+	tree_mass[idx] = mass;
+
+	tree_cmx[idx] = mass_center.x;
+	tree_cmy[idx] = mass_center.y;
+	tree_cmz[idx] = mass_center.z;
+	nbvec3_t	bmin = {min(bmin_cmx[left], bmin_cmx[rght]),
+						min(bmin_cmy[left], bmin_cmy[rght]),
+						min(bmin_cmz[left], bmin_cmz[rght])
+					};
+	nbvec3_t	bmax = {max(bmax_cmx[left], bmax_cmx[rght]),
+						max(bmax_cmy[left], bmax_cmy[rght]),
+						max(bmax_cmz[left], bmax_cmz[rght])
+					};
+	bmin_cmx[idx] = bmin.x;
+	bmin_cmy[idx] = bmin.y;
+	bmin_cmz[idx] = bmin.z;
+	bmax_cmx[idx] = bmax.x;
+	bmax_cmy[idx] = bmax.y;
+	bmax_cmz[idx] = bmax.z;
+
+	nbcoord_t	r = distance(bmin, bmax) / 2 +
+					distance((bmin + bmax) / 2, mass_center);
+	tree_crit_r2[idx] = (r * r) * distance_to_node_radius_ratio_sqr;
+}
+
+__host__ void update_node_bh(int level_size,
+							 nbcoord_t* tree_cmx,
+							 nbcoord_t* tree_cmy,
+							 nbcoord_t* tree_cmz,
+							 nbcoord_t* bmin_cmx,
+							 nbcoord_t* bmin_cmy,
+							 nbcoord_t* bmin_cmz,
+							 nbcoord_t* bmax_cmx,
+							 nbcoord_t* bmax_cmy,
+							 nbcoord_t* bmax_cmz,
+							 nbcoord_t* tree_mass,
+							 nbcoord_t* tree_crit_r2,
+							 nbcoord_t distance_to_node_radius_ratio_sqr)
+{
+	dim3 grid(std::max(1, level_size / NBODY_DATA_BLOCK_SIZE));
+	dim3 block(NBODY_DATA_BLOCK_SIZE);
+
+	kupdate_node_bh <<< grid, block >>> (level_size,
+										 tree_cmx, tree_cmy, tree_cmz,
+										 bmin_cmx, bmin_cmy, bmin_cmz,
+										 bmax_cmx, bmax_cmy, bmax_cmz,
+										 tree_mass, tree_crit_r2,
+										 distance_to_node_radius_ratio_sqr);
 }
 
 __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)

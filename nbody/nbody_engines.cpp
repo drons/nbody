@@ -38,7 +38,8 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		QString	devices(param.value("device", "0").toString());
 		int		block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
-		nbody_engine_cuda_bh*	engine = new nbody_engine_cuda_bh(distance_to_node_radius_ratio);
+		size_t		tree_build_rate = param.value("tree_build_rate", 0).toULongLong();
+		nbody_engine_cuda_bh*	engine = new nbody_engine_cuda_bh(distance_to_node_radius_ratio, tree_build_rate);
 
 		if(0 != engine->select_devices(devices))
 		{

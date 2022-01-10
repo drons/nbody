@@ -37,6 +37,31 @@ __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count,
 										 cudaTextureObject_t tree_mass,
 										 const int* body_n,
 										 int block_size);
+__host__ void update_leaf_bh(int points_count,
+							 const nbcoord_t* y,
+							 nbcoord_t* tree_cmx,
+							 nbcoord_t* tree_cmy,
+							 nbcoord_t* tree_cmz,
+							 nbcoord_t* bmin_cmx,
+							 nbcoord_t* bmin_cmy,
+							 nbcoord_t* bmin_cmz,
+							 nbcoord_t* bmax_cmx,
+							 nbcoord_t* bmax_cmy,
+							 nbcoord_t* bmax_cmz,
+							 const int* body_n);
+__host__ void update_node_bh(int level_size,
+							 nbcoord_t* tree_cmx,
+							 nbcoord_t* tree_cmy,
+							 nbcoord_t* tree_cmz,
+							 nbcoord_t* bmin_cmx,
+							 nbcoord_t* bmin_cmy,
+							 nbcoord_t* bmin_cmz,
+							 nbcoord_t* bmax_cmx,
+							 nbcoord_t* bmax_cmy,
+							 nbcoord_t* bmax_cmz,
+							 nbcoord_t* tree_mass,
+							 nbcoord_t* tree_crit_r2,
+							 nbcoord_t distance_to_node_radius_ratio_sqr);
 //! a[i] = value
 __host__ void fill_buffer(nbcoord_t* ptr, nbcoord_t v, int count);
 

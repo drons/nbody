@@ -430,7 +430,7 @@ __kernel void ComputeHeapBHSL(int offset_n1, int points_count, int tree_size,
 }
 
 // Update leaf coordinates (Barnes-Hut engine)
-__kernel void UpdateLeafBH(int points_count, int tree_size,
+__kernel void UpdateLeafBH(int points_count,
 						   __global const nbcoord_t* y,
 						   __global nbcoord_t* tree_cmx,
 						   __global nbcoord_t* tree_cmy,

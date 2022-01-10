@@ -97,7 +97,6 @@ typedef cl::make_kernel< cl_int,	//Block offset
 		> ComputeHeapBH;
 
 typedef cl::make_kernel< cl_int, // Points count
-		cl_int, // Tree size
 		cl::Buffer,	//y
 		cl::Buffer, cl::Buffer, cl::Buffer,	// mass center [x, y, z]
 		cl::Buffer, cl::Buffer, cl::Buffer,	// tree leaf box min [x, y, z]
@@ -991,7 +990,7 @@ void nbody_engine_opencl::fcompute_bh_impl(const nbcoord_t& t, const memory* _y,
 				cl::NDRange		range(data_size);
 				cl::EnqueueArgs	eargs(ctx.m_queue, range, local_range);
 				cl::Event		ev(
-					ctx.m_update_leaf_hbh(eargs, data_size, tree_size,
+					ctx.m_update_leaf_hbh(eargs, data_size,
 										  y->buffer(dev_n),
 										  d->m_tree_cmx->buffer(dev_n),
 										  d->m_tree_cmy->buffer(dev_n),
