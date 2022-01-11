@@ -513,6 +513,46 @@ __host__ void update_leaf_bh(int points_count,
 										 bmax_cmx, bmax_cmy, bmax_cmz, body_n);
 }
 
+// Update leaf coordinates (Barnes-Hut engine) texture storage mode
+__global__ void kupdate_leaf_bh_tex(int points_count,
+									const nbcoord_t* y,
+									nbcoord_t* tree_xyzr,
+									nbcoord_t* bmin_cmx,
+									nbcoord_t* bmin_cmy,
+									nbcoord_t* bmin_cmz,
+									nbcoord_t* bmax_cmx,
+									nbcoord_t* bmax_cmy,
+									nbcoord_t* bmax_cmz,
+									const int* body_n)
+{
+	int		tree_offset = points_count - 1 + NBODY_HEAP_ROOT_INDEX;
+	int		stride = points_count;
+	int		idx = blockDim.x * blockIdx.x + threadIdx.x + tree_offset;
+	int		n = body_n[idx];
+	bmin_cmx[idx] = bmax_cmx[idx] = tree_xyzr[4 * idx + 0] = y[0 * stride + n];
+	bmin_cmy[idx] = bmax_cmy[idx] = tree_xyzr[4 * idx + 1] = y[1 * stride + n];
+	bmin_cmz[idx] = bmax_cmz[idx] = tree_xyzr[4 * idx + 2] = y[2 * stride + n];
+}
+
+__host__ void update_leaf_bh_tex(int points_count,
+								 const nbcoord_t* y,
+								 nbcoord_t* tree_xyzr,
+								 nbcoord_t* bmin_cmx,
+								 nbcoord_t* bmin_cmy,
+								 nbcoord_t* bmin_cmz,
+								 nbcoord_t* bmax_cmx,
+								 nbcoord_t* bmax_cmy,
+								 nbcoord_t* bmax_cmz,
+								 const int* body_n)
+{
+	dim3 grid(points_count / NBODY_DATA_BLOCK_SIZE);
+	dim3 block(NBODY_DATA_BLOCK_SIZE);
+
+	kupdate_leaf_bh_tex <<< grid, block >>> (points_count, y, tree_xyzr,
+											 bmin_cmx, bmin_cmy, bmin_cmz,
+											 bmax_cmx, bmax_cmy, bmax_cmz, body_n);
+}
+
 // Update node coordinates (Barnes-Hut engine)
 __global__ void kupdate_node_bh(int level_size,
 								nbcoord_t* tree_cmx,
@@ -591,6 +631,78 @@ __host__ void update_node_bh(int level_size,
 										 bmax_cmx, bmax_cmy, bmax_cmz,
 										 tree_mass, tree_crit_r2,
 										 distance_to_node_radius_ratio_sqr);
+}
+
+// Update node coordinates (Barnes-Hut engine) texture storage mode
+__global__ void kupdate_node_bh_tex(int level_size,
+									nbcoord_t* tree_xyzr,
+									nbcoord_t* bmin_cmx,
+									nbcoord_t* bmin_cmy,
+									nbcoord_t* bmin_cmz,
+									nbcoord_t* bmax_cmx,
+									nbcoord_t* bmax_cmy,
+									nbcoord_t* bmax_cmz,
+									nbcoord_t* tree_mass,
+									nbcoord_t distance_to_node_radius_ratio_sqr)
+{
+	int		idx = blockDim.x * blockIdx.x + threadIdx.x + level_size;
+	if(idx >= 2 * level_size)
+	{
+		return;
+	}
+	int		left = nbody_heap_func<int>::left_idx(idx);
+	int		rght = nbody_heap_func<int>::rght_idx(idx);
+	nbcoord_t	mass = tree_mass[left] + tree_mass[rght];
+	nbvec3_t	mass_center = {(tree_xyzr[4 * left + 0] * tree_mass[left] +
+								tree_xyzr[4 * rght + 0] * tree_mass[rght]) / mass,
+							   (tree_xyzr[4 * left + 1] * tree_mass[left] +
+								tree_xyzr[4 * rght + 1] * tree_mass[rght]) / mass,
+							   (tree_xyzr[4 * left + 2] * tree_mass[left] +
+								tree_xyzr[4 * rght + 2] * tree_mass[rght]) / mass
+						   };
+	tree_mass[idx] = mass;
+
+	tree_xyzr[4 * idx + 0] = mass_center.x;
+	tree_xyzr[4 * idx + 1] = mass_center.y;
+	tree_xyzr[4 * idx + 2] = mass_center.z;
+	nbvec3_t	bmin = {min(bmin_cmx[left], bmin_cmx[rght]),
+						min(bmin_cmy[left], bmin_cmy[rght]),
+						min(bmin_cmz[left], bmin_cmz[rght])
+					};
+	nbvec3_t	bmax = {max(bmax_cmx[left], bmax_cmx[rght]),
+						max(bmax_cmy[left], bmax_cmy[rght]),
+						max(bmax_cmz[left], bmax_cmz[rght])
+					};
+	bmin_cmx[idx] = bmin.x;
+	bmin_cmy[idx] = bmin.y;
+	bmin_cmz[idx] = bmin.z;
+	bmax_cmx[idx] = bmax.x;
+	bmax_cmy[idx] = bmax.y;
+	bmax_cmz[idx] = bmax.z;
+
+	nbcoord_t	r = distance(bmin, bmax) / 2 +
+					distance((bmin + bmax) / 2, mass_center);
+	tree_xyzr[4 * idx + 3] = (r * r) * distance_to_node_radius_ratio_sqr;
+}
+
+__host__ void update_node_bh_tex(int level_size,
+								 nbcoord_t* tree_xyzr,
+								 nbcoord_t* bmin_cmx,
+								 nbcoord_t* bmin_cmy,
+								 nbcoord_t* bmin_cmz,
+								 nbcoord_t* bmax_cmx,
+								 nbcoord_t* bmax_cmy,
+								 nbcoord_t* bmax_cmz,
+								 nbcoord_t* tree_mass,
+								 nbcoord_t distance_to_node_radius_ratio_sqr)
+{
+	dim3 grid(std::max(1, level_size / NBODY_DATA_BLOCK_SIZE));
+	dim3 block(NBODY_DATA_BLOCK_SIZE);
+
+	kupdate_node_bh_tex <<< grid, block >>> (level_size, tree_xyzr,
+											 bmin_cmx, bmin_cmy, bmin_cmz,
+											 bmax_cmx, bmax_cmy, bmax_cmz,
+											 tree_mass, distance_to_node_radius_ratio_sqr);
 }
 
 __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)

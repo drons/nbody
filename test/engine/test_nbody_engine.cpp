@@ -1174,27 +1174,32 @@ int main(int argc, char* argv[])
 			res += QTest::qExec(&tc1, argc, argv);
 		}
 	}
-	for(const char* device : {"0", "0,0"})
+	for(const int tree_build_rate : {0, 2})
 	{
-		for(const char* tree_layout : {"heap", "heap_stackless"})
+		for(const char* device : {"0", "0,0"})
 		{
-			for(const double distance_to_node_radius_ratio : {3.1623, 1e8})
+			for(const char* tree_layout : {"heap", "heap_stackless"})
 			{
-				QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-					{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
-					{"traverse_type", "nested_tree"},
-					{"tree_layout", "heap"}
-				}));
-				QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
-					{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
-					{"traverse_type", "nested_tree"},
-					{"tree_layout", tree_layout},
-					{"device", device}
-				}));
-				test_nbody_engine_compare tc1(nbody_create_engine(param1),
-											  nbody_create_engine(param2),
-											  128, 1e-13);
-				res += QTest::qExec(&tc1, argc, argv);
+				for(const double distance_to_node_radius_ratio : {3.1623, 1e8})
+				{
+					QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+						{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+						{"tree_build_rate", tree_build_rate},
+						{"traverse_type", "nested_tree"},
+						{"tree_layout", "heap"}
+					}));
+					QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh_tex"},
+						{"distance_to_node_radius_ratio", distance_to_node_radius_ratio},
+						{"tree_build_rate", tree_build_rate},
+						{"traverse_type", "nested_tree"},
+						{"tree_layout", tree_layout},
+						{"device", device}
+					}));
+					test_nbody_engine_compare tc1(nbody_create_engine(param1),
+												  nbody_create_engine(param2),
+												  128, 1e-13, 2);
+					res += QTest::qExec(&tc1, argc, argv);
+				}
 			}
 		}
 	}

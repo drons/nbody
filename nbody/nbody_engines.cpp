@@ -55,6 +55,7 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 		QString		devices(param.value("device", "0").toString());
 		int			block_size(param.value("block_size", NBODY_DATA_BLOCK_SIZE).toInt());
 		nbcoord_t	distance_to_node_radius_ratio = param.value("distance_to_node_radius_ratio", 10).toDouble();
+		size_t		tree_build_rate = param.value("tree_build_rate", 0).toULongLong();
 		QString		strtl(param.value("tree_layout", "heap").toString());
 		e_tree_layout tl = tree_layout_from_str(strtl);
 
@@ -63,7 +64,8 @@ nbody_engine* nbody_create_engine(const QVariantMap& param)
 			qDebug() << "Invalid tree_layout. Allowed values are 'heap' or 'heap_stackless'";
 			return NULL;
 		}
-		nbody_engine_cuda_bh_tex*	engine = new nbody_engine_cuda_bh_tex(distance_to_node_radius_ratio, tl);
+		nbody_engine_cuda_bh_tex*	engine = new nbody_engine_cuda_bh_tex(distance_to_node_radius_ratio,
+																		  tree_build_rate, tl);
 		if(0 != engine->select_devices(devices))
 		{
 			delete engine;
