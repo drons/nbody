@@ -90,7 +90,7 @@ enum e_units_type
 {
 	//! Default units with identity gravity constant (G=1)
 	eut_G1,
-	//! Standart units (m-s-kg)
+	//! Standard units (m-s-kg)
 	eut_SI,
 	//! Solar system units (au-day-kg)
 	eut_au_day_kg

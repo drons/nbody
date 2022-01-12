@@ -46,7 +46,7 @@ simple_bh |  :star:  | Multi-threaded (OpenMP) engine with [Burnes-Hut](https://
 
 ### How to run
 #### Simulation
-To run n-body problem simulation use 'nbody-simulation' programm.
+To run n-body problem simulation use 'nbody-simulation' program.
 
 ##### Simulation control
 Argument | Description
@@ -105,7 +105,7 @@ Argument | Description
 `--max_level` | Maximum extrapolation table size for Bulirsch-Stoer solver
 
 #### Player
-To view simulation results run 'nbody-player' programm.
+To view simulation results run 'nbody-player' program.
 
 Argument | Description
 ---------|-------------

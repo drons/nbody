@@ -19,6 +19,7 @@ test.depends = nbody
 OTHER_FILES += \
 	appveyor.yml \
 	.astylerc \
+	.github/workflows/analyze.yml \
 	.github/workflows/ubuntu-gpu-build.sh \
 	.github/workflows/ubuntu-gpu-build.yml \
 	README.md \

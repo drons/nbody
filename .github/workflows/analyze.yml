@@ -1,0 +1,129 @@
+name: Analyze
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  asan:
+    runs-on: ubuntu-20.04
+    name: gcc9 + debug + Qt5 + ASAN
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install g++ gdb qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev
+        gcc --version
+    - name: build
+      run: |
+        mkdir build-asan-gcc
+        cd build-asan-gcc
+        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=build-asan "OPEN_CV_VERSION_MAJOR=4"
+        make -j2
+    - name: test
+      run: |
+        cd build-asan-gcc
+        export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+        ./test/engine/engine
+        ./test/solver/solver
+        ./test/extrapolator/extrapolator
+        ./test/solvers_equality/solvers_equality
+        ./test/stream/stream
+
+  astyle:
+    runs-on: ubuntu-20.04
+    name: Astyle
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install astyle
+    - name: analyze
+      run: |
+        astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
+        git diff --exit-code
+
+  codespell:
+    runs-on: ubuntu-20.04
+    name: Codespell
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install codespell
+    - name: analyze
+      run: |
+        codespell -x ./docs/habr-437014.html
+        git diff --exit-code
+
+  cppcheck:
+    runs-on: ubuntu-20.04
+    name: CppCheck
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install cppcheck
+    - name: analyze
+      run: |
+        cppcheck -DNB_COORD_PRECISION=4 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+        cppcheck -DNB_COORD_PRECISION=2 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+        cppcheck -DNB_COORD_PRECISION=1 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
+
+  flawfinder:
+    runs-on: ubuntu-20.04
+    name: Flawfinder
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install lynx wget python curl
+        wget https://dwheeler.com/flawfinder/flawfinder-2.0.19.tar.gz -O flawfinder.tar.gz
+        tar xzf flawfinder.tar.gz
+    - name: analyze
+      run: |
+        cd ./flawfinder-2.0.19
+        sudo make prefix=/usr install
+        cd .. && rm -rf ./flawfinder-*
+        flawfinder --html --context --minlevel=0 ./ > output.html
+        lynx -dump -nolist output.html
+
+  oclint:
+    runs-on: ubuntu-20.04
+    name: clang + debug + Qt5 + oclint
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install clang-11 --install-suggests
+        sudo apt install qt5-qmake qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev bear wget
+        mkdir build-debug-oclint
+        cd build-debug-oclint
+        wget https://github.com/oclint/oclint/releases/download/v21.10/oclint-21.10-llvm-13.0.0-x86_64-linux-ubuntu-20.04.tar.gz -O oclint.tar.gz
+        tar xzfv oclint.tar.gz
+        clang --version
+    - name: build
+      run: |
+        export CXX=${CXX:-clang++}
+        export CC=${CC:-clang}
+        cd build-debug-oclint
+        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug -spec linux-clang "OPEN_CV_VERSION_MAJOR=4"
+        bear make
+    - name: analyze
+      run: |
+        cd build-debug-oclint
+        oclint-21.10/bin/oclint-json-compilation-database -e test* -e moc_* -p ./ -- -max-priority-1 0 -max-priority-2 3 -max-priority-3 4 -enable-global-analysis -enable-clang-static-analyzer -disable-rule RedundantLocalVariable -disable-rule ParameterReassignment -rc CYCLOMATIC_COMPLEXITY=15 -rc LONG_LINE=180 -rc SHORT_VARIABLE_NAME=1 -rc LONG_VARIABLE_NAME=40 -rc LONG_METHOD=150 -rc NCSS_METHOD=80 -rc NPATH_COMPLEXITY=256
