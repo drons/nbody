@@ -158,31 +158,6 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      compiler: gcc
-      env: NAME="gcc4 + Qt4 + valgrind + debug"
-      addons:
-        apt:
-          packages:
-          - gdb
-          - valgrind
-          - libqt4-dev
-          - libqt4-opengl-dev
-          - libopencv-dev
-      script:
-      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
-      - mkdir build-debug-valgrind
-      - cd build-debug-valgrind
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=debug
-      - make -j2
-      - valgrind --tool=memcheck --trace-children=yes --log-file=./memsupp.log --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/memsupp/memsupp
-      - grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
-      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
-      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
-      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/extrapolator/extrapolator
-      - valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/stream/stream
-    - os: linux
-      dist: trusty
-      sudo: required
       compiler: clang
       env: NAME="clang + Qt5 + release"
       addons:

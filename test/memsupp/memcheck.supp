@@ -1,16 +1,9 @@
 {
-   <QLocale>
-   Memcheck:Leak
-   match-leak-kinds: definite
-   ...
-   fun:_ZN7QLocaleC1Ev
-   ...
-}
-{
-   <libgomp>
+   pthread_create allocate_stack
    Memcheck:Leak
    match-leak-kinds: possible
    ...
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.2.5
    ...
 }

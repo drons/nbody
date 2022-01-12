@@ -17,6 +17,8 @@ jobs:
         sudo apt update
         sudo apt upgrade
         sudo apt install g++ gdb qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev
+    - name: info
+      run: |
         gcc --version
     - name: build
       run: |
@@ -44,6 +46,9 @@ jobs:
         sudo apt update
         sudo apt upgrade
         sudo apt install astyle
+    - name: info
+      run: |
+        astyle --version
     - name: analyze
       run: |
         astyle --options=.astylerc --recursive *.{h,cpp,cl,cu}
@@ -59,6 +64,9 @@ jobs:
         sudo apt update
         sudo apt upgrade
         sudo apt install codespell
+    - name: info
+      run: |
+        codespell --version
     - name: analyze
       run: |
         codespell -x ./docs/habr-437014.html
@@ -74,6 +82,9 @@ jobs:
         sudo apt update
         sudo apt upgrade
         sudo apt install cppcheck
+    - name: info
+      run: |
+        cppcheck --version
     - name: analyze
       run: |
         cppcheck -DNB_COORD_PRECISION=4 --suppressions-list=./test/cppcheck/supp.txt --library=microsoft_sal,posix,qt,std,windows --quiet --force --enable=all --template=gcc --error-exitcode=1 -j 2 ./
@@ -115,6 +126,8 @@ jobs:
         cd build-debug-oclint
         wget https://github.com/oclint/oclint/releases/download/v21.10/oclint-21.10-llvm-13.0.0-x86_64-linux-ubuntu-20.04.tar.gz -O oclint.tar.gz
         tar xzfv oclint.tar.gz
+    - name: info
+      run: |
         clang --version
     - name: build
       run: |
@@ -127,3 +140,35 @@ jobs:
       run: |
         cd build-debug-oclint
         oclint-21.10/bin/oclint-json-compilation-database -e test* -e moc_* -p ./ -- -max-priority-1 0 -max-priority-2 3 -max-priority-3 4 -enable-global-analysis -enable-clang-static-analyzer -disable-rule RedundantLocalVariable -disable-rule ParameterReassignment -rc CYCLOMATIC_COMPLEXITY=15 -rc LONG_LINE=180 -rc SHORT_VARIABLE_NAME=1 -rc LONG_VARIABLE_NAME=40 -rc LONG_METHOD=150 -rc NCSS_METHOD=80 -rc NPATH_COMPLEXITY=256
+
+  valgrind:
+    runs-on: ubuntu-20.04
+    name: gcc9 + debug + Qt5 + valgind
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install g++ gdb valgrind qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev
+    - name: info
+      run: |
+        gcc --version
+        valgrind --version
+    - name: build
+      run: |
+        mkdir build-debug-valgrind
+        cd build-debug-valgrind
+        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug "OPEN_CV_VERSION_MAJOR=4"
+        make -j2
+    - name: test
+      run: |
+        cd build-debug-valgrind
+        export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+        valgrind --tool=memcheck --trace-children=yes --log-file=./memsupp.log --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/memsupp/memsupp
+        grep -v "==" ./memsupp.log | sed 's/_ZN12test_memsuppC1Ev/\*/g'> ./valg.supp
+        cat ./valg.supp
+        valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/engine/engine
+        valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/solver/solver
+        valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/extrapolator/extrapolator
+        valgrind --tool=memcheck --error-exitcode=1 --trace-children=yes --suppressions=./valg.supp --suppressions=../test/memsupp/memcheck.supp --gen-suppressions=all --smc-check=all --read-var-info=yes --leak-check=full --track-origins=yes ./test/stream/stream
