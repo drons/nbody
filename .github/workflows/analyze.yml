@@ -72,6 +72,47 @@ jobs:
         codespell -x ./docs/habr-437014.html
         git diff --exit-code
 
+  coverage:
+    runs-on: ubuntu-20.04
+    name: gcc9 + debug + Qt5 + gcov
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install g++ gdb qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev ocl-icd-opencl-dev oclgrind
+    - name: info
+      run: |
+        gcc --version
+        oclgrind --version
+    - name: build
+      run: |
+        mkdir build-debug-gcov
+        cd build-debug-gcov
+        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=NO_UI CONFIG+=build-gcov
+        make -j2
+    - name: test
+      run: |
+        cd build-debug-gcov
+        export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+        oclgrind ./test/engine/engine
+        oclgrind ./test/solver/solver
+        ./test/extrapolator/extrapolator
+        ./test/solvers_equality/solvers_equality
+        ./test/stream/stream
+        ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE"
+        ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_ascii.txt --output=/tmp/nbody/zeno_ascii
+        ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=2 --resume=/tmp/nbody/zeno_ascii
+        ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_table.txt --initial_type=G1
+        ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_table.txt --initial_type=SI
+        ./test/main/nbody-simulation --engine=simple --solver=rkdp --verbose=1 --check_list="PLVE" --max_time=1 --initial_state=./test/data/zeno_table.txt --initial_type=ADK
+    - name: codecov
+      run: |
+        cd build-debug-gcov/nbody
+        gcov ./*
+        bash <(curl -s https://codecov.io/bash)
+
   cppcheck:
     runs-on: ubuntu-20.04
     name: CppCheck
