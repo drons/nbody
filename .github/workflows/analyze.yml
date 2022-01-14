@@ -154,15 +154,14 @@ jobs:
 
   oclint:
     runs-on: ubuntu-20.04
-    name: clang + debug + Qt5 + oclint
+    name: clang11 + debug + Qt5 + oclint
     steps:
     - uses: actions/checkout@v2
     - name: install
       run: |
         sudo apt update
         sudo apt upgrade
-        sudo apt install clang-11 --install-suggests
-        sudo apt install qt5-qmake qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev bear wget
+        sudo apt install clang-11 qt5-qmake qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev bear wget
         mkdir build-debug-oclint
         cd build-debug-oclint
         wget https://github.com/oclint/oclint/releases/download/v21.10/oclint-21.10-llvm-13.0.0-x86_64-linux-ubuntu-20.04.tar.gz -O oclint.tar.gz
@@ -181,6 +180,26 @@ jobs:
       run: |
         cd build-debug-oclint
         oclint-21.10/bin/oclint-json-compilation-database -e test* -e moc_* -p ./ -- -max-priority-1 0 -max-priority-2 3 -max-priority-3 4 -enable-global-analysis -enable-clang-static-analyzer -disable-rule RedundantLocalVariable -disable-rule ParameterReassignment -rc CYCLOMATIC_COMPLEXITY=15 -rc LONG_LINE=180 -rc SHORT_VARIABLE_NAME=1 -rc LONG_VARIABLE_NAME=40 -rc LONG_METHOD=150 -rc NCSS_METHOD=80 -rc NPATH_COMPLEXITY=256
+
+  scanbuild:
+    runs-on: ubuntu-20.04
+    name: clang12 + release + Qt5 + scanbuild
+    steps:
+    - uses: actions/checkout@v2
+    - name: install
+      run: |
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install clang-12 clang-tools-12 qt5-qmake qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev
+        mkdir build-debug-scanbuild
+    - name: info
+      run: |
+        /usr/lib/llvm-12/bin/clang --version
+    - name: build + analyze
+      run: |
+        cd build-debug-scanbuild
+        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=4"
+        /usr/lib/llvm-12/bin/scan-build -maxloop 4 -analyze-headers -analyzer-config stable-report-filename=true -o ./ make -j2
 
   valgrind:
     runs-on: ubuntu-20.04

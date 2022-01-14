@@ -170,25 +170,7 @@ matrix:
       - ./test/extrapolator/extrapolator
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
-    - os: linux
-      dist: trusty
-      sudo: required
-      compiler: clang
-      env: NAME="LLVM Scanbuild"
-      addons:
-        apt:
-          packages:
-          - qt5-qmake
-          - qtbase5-dev
-          - qtbase5-dev-tools
-          - libqt5opengl5-dev
-          - libopencv-dev
-      script:
-      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
-      - mkdir build-release-scanbuild
-      - cd build-release-scanbuild
-      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release
-      - scan-build -maxloop 4 -analyze-headers -analyzer-config stable-report-filename=true -o ./ make -j2
+
     - os: linux
       dist: xenial
       sudo: required
