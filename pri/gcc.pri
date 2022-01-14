@@ -17,7 +17,6 @@ QMAKE_CXXFLAGS += -Werror=cast-qual
 QMAKE_CXXFLAGS += -Werror=vla
 QMAKE_CXXFLAGS += -Werror=format-security
 QMAKE_CXXFLAGS += -Werror=format
-QMAKE_CXXFLAGS += -fpermissive
 #QMAKE_CXXFLAGS += -Werror=switch-enum
 QMAKE_CXXFLAGS += -pedantic-errors
 !clang {

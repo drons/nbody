@@ -113,6 +113,47 @@ jobs:
         gcov ./*
         bash <(curl -s https://codecov.io/bash)
 
+#  coverity:
+#    runs-on: ubuntu-20.04
+#    name: gcc9 + debug + Qt5 + coverity
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: apt-install
+#      run: |
+#        set -o xtrace
+#        # WARNING: Linux users on kernel version 4.8.x and newer will need to apply a sysctl parameter to
+#        # support our binaries. Without this parameter, our binaries will not work on your platform.
+#        # This is a known issue which we will address with a future release.
+#        # See https://scan.coverity.com/download
+#        sudo sysctl vsyscall=emulate
+#        sudo apt update
+#        sudo apt upgrade
+#        sudo apt install g++ gdb qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev ocl-icd-opencl-dev oclgrind
+#    - name: coverity-install
+#      run: |
+#        wget https://scan.coverity.com/download/linux64 --post-data "token=${{secrets.COVERITY_TOKEN}}&project=drons%2Fnbody" -O coverity_tool.tgz
+#        tar xzf ./coverity_tool.tgz
+#        cov-analysis*/bin/cov-configure --comptype gcc --compiler /usr/bin/gcc
+#    - name: info
+#      run: |
+#        gcc --version
+#        oclgrind --version
+#        cat cov-analysis*/VERSION | grep externalVersion
+#    - name: build + analyze
+#      run: |
+#        mkdir build-debug-coverity
+#        cd build-debug-coverity
+#        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug "OPEN_CV_VERSION_MAJOR=4"
+#        ../cov-analysis*/bin/cov-build --dir cov-int make -j2
+#    - name: log.txt
+#      run: |
+#        cat build-debug-coverity/cov-int/build-log.txt
+#    - name: upload
+#      run: |
+#        cd build-debug-coverity
+#        tar czvf nbody.tgz cov-int
+#        curl --form token=${{secrets.COVERITY_TOKEN}} --form email=drons@list.ru --form file=@nbody.tgz --form version=${GITHUB_SHA} --form description="${GITHUB_REF_NAME}" https://scan.coverity.com/builds?project=drons%2Fnbody
+
   cppcheck:
     runs-on: ubuntu-20.04
     name: CppCheck
