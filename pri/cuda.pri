@@ -8,7 +8,7 @@ exists( /usr/local/cuda/bin ){
 	LIBS += -lcuda
 	LIBS += -lcudart
 	DEFINES += HAVE_CUDA
-	QMAKE_CUDA_SM=-gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_61,code=sm_61
+	#QMAKE_CUDA_SM=-gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_61,code=sm_61
 
 	# CUDA compiler rule
 	cu.name = Cuda ${QMAKE_FILE_IN}
@@ -30,7 +30,7 @@ exists( /usr/local/cuda/bin ){
 	greaterThan(COMPILER_MAJOR_VERSION, 8){
 		QMAKE_CXXFLAGS += -Wno-old-style-cast
 	}
-	QMAKE_CUEXTRAFLAGS += $$QMAKE_CUDA_SM --compile
+	QMAKE_CUEXTRAFLAGS += --compile
 	QMAKE_CUEXTRAFLAGS += $$join(INCLUDEPATH,'" -I"','-I"','"')
 	QMAKE_CUEXTRAFLAGS += $$join(DEFINES,'" -D"','-D"','"')
 	QMAKE_CUEXTRAFLAGS += -Xcompiler $$escape_expand(\")-fPIC$$escape_expand(\")
