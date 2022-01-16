@@ -7,13 +7,19 @@
 #include <thrust/device_ptr.h>
 #include <thrust/extrema.h>
 
-void cuda_check(const char* context_name)
+namespace {
+void cuda_check(const char* context_name, cudaError_t res)
 {
-	cudaError_t res(cudaGetLastError());
 	if(cudaSuccess != res)
 	{
 		printf("%s %s\n", context_name, cudaGetErrorString(res));
 	}
+}
+void cuda_check(const char* context_name)
+{
+	cudaError_t res(cudaGetLastError());
+	cuda_check(context_name, res);
+}
 }
 
 __global__ void kfcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int stride)
@@ -227,7 +233,8 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count,
 	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
-	cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1);
+	cuda_check("kfcompute_heap_bh cudaFuncSetCacheConfig L1",
+			   cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1));
 
 	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 										   tree_cmx, tree_cmy, tree_cmz,
@@ -371,7 +378,8 @@ __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count,
 	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
-	cudaFuncSetCacheConfig(kfcompute_heap_bh_tex, cudaFuncCachePreferL1);
+	cuda_check("kfcompute_heap_bh_tex cudaFuncSetCacheConfig L1",
+			   cudaFuncSetCacheConfig(kfcompute_heap_bh_tex, cudaFuncCachePreferL1));
 
 	kfcompute_heap_bh_tex <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 											   tree_xyzr, tree_mass, body_n);
@@ -452,7 +460,8 @@ __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count,
 	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
-	cudaFuncSetCacheConfig(kfcompute_heap_bh_stackless, cudaFuncCachePreferL1);
+	cuda_check("kfcompute_heap_bh_stackless cudaFuncSetCacheConfig L1",
+			   cudaFuncSetCacheConfig(kfcompute_heap_bh_stackless, cudaFuncCachePreferL1));
 
 	kfcompute_heap_bh_stackless <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 													 tree_xyzr, tree_mass, body_n);
