@@ -220,7 +220,7 @@ jobs:
     - name: analyze
       run: |
         cd build-debug-oclint
-        oclint-21.10/bin/oclint-json-compilation-database -e test* -e moc_* -p ./ -- -max-priority-1 0 -max-priority-2 3 -max-priority-3 4 -enable-global-analysis -enable-clang-static-analyzer -disable-rule RedundantLocalVariable -disable-rule ParameterReassignment -rc CYCLOMATIC_COMPLEXITY=15 -rc LONG_LINE=180 -rc SHORT_VARIABLE_NAME=1 -rc LONG_VARIABLE_NAME=40 -rc LONG_METHOD=150 -rc NCSS_METHOD=80 -rc NPATH_COMPLEXITY=256
+        oclint-21.10/bin/oclint-json-compilation-database -e test* -e moc_* -p ./ -- -max-priority-1 0 -max-priority-2 4 -max-priority-3 5 -enable-global-analysis -enable-clang-static-analyzer -disable-rule RedundantLocalVariable -disable-rule ParameterReassignment -rc CYCLOMATIC_COMPLEXITY=15 -rc LONG_LINE=180 -rc SHORT_VARIABLE_NAME=1 -rc LONG_VARIABLE_NAME=40 -rc LONG_METHOD=150 -rc NCSS_METHOD=80 -rc NPATH_COMPLEXITY=256
 
   scanbuild:
     runs-on: ubuntu-20.04

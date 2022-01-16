@@ -327,7 +327,11 @@ int nbody_data_stream_reader::read(nbody_data* bdata)
 	bdata->set_step(frame.step);
 	if(d->m_current_frame < d->m_frames.size() - 1)
 	{
-		seek(d->m_current_frame + 1);
+		if(0 != seek(d->m_current_frame + 1))
+		{
+			qDebug() << "Seek to frame #" << d->m_current_frame + 1
+					 << "failed, but current #" << d->m_current_frame << "is OK";
+		}
 	}
 
 	if(!d->m_colors_read)
