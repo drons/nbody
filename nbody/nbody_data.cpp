@@ -9,6 +9,7 @@
 #include "summation_proxy.h"
 
 #include <omp.h>
+#include <random>
 
 namespace {
 constexpr nbcoord_t GravityConst = 1_f; // Gravity constant used in modelling
@@ -254,11 +255,6 @@ void nbody_data::set_check_list(const QString& check_list)
 	m_check_list = check_list;
 }
 
-nbcoord_t static randcoord(nbcoord_t min, nbcoord_t max)
-{
-	return min + (max - min) * static_cast<nbcoord_t>(rand()) / static_cast<nbcoord_t>(RAND_MAX);
-}
-
 static size_t round_up(size_t n, size_t factor)
 {
 	return factor * (1 + (n - 1) / factor);
@@ -268,6 +264,8 @@ void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity
 							nbcoord_t radius, nbcoord_t total_mass,
 							size_t count, const nbcolor_t& color)
 {
+	std::mt19937_64	rng;
+	std::uniform_real_distribution<double> uniform(-radius, radius);
 	count = round_up(count, NBODY_DATA_BLOCK_SIZE) - 1;
 
 	nbvertex_t	up(0, 0, 1);
@@ -281,10 +279,10 @@ void nbody_data::add_galaxy(const nbvertex_t& center, const nbvertex_t& velosity
 
 	for(size_t n = 0; n != count; ++n)
 	{
-		nbvertex_t	r(randcoord(-radius, radius),
-					  randcoord(-radius, radius),
-					  randcoord(-radius, radius));
-		nbcoord_t		rlen(r.length());
+		nbvertex_t	r(static_cast<nbcoord_t>(uniform(rng)),
+					  static_cast<nbcoord_t>(uniform(rng)),
+					  static_cast<nbcoord_t>(uniform(rng)));
+		nbcoord_t	rlen(r.length());
 		if(rlen > radius)
 		{
 			--n;
@@ -314,8 +312,6 @@ void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nb
 	nbvertex_t	base(radius, 0, 0);
 	nbvertex_t	velosity(0, sqrt(force(nbvertex_t(), base, galaxy_mass,
 									   galaxy_mass).length() * (base).length() / (2 * galaxy_mass)), 0);
-	srand(1);
-
 	float		intensity = 0.8f;
 	nbcolor_t	color1(intensity * 0.5f, intensity * 0.5f, intensity, 1.0f);
 	nbcolor_t	color2(intensity, intensity * 0.5f, intensity * 0.5f, 1.0f);
