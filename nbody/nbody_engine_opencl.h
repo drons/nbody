@@ -5,7 +5,9 @@
 
 class NBODY_DLL nbody_engine_opencl : public nbody_engine
 {
+public:
 	class	smemory;
+private:
 	struct	data;
 	data*	d;
 	nbody_engine_opencl(const nbody_engine_opencl&) = delete;
