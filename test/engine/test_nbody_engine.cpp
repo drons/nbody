@@ -1082,32 +1082,48 @@ private slots:
 	}
 };
 
-int main(int argc, char* argv[])
+static int common_test(int argc, char** argv)
 {
 	int res = 0;
+	QVariantMap param0(std::map<QString, QVariant>({{"engine", "invalid"}}));
+	nbody_engine*	e0(nbody_create_engine(param0));
+	if(e0 != NULL)
 	{
-		QVariantMap param0(std::map<QString, QVariant>({{"engine", "invalid"}}));
-		nbody_engine*	e0(nbody_create_engine(param0));
-		if(e0 != NULL)
-		{
-			qDebug() << "Created engine with invalid type" << param0;
-			res += 1;
-			delete e0;
-		}
+		qDebug() << "Created engine with invalid type" << param0;
+		res += 1;
+		delete e0;
 	}
 	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "ah"},
-			{"full_recompute_rate", 5}, {"max_dist", 7}, {"min_force", 1e-6}
-		}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
+		test_nbody_heap_func	tc1;
 		res += QTest::qExec(&tc1, argc, argv);
 	}
-	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "block"}}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
-		res += QTest::qExec(&tc1, argc, argv);
-	}
+	return res;
+}
+
+static int ah_test(int argc, char** argv)
+{
+	int res = 0;
+	QVariantMap			param(std::map<QString, QVariant>({{"engine", "ah"},
+		{"full_recompute_rate", 5}, {"max_dist", 7}, {"min_force", 1e-6}
+	}));
+	test_nbody_engine	tc1(nbody_create_engine(param));
+	res += QTest::qExec(&tc1, argc, argv);
+	return res;
+}
+
+static int block_test(int argc, char** argv)
+{
+	int res = 0;
+	QVariantMap			param(std::map<QString, QVariant>({{"engine", "block"}}));
+	test_nbody_engine	tc1(nbody_create_engine(param));
+	res += QTest::qExec(&tc1, argc, argv);
+	return res;
+}
+
 #ifdef HAVE_CUDA
+static int cuda_test(int argc, char** argv)
+{
+	int res = 0;
 	for(const char* engine : {"cuda", "cuda_bh", "cuda_bh_tex"})
 	{
 		for(const char* device : {"", "a", "0,a", "-1", "9999"})
@@ -1217,19 +1233,31 @@ int main(int argc, char* argv[])
 			delete e2;
 		}
 	}
+	return res;
+}
 #endif //HAVE_CUDA
-	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "openmp"}}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
-		res += QTest::qExec(&tc1, argc, argv);
-	}
 
-	{
-		QVariantMap			param(std::map<QString, QVariant>({{"engine", "simple"}}));
-		test_nbody_engine	tc1(nbody_create_engine(param));
-		res += QTest::qExec(&tc1, argc, argv);
-	}
+static int openmp_test(int argc, char** argv)
+{
+	int res = 0;
+	QVariantMap			param(std::map<QString, QVariant>({{"engine", "openmp"}}));
+	test_nbody_engine	tc1(nbody_create_engine(param));
+	res += QTest::qExec(&tc1, argc, argv);
+	return res;
+}
 
+static int simple_test(int argc, char** argv)
+{
+	int res = 0;
+	QVariantMap			param(std::map<QString, QVariant>({{"engine", "simple"}}));
+	test_nbody_engine	tc1(nbody_create_engine(param));
+	res += QTest::qExec(&tc1, argc, argv);
+	return res;
+}
+
+static int simple_bh_test(int argc, char** argv)
+{
+	int res = 0;
 	{
 		QVariantMap param(std::map<QString, QVariant>({{"engine", "simple_bh"},
 			{"distance_to_node_radius_ratio", 1e8},
@@ -1400,7 +1428,39 @@ int main(int argc, char* argv[])
 									  1024, 1e-16, 2);
 		res += QTest::qExec(&tc1, argc, argv);
 	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "cycle"},
+			{"tree_layout", "invalid"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"traverse_type", "invalid"},
+			{"tree_layout", "heap"}
+		}));
+		nbody_engine*	e1(nbody_create_engine(param1));
+		if(e1 != NULL)
+		{
+			qDebug() << "Created engine with invalid tree_layout" << param1;
+			res += 1;
+			delete e1;
+		}
+		nbody_engine*	e2(nbody_create_engine(param2));
+		if(e2 != NULL)
+		{
+			qDebug() << "Created engine with invalid traverse_type" << param2;
+			res += 1;
+			delete e2;
+		}
+	}
+	return res;
+}
+
 #ifdef HAVE_OPENCL
+static int opencl_test(int argc, char** argv)
+{
+	int res = 0;
 	{
 		QVariantMap	param1(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "77:0"}}));
 		QVariantMap	param2(std::map<QString, QVariant>({{"engine", "opencl"}, {"device", "0:77"}}));
@@ -1588,37 +1648,26 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+	return res;
+}
 #endif // HAVE_OPENCL
-	{
-		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "cycle"},
-			{"tree_layout", "invalid"}
-		}));
-		QVariantMap param2(std::map<QString, QVariant>({{"engine", "simple_bh"},
-			{"distance_to_node_radius_ratio", 3.1623},
-			{"traverse_type", "invalid"},
-			{"tree_layout", "heap"}
-		}));
-		nbody_engine*	e1(nbody_create_engine(param1));
-		if(e1 != NULL)
-		{
-			qDebug() << "Created engine with invalid tree_layout" << param1;
-			res += 1;
-			delete e1;
-		}
-		nbody_engine*	e2(nbody_create_engine(param2));
-		if(e2 != NULL)
-		{
-			qDebug() << "Created engine with invalid traverse_type" << param2;
-			res += 1;
-			delete e2;
-		}
-	}
-	{
-		test_nbody_heap_func	tc1;
-		res += QTest::qExec(&tc1, argc, argv);
-	}
+int main(int argc, char* argv[])
+{
+	int res = 0;
+
+	res += common_test(argc, argv);
+	res += ah_test(argc, argv);
+	res += block_test(argc, argv);
+#ifdef HAVE_CUDA
+	res += cuda_test(argc, argv);
+#endif //HAVE_CUDA
+	res += openmp_test(argc, argv);
+	res += simple_test(argc, argv);
+	res += simple_bh_test(argc, argv);
+#ifdef HAVE_OPENCL
+	res += opencl_test(argc, argv);
+#endif // HAVE_OPENCL
+
 	return res;
 }
 
