@@ -254,7 +254,7 @@ jobs:
         /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug "OPEN_CV_VERSION_MAJOR=4"
         pvs-studio-analyzer credentials ${{secrets.PVS_NAME}} ${{secrets.PVS_KEY}}
         pvs-studio-analyzer trace -- make -j 2
-        pvs-studio-analyzer analyze --cfg ../test/pvs/analyze.cfg -o ./pvs-studio-analyzer.out.log -j2
+        pvs-studio-analyzer analyze --intermodular --cfg ../test/pvs/analyze.cfg -o ./pvs-studio-analyzer.out.log -j2
         plog-converter -a "GA:1,2;64:1,2;OP:1,2" -s ../test/pvs/plog.cfg -t errorfile -e -o ./pvs-error-list.txt -r ../ ./pvs-studio-analyzer.out.log
         cat ./pvs-error-list.txt
         test "$(cat ./pvs-error-list.txt | wc -l)" -le 1
