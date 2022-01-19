@@ -20,7 +20,7 @@ void cuda_check(const char* context_name)
 	cudaError_t res(cudaGetLastError());
 	cuda_check(context_name, res);
 }
-}
+}// namespace
 
 __global__ void kfcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int stride)
 {
