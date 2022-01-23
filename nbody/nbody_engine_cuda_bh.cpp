@@ -65,7 +65,7 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 		return;
 	}
 
-	size_t	device_count(m_device_ids.size());
+	size_t	device_count(get_device_ids().size());
 
 	if(device_count > 1)
 	{
@@ -75,17 +75,17 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 
 	advise_compute_count();
 
-	size_t	data_size = m_data->get_count();
+	size_t	data_size = get_data()->get_count();
 	size_t	tree_size;
 
 	if(m_tree_build_rate == 0 || m_heap.is_empty() || m_dev_indites == nullptr ||
-	   (m_data->get_step() % m_tree_build_rate) == 0)
+	   (get_data()->get_step() % m_tree_build_rate) == 0)
 	{
 		std::vector<nbcoord_t>	host_y(y->size() / sizeof(nbcoord_t));
 		std::vector<nbcoord_t>	host_mass(data_size);
 
 		read_buffer(host_y.data(), y);
-		read_buffer(host_mass.data(), m_mass);
+		read_buffer(host_mass.data(), get_mass());
 
 		const nbcoord_t*	rx = host_y.data();
 		const nbcoord_t*	ry = rx + data_size;
@@ -137,7 +137,7 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 		#pragma omp parallel num_threads(device_count)
 		{
 			size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
-			cudaSetDevice(m_device_ids[dev_n]);
+			cudaSetDevice(get_device_ids()[dev_n]);
 			update_leaf_bh(data_size,
 						   static_cast<const nbcoord_t*>(y->data(dev_n)),
 						   static_cast<nbcoord_t*>(m_dev_tree_cmx->data(dev_n)),
@@ -180,7 +180,7 @@ void nbody_engine_cuda_bh::fcompute(const nbcoord_t& t, const memory* _y, memory
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	offset = dev_n * device_data_size;
-		cudaSetDevice(m_device_ids[dev_n]);
+		cudaSetDevice(get_device_ids()[dev_n]);
 		const nbcoord_t*	dev_y = static_cast<const nbcoord_t*>(y->data(dev_n));
 		nbcoord_t*			dev_f = static_cast<nbcoord_t*>(f->data(dev_n));
 		nbcoord_t*			dev_tree_cmx = static_cast<nbcoord_t*>(m_dev_tree_cmx->data(dev_n));

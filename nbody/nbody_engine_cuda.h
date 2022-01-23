@@ -7,14 +7,10 @@ class NBODY_DLL nbody_engine_cuda : public nbody_engine
 {
 	nbody_engine_cuda(const nbody_engine_cuda&) = delete;
 	nbody_engine_cuda& operator = (const nbody_engine_cuda&) = delete;
+	struct	data;
+	data*	d;
 public:
 	class				smemory;
-protected:
-	smemory*			m_mass;
-	smemory*			m_y;
-	nbody_data*			m_data;
-	int					m_block_size;
-	std::vector<int>	m_device_ids;
 public:
 	nbody_engine_cuda();
 	~nbody_engine_cuda();
@@ -54,6 +50,10 @@ public:
 	void synchronize_y(const smemory* y);
 	void synchronize_f(smemory* f);
 	void synchronize_sum(smemory* f);
+protected:
+	const std::vector<int>& get_device_ids() const;
+	const nbody_data* get_data() const;
+	const smemory* get_mass() const;
 };
 
 #endif // NBODY_ENGINE_CUDA_H
