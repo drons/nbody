@@ -94,7 +94,7 @@ matrix:
       - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
       - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
-      - sudo apt-get install -y cuda-minimal-build-11-3
+      - sudo apt-get install -y cuda-minimal-build-11-3 libnccl-dev
       - sudo ln -s /usr/local/cuda-11.3 /usr/local/cuda
       - wget --no-verbose https://scan.coverity.com/download/cxx/Linux --post-data "token=${COVERITY_TOKEN}&project=drons%2Fnbody" -O coverity_tool.tgz
       - tar xzf ./coverity_tool.tgz
@@ -106,7 +106,7 @@ matrix:
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-debug-coverity
       - cd build-debug-coverity
-      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=USE_NCCL
       - ../cov-analysis*/bin/cov-configure --gcc
       - ../cov-analysis*/bin/cov-build --dir cov-int make -j2
       - cat cov-int/build-log.txt

@@ -2,7 +2,19 @@
 #define NBODY_ENGINE_CUDA_IMPL_H
 
 #include <cuda_runtime.h>
+#ifdef HAVE_NCCL
+#include <nccl.h>
+#endif //HAVE_NCCL
 #include "nbtype.h"
+
+void cuda_check(const char* file, int line, const char* context_name, cudaError_t res);
+#define CUDACHECK(func) cuda_check(__FILE__, __LINE__, #func, func)
+
+#ifdef HAVE_NCCL
+void nccl_check(const char* file, int line, const char* context_name, ncclResult_t res);
+#define NCCLCHECK(func) nccl_check(__FILE__, __LINE__, #func, func)
+#endif //HAVE_NCCL
+
 
 __host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, size_t count,
 						   size_t stride, int block_size);
@@ -86,7 +98,7 @@ __host__ void update_node_bh_tex(int level_size,
 __host__ void fill_buffer(nbcoord_t* ptr, nbcoord_t v, int count);
 
 //! a[i] += b[i]*c
-__host__ void fmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count);
+__host__ void fmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count, cudaStream_t s);
 
 //! a[i] += b[i]*c with correction
 __host__ void fmadd_inplace_corr(nbcoord_t* a, nbcoord_t* corr, const nbcoord_t* b,

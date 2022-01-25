@@ -16,6 +16,7 @@ jobs:
 
     - name: info
       run: |
+        cat /proc/cpuinfo | egrep "model name"
         gcc --version
         /usr/local/cuda/bin/nvcc --version
 

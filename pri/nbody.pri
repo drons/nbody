@@ -12,4 +12,3 @@ include(vectorize.pri)
 contains(DEFINES,NB_COORD_PRECISION=4){
 	LIBS += -lquadmath
 }
-

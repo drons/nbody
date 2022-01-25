@@ -1124,6 +1124,41 @@ static int block_test(int argc, char** argv)
 static int cuda_test(int argc, char** argv)
 {
 	int res = 0;
+#ifdef HAVE_NCCL
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "cuda"},
+			{"device", "0"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda"},
+			{"device", "0,1"},
+			{"use_nccl", true}
+		}));
+		test_nbody_engine	tc1(nbody_create_engine(param2), 128);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	{
+		QVariantMap param1(std::map<QString, QVariant>({{"engine", "simple_bh"},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"tree_build_rate", 0},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"}
+		}));
+		QVariantMap param2(std::map<QString, QVariant>({{"engine", "cuda_bh"},
+			{"block_size", 16},
+			{"distance_to_node_radius_ratio", 3.1623},
+			{"tree_build_rate", 0},
+			{"traverse_type", "nested_tree"},
+			{"tree_layout", "heap"},
+			{"device", "0,1"},
+			{"use_nccl", true}
+		}));
+		test_nbody_engine_compare tc1(nbody_create_engine(param1),
+									  nbody_create_engine(param2),
+									  128, 1e-13, 2);
+		res += QTest::qExec(&tc1, argc, argv);
+	}
+	return res;
+#endif// HAVE_NCCL
 	for(const char* engine : {"cuda", "cuda_bh", "cuda_bh_tex"})
 	{
 		for(const char* device : {"", "a", "0,a", "-1", "9999"})
@@ -1192,7 +1227,7 @@ static int cuda_test(int argc, char** argv)
 	}
 	for(const int tree_build_rate : {0, 2})
 	{
-		for(const char* device : {"0", "0,0"})
+		for(const char* device : {"0", "0,0", "0,0,0,0"})
 		{
 			for(const char* tree_layout : {"heap", "heap_stackless"})
 			{

@@ -237,7 +237,7 @@ jobs:
         sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
         echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
         sudo apt update -y
-        sudo apt install -y cuda-minimal-build-11-6 pvs-studio
+        sudo apt install -y cuda-minimal-build-11-6 libnccl-dev pvs-studio
         sudo ln -s /usr/local/cuda-11.6 /usr/local/cuda
     - name: info
       run: |
@@ -251,7 +251,7 @@ jobs:
         export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
         mkdir build-debug-pvs
         cd build-debug-pvs
-        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug "OPEN_CV_VERSION_MAJOR=4"
+        /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=USE_NCCL "OPEN_CV_VERSION_MAJOR=4"
         pvs-studio-analyzer credentials ${{secrets.PVS_NAME}} ${{secrets.PVS_KEY}}
         pvs-studio-analyzer trace -- make -j 2
         pvs-studio-analyzer analyze --intermodular --cfg ../test/pvs/analyze.cfg -o ./pvs-studio-analyzer.out.log -j2

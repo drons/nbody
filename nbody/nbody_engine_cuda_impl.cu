@@ -7,21 +7,6 @@
 #include <thrust/device_ptr.h>
 #include <thrust/extrema.h>
 
-namespace {
-void cuda_check(const char* context_name, cudaError_t res)
-{
-	if(cudaSuccess != res)
-	{
-		printf("%s %s\n", context_name, cudaGetErrorString(res));
-	}
-}
-void cuda_check(const char* context_name)
-{
-	cudaError_t res(cudaGetLastError());
-	cuda_check(context_name, res);
-}
-}// namespace
-
 __global__ void kfcompute_xyz(const nbcoord_t* y, nbcoord_t* f, int stride)
 {
 	int n1 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -46,7 +31,7 @@ __host__ void fcompute_xyz(const nbcoord_t* y, nbcoord_t* f, size_t count,
 	dim3 block(block_size);
 
 	kfcompute_xyz <<< grid, block >>> (y, f, stride);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 __global__ void kfcompute(int offset_n1, const nbcoord_t* y, nbcoord_t* f,
@@ -135,7 +120,7 @@ __host__ void fcompute_block(size_t off, const nbcoord_t* y, nbcoord_t* f, const
 	size_t	shared_size(4 * sizeof(nbcoord_t) * block_size);
 
 	kfcompute <<< grid, block, shared_size >>> (off, y, f, m, total_count, total_count);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 #define MAX_STACK_SIZE 64
@@ -233,13 +218,12 @@ __host__ void fcompute_heap_bh(int offset_n1, int points_count,
 	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
-	cuda_check("kfcompute_heap_bh cudaFuncSetCacheConfig L1",
-			   cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1));
+	CUDACHECK(cudaFuncSetCacheConfig(kfcompute_heap_bh, cudaFuncCachePreferL1));
 
 	kfcompute_heap_bh <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 										   tree_cmx, tree_cmy, tree_cmz,
 										   tree_mass, tree_crit_r2, body_n);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 // Sparse fcompute using Kd-tree traverse (Barnes-Hut engine)
@@ -378,12 +362,11 @@ __host__ void fcompute_heap_bh_tex(int offset_n1, int points_count,
 	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
-	cuda_check("kfcompute_heap_bh_tex cudaFuncSetCacheConfig L1",
-			   cudaFuncSetCacheConfig(kfcompute_heap_bh_tex, cudaFuncCachePreferL1));
+	CUDACHECK(cudaFuncSetCacheConfig(kfcompute_heap_bh_tex, cudaFuncCachePreferL1));
 
 	kfcompute_heap_bh_tex <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 											   tree_xyzr, tree_mass, body_n);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 __global__ void kfcompute_heap_bh_stackless(int offset_n1, int points_count, int tree_size,
@@ -460,12 +443,11 @@ __host__ void fcompute_heap_bh_stackless(int offset_n1, int points_count,
 	dim3 grid(compute_points_count / block_size);
 	dim3 block(block_size);
 
-	cuda_check("kfcompute_heap_bh_stackless cudaFuncSetCacheConfig L1",
-			   cudaFuncSetCacheConfig(kfcompute_heap_bh_stackless, cudaFuncCachePreferL1));
+	CUDACHECK(cudaFuncSetCacheConfig(kfcompute_heap_bh_stackless, cudaFuncCachePreferL1));
 
 	kfcompute_heap_bh_stackless <<< grid, block >>> (offset_n1, points_count, tree_size, y, f,
 													 tree_xyzr, tree_mass, body_n);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 inline __host__ __device__ nbcoord_t distance(nbvec3_t a, nbvec3_t b)
@@ -533,7 +515,7 @@ __host__ void update_leaf_bh(int points_count,
 	kupdate_leaf_bh <<< grid, block >>> (points_count, y, tree_cmx, tree_cmy, tree_cmz,
 										 bmin_cmx, bmin_cmy, bmin_cmz,
 										 bmax_cmx, bmax_cmy, bmax_cmz, body_n);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 // Update leaf coordinates (Barnes-Hut engine) texture storage mode
@@ -574,7 +556,7 @@ __host__ void update_leaf_bh_tex(int points_count,
 	kupdate_leaf_bh_tex <<< grid, block >>> (points_count, y, tree_xyzr,
 											 bmin_cmx, bmin_cmy, bmin_cmz,
 											 bmax_cmx, bmax_cmy, bmax_cmz, body_n);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 // Update node coordinates (Barnes-Hut engine)
@@ -655,7 +637,7 @@ __host__ void update_node_bh(int level_size,
 										 bmax_cmx, bmax_cmy, bmax_cmz,
 										 tree_mass, tree_crit_r2,
 										 distance_to_node_radius_ratio_sqr);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 // Update node coordinates (Barnes-Hut engine) texture storage mode
@@ -728,7 +710,7 @@ __host__ void update_node_bh_tex(int level_size,
 											 bmin_cmx, bmin_cmy, bmin_cmz,
 											 bmax_cmx, bmax_cmy, bmax_cmz,
 											 tree_mass, distance_to_node_radius_ratio_sqr);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)
@@ -745,13 +727,13 @@ __global__ void kfmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c)
 	a[i] += b[i] * c;
 }
 
-__host__ void fmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count)
+__host__ void fmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c, int count, cudaStream_t s)
 {
 	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
-	kfmadd_inplace <<< grid, block >>> (a, b, c);
-	cuda_check(__FUNCTION__);
+	kfmadd_inplace <<< grid, block, 0, s >>> (a, b, c);
+	CUDACHECK(cudaGetLastError());
 }
 
 //! a[i] += b[i]*c with correction
@@ -775,7 +757,7 @@ __host__ void fmadd_inplace_corr(nbcoord_t* a, nbcoord_t* corr,
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
 	kfmadd_inplace_corr <<< grid, block >>> (a, corr, b, c);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 //! a[i+aoff] = b[i+boff] + c[i+coff]*d
@@ -793,7 +775,7 @@ __host__ void fmadd(nbcoord_t* a, const nbcoord_t* b, const nbcoord_t* c,
 	dim3 block(NBODY_DATA_BLOCK_SIZE);
 
 	kfmadd <<< grid, block >>> (a, b, c, d);
-	cuda_check(__FUNCTION__);
+	CUDACHECK(cudaGetLastError());
 }
 
 //! @result = max( fabs(a[k]), k=[0...asize) )

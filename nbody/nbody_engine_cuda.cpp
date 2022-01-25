@@ -5,20 +5,59 @@
 
 #include "nbody_engine_cuda_memory.h"
 
+void cuda_check(const char* file, int line, const char* context_name, cudaError_t res)
+{
+	if(cudaSuccess != res)
+	{
+		qDebug() << "cudaError " << file << ":" << line << context_name << cudaGetErrorString(res);
+		exit(3);
+	}
+}
+#ifdef HAVE_NCCL
+void nccl_check(const char* file, int line, const char* context_name, ncclResult_t res)
+{
+	if(ncclSuccess != res)
+	{
+		qDebug() << "ncclResult " << file << ":" << line << context_name << ncclGetErrorString(res);
+		exit(3);
+	}
+}
+
+template<class T> ncclDataType_t get_nccl_type() {return ncclNumTypes;}
+template<> ncclDataType_t get_nccl_type<float>() { return ncclFloat32; }
+template<> ncclDataType_t get_nccl_type<double>() { return ncclFloat64; }
+#endif // HAVE_NCCL
+
 struct nbody_engine_cuda::data
 {
 	smemory*			m_mass;
 	smemory*			m_y;
+	smemory*			m_f_sync;
 	nbody_data*			m_data;
 	int					m_block_size;
 	std::vector<int>	m_device_ids;
+	std::vector<cudaStream_t>	m_streams;
+	bool						m_nccl_is_active;
+#ifdef HAVE_NCCL
+	std::vector<ncclComm_t>		m_nccl_comm;
+#endif // HAVE_NCCL
 	data():
 		m_mass(nullptr),
 		m_y(nullptr),
+		m_f_sync(nullptr),
 		m_data(nullptr),
 		m_block_size(NBODY_DATA_BLOCK_SIZE),
-		m_device_ids(1, 0)
+		m_device_ids(1, 0),
+		m_nccl_is_active(false)
 	{}
+	void stream_sync()
+	{
+		for(size_t i = 0; i < m_device_ids.size(); ++i)
+		{
+			CUDACHECK(cudaSetDevice(m_device_ids[i]));
+			CUDACHECK(cudaStreamSynchronize(m_streams[i]));
+		}
+	}
 };
 
 nbody_engine_cuda::nbody_engine_cuda() :
@@ -28,8 +67,19 @@ nbody_engine_cuda::nbody_engine_cuda() :
 
 nbody_engine_cuda::~nbody_engine_cuda()
 {
+#ifdef HAVE_NCCL
+	for(auto comm : d->m_nccl_comm)
+	{
+		NCCLCHECK(ncclCommDestroy(comm));
+	}
+#endif // HAVE_NCCL
+	for(auto s : d->m_streams)
+	{
+		CUDACHECK(cudaStreamDestroy(s));
+	}
 	delete d->m_mass;
 	delete d->m_y;
+	delete d->m_f_sync;
 	delete d;
 }
 
@@ -40,6 +90,20 @@ const char* nbody_engine_cuda::type_name() const
 
 bool nbody_engine_cuda::init(nbody_data* body_data)
 {
+	size_t	device_count(d->m_device_ids.size());
+	d->m_streams.resize(device_count);
+	for(size_t i = 0; i < device_count; ++i)
+	{
+		CUDACHECK(cudaSetDevice(d->m_device_ids[i]));
+		CUDACHECK(cudaStreamCreate(&d->m_streams[i]));
+	}
+#ifdef HAVE_NCCL
+	if(device_count > 1 && d->m_nccl_is_active)
+	{
+		d->m_nccl_comm.resize(device_count);
+		NCCLCHECK(ncclCommInitAll(d->m_nccl_comm.data(), device_count, d->m_device_ids.data()));
+	}
+#endif // HAVE_NCCL
 	d->m_data = body_data;
 	d->m_mass = dynamic_cast<smemory*>(create_buffer(sizeof(nbcoord_t) * d->m_data->get_count()));
 	d->m_y = dynamic_cast<smemory*>(create_buffer(sizeof(nbcoord_t) * problem_size()));
@@ -155,7 +219,7 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 	advise_compute_count();
 	if(d->m_device_ids.size() > 1)
 	{
-		synchronize_y(y);
+		synchronize_y(const_cast<smemory*>(y));
 	}
 
 	size_t	count = d->m_data->get_count();
@@ -164,7 +228,7 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_count(count / d->m_device_ids.size());
 		size_t	dev_off(dev_count * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
 
 		fcompute_block(dev_off, static_cast<const nbcoord_t*>(y->data(dev_n)),
 					   static_cast<nbcoord_t*>(f->data(dev_n)),
@@ -173,7 +237,7 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 		fcompute_xyz(static_cast<const nbcoord_t*>(y->data(dev_n)) + dev_off,
 					 static_cast<nbcoord_t*>(f->data(dev_n)) + dev_off,
 					 dev_count, count, get_block_size());
-		cudaDeviceSynchronize();
+		CUDACHECK(cudaDeviceSynchronize());
 	}
 
 	if(d->m_device_ids.size() > 1)
@@ -214,10 +278,11 @@ void nbody_engine_cuda::read_buffer(void* dst, const memory* _src)
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_off(dev_size * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
-		cudaMemcpy(static_cast<char*>(dst) + dev_off,
-				   static_cast<const char*>(src->data(dev_n)) + dev_off,
-				   dev_size, cudaMemcpyDeviceToHost);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
+		CUDACHECK(cudaMemcpyAsync(
+					  static_cast<char*>(dst) + dev_off,
+					  static_cast<const char*>(src->data(dev_n)) + dev_off,
+					  dev_size, cudaMemcpyDeviceToHost, d->m_streams[dev_n]));
 	}
 }
 
@@ -234,9 +299,11 @@ void nbody_engine_cuda::write_buffer(memory* _dst, const void* src)
 	#pragma omp parallel num_threads(d->m_device_ids.size())
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
-		cudaSetDevice(d->m_device_ids[dev_n]);
-		cudaMemcpy(dst->data(dev_n), src, dst->size(), cudaMemcpyHostToDevice);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
+		CUDACHECK(cudaMemcpyAsync(dst->data(dev_n), src, dst->size(),
+								  cudaMemcpyHostToDevice, d->m_streams[dev_n]));
 	}
+	d->stream_sync();
 }
 
 void nbody_engine_cuda::copy_buffer(memory* _a, const memory* _b)
@@ -263,8 +330,9 @@ void nbody_engine_cuda::copy_buffer(memory* _a, const memory* _b)
 	#pragma omp parallel num_threads(d->m_device_ids.size())
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
-		cudaSetDevice(d->m_device_ids[dev_n]);
-		cudaMemcpy(a->data(dev_n), b->data(dev_n), a->size(), cudaMemcpyHostToHost);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
+		CUDACHECK(cudaMemcpy(a->data(dev_n), b->data(dev_n),
+							 a->size(), cudaMemcpyDeviceToDevice));
 	}
 }
 
@@ -281,7 +349,7 @@ void nbody_engine_cuda::fill_buffer(memory* _a, const nbcoord_t& value)
 	#pragma omp parallel num_threads(d->m_device_ids.size())
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
-		cudaSetDevice(d->m_device_ids[dev_n]);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
 		::fill_buffer(static_cast<nbcoord_t*>(a->data(dev_n)), value,
 					  static_cast<int>(a->size() / sizeof(nbcoord_t)));
 	}
@@ -308,10 +376,10 @@ void nbody_engine_cuda::fmadd_inplace(memory* _a, const memory* _b, const nbcoor
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_off(dev_count * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
 		::fmadd_inplace(static_cast<nbcoord_t*>(a->data(dev_n)) + dev_off,
 						static_cast<const nbcoord_t*>(b->data(dev_n)) + dev_off, c,
-						dev_count);
+						dev_count, 0);
 	}
 }
 
@@ -356,7 +424,7 @@ void nbody_engine_cuda::fmaddn_corr(nbody_engine::memory* _a, nbody_engine::memo
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_off(dev_count * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
 		for(size_t k = 0; k < csize; ++k)
 		{
 			if(c[k] == 0_f)
@@ -402,7 +470,7 @@ void nbody_engine_cuda::fmadd(memory* _a, const memory* _b,
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_off(dev_count * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
 		::fmadd(static_cast<nbcoord_t*>(a->data(dev_n)) + dev_off,
 				static_cast<const nbcoord_t*>(b->data(dev_n)) + dev_off,
 				static_cast<const nbcoord_t*>(c->data(dev_n)) + dev_off,
@@ -435,7 +503,7 @@ void nbody_engine_cuda::fmaxabs(const nbody_engine::memory* _a, nbcoord_t& resul
 	{
 		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
 		size_t	dev_off(dev_count * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
 		::fmaxabs(static_cast<const nbcoord_t*>(a->data(dev_n)) + dev_off,
 				  dev_count, devmax[dev_n]);
 	}
@@ -450,7 +518,7 @@ void nbody_engine_cuda::print_info() const
 	{
 		cudaDeviceProp	prop;
 		memset(&prop, 0, sizeof(prop));
-		cudaGetDeviceProperties(&prop, d->m_device_ids[n]);
+		CUDACHECK(cudaGetDeviceProperties(&prop, d->m_device_ids[n]));
 		qDebug() << "\t #" << n << "ID" << d->m_device_ids[n] << prop.name << "PCI Bus" << prop.pciBusID
 				 << "Id" << prop.pciDeviceID << "Domain" << prop.pciDomainID
 #if CUDART_VERSION >= 10000
@@ -469,6 +537,7 @@ void nbody_engine_cuda::print_info() const
 		qDebug() << "\t\t" << "Max mem pitch" << prop.memPitch;
 	}
 	qDebug() << "\t" << "Block size   " << d->m_block_size;
+	qDebug() << "\t" << "NCCL" << d->m_nccl_is_active;
 }
 
 int nbody_engine_cuda::get_block_size() const
@@ -479,6 +548,11 @@ int nbody_engine_cuda::get_block_size() const
 void nbody_engine_cuda::set_block_size(int block_size)
 {
 	d->m_block_size = block_size;
+}
+
+void nbody_engine_cuda::set_use_nccl(bool active)
+{
+	d->m_nccl_is_active = active;
 }
 
 int nbody_engine_cuda::select_devices(const QString& devices_str)
@@ -523,57 +597,170 @@ int nbody_engine_cuda::select_devices(const QString& devices_str)
 	return 0;
 }
 
-void nbody_engine_cuda::synchronize_y(const smemory* y)
+void nbody_engine_cuda::synchronize_y(smemory* y)
 {
-	QByteArray	host_buffer(static_cast<int>(y->size()), Qt::Uninitialized);
-	read_buffer(host_buffer.data(), y);
-	write_buffer(const_cast<smemory*>(y), host_buffer.data());
+	size_t	device_count = d->m_device_ids.size();
+	if(device_count < 2)
+	{
+		return;
+	}
+#ifdef HAVE_NCCL
+	if(d->m_nccl_is_active)
+	{
+		size_t			sendcount = y->size() / (device_count * sizeof(nbcoord_t));
+		ncclDataType_t	data_type(get_nccl_type<nbcoord_t>());
+		NCCLCHECK(ncclGroupStart());
+		for(size_t rank = 0; rank < device_count; ++rank)
+		{
+			NCCLCHECK(ncclAllGather(static_cast<char*>(y->data(rank)) + rank * sendcount * sizeof(nbcoord_t),
+									static_cast<char*>(y->data(rank)), sendcount, data_type,
+									d->m_nccl_comm[rank], d->m_streams[rank]));
+		}
+		NCCLCHECK(ncclGroupEnd());
+		d->stream_sync();
+	}
+	else
+#endif // HAVE_NCCL
+	{
+		size_t	device_data_size = y->size() / device_count;
+		for(size_t shift_n = 1; shift_n < device_count; shift_n *= 2)
+		{
+			size_t	group_size = 2 * shift_n;
+			size_t	group_count = device_count / group_size;
+			for(size_t group = 0; group < group_count; ++group)
+			{
+				size_t	off1 = 2 * group * device_data_size;
+				size_t	off2 = off1 + device_data_size;
+				for(size_t k = 0; k != shift_n; ++k)
+				{
+					size_t		dev_n1 = group * group_size + k;
+					size_t		dev_n2 = dev_n1 + shift_n;
+					CUDACHECK(cudaMemcpyAsync(static_cast<char*>(y->data(dev_n2)) + off1,
+											  static_cast<char*>(y->data(dev_n1)) + off1,
+											  device_data_size, cudaMemcpyDeviceToDevice,
+											  d->m_streams[dev_n1]));
+					CUDACHECK(cudaMemcpyAsync(static_cast<char*>(y->data(dev_n1)) + off2,
+											  static_cast<char*>(y->data(dev_n2)) + off2,
+											  device_data_size, cudaMemcpyDeviceToDevice,
+											  d->m_streams[dev_n2]));
+				}
+			}
+			device_data_size *= 2;
+			d->stream_sync();
+		}
+	}
 }
 
 void nbody_engine_cuda::synchronize_f(smemory* f)
 {
-	QByteArray	host_buffer(static_cast<int>(f->size()), Qt::Uninitialized);
-	#pragma omp parallel num_threads(d->m_device_ids.size())
+	size_t			device_count(d->m_device_ids.size());
+	size_t			data_size = f->size();
+	size_t			row_count = 6;
+	size_t			device_data_size = data_size / device_count;
+	size_t			row_size = data_size / row_count;
+	size_t			rect_row_size = device_data_size / row_count;
+
+#ifdef HAVE_NCCL
+	if(d->m_nccl_is_active)
 	{
-		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
-		size_t	device_data_size(f->size() / d->m_device_ids.size());
-		size_t	row_count = 6;
-		size_t	pitch = f->size() / row_count;
-		size_t	width = device_data_size / row_count;
-		size_t	dev_off(width * dev_n);
-		cudaSetDevice(d->m_device_ids[dev_n]);
-		cudaMemcpy2D(host_buffer.data() + dev_off, pitch,
-					 static_cast<const char*>(f->data(dev_n)) + dev_off, pitch,
-					 width, row_count, cudaMemcpyDeviceToHost);
-		cudaDeviceSynchronize();
+		size_t			sendcount = rect_row_size / sizeof(nbcoord_t);
+		ncclDataType_t	data_type(get_nccl_type<nbcoord_t>());
+		for(size_t row = 0; row != row_count; ++row)
+		{
+			NCCLCHECK(ncclGroupStart());
+			for(size_t rank = 0; rank < device_count; ++rank)
+			{
+				char* row_data = static_cast<char*>(f->data(rank)) + row * row_size;
+				NCCLCHECK(ncclAllGather(row_data + rank * sendcount * sizeof(nbcoord_t),
+										row_data, sendcount, data_type,
+										d->m_nccl_comm[rank], d->m_streams[rank]));
+			}
+			NCCLCHECK(ncclGroupEnd());
+			d->stream_sync();
+		}
 	}
-	write_buffer(f, host_buffer.data());
+	else
+#endif // HAVE_NCCL
+	{
+		for(size_t shift_n = 1; shift_n < device_count; shift_n *= 2)
+		{
+			size_t	group_size = 2 * shift_n;
+			size_t	group_count = device_count / group_size;
+			for(size_t group = 0; group < group_count; ++group)
+			{
+				size_t	off1 = 2 * group * rect_row_size;
+				size_t	off2 = off1 + rect_row_size;
+				for(size_t k = 0; k != shift_n; ++k)
+				{
+					size_t		dev_n1 = group * group_size + k;
+					size_t		dev_n2 = dev_n1 + shift_n;
+					CUDACHECK(cudaMemcpy2DAsync(static_cast<char*>(f->data(dev_n2)) + off1, row_size,
+												static_cast<char*>(f->data(dev_n1)) + off1, row_size,
+												rect_row_size, row_count, cudaMemcpyDeviceToDevice,
+												d->m_streams[dev_n1]));
+					CUDACHECK(cudaMemcpy2DAsync(static_cast<char*>(f->data(dev_n1)) + off2, row_size,
+												static_cast<char*>(f->data(dev_n2)) + off2, row_size,
+												rect_row_size, row_count, cudaMemcpyDeviceToDevice,
+												d->m_streams[dev_n2]));
+				}
+			}
+			rect_row_size *= 2;
+			d->stream_sync();
+		}
+	}
 }
 
 void nbody_engine_cuda::synchronize_sum(nbody_engine_cuda::smemory* f)
 {
-	size_t	size = f->size();
-	size_t	device_count = d->m_device_ids.size();
-	std::vector<std::vector<nbcoord_t>>	host_buffers(device_count);
-
-	#pragma omp parallel num_threads(device_count)
+	size_t			device_count = d->m_device_ids.size();
+	if(device_count < 2)
 	{
-		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
-		host_buffers[dev_n].resize(size);
-		cudaSetDevice(d->m_device_ids[dev_n]);
-		cudaMemcpy(host_buffers[dev_n].data(), f->data(dev_n), size, cudaMemcpyDeviceToHost);
-		cudaDeviceSynchronize();
+		return;
 	}
-
-	#pragma omp parallel for
-	for(size_t i = 0; i < size; ++i)
+#ifdef HAVE_NCCL
+	if(d->m_nccl_is_active)
 	{
-		for(size_t dev_n = 1; dev_n < device_count; ++dev_n)
+		size_t			size = f->size() / sizeof(nbcoord_t);
+		ncclDataType_t	data_type(get_nccl_type<nbcoord_t>());
+
+		NCCLCHECK(ncclGroupStart());
+		for(size_t rank = 0; rank < device_count; ++rank)
 		{
-			host_buffers[0][i] += host_buffers[dev_n][i];
+			NCCLCHECK(ncclAllReduce(f->data(rank), f->data(rank), size, data_type, ncclSum,
+									d->m_nccl_comm[rank], d->m_streams[rank]));
+		}
+		NCCLCHECK(ncclGroupEnd());
+		d->stream_sync();
+	}
+	else
+#endif // HAVE_NCCL
+	{
+		size_t	data_size = f->size();
+		if(d->m_f_sync == nullptr)
+		{
+			d->m_f_sync = dynamic_cast<smemory*>(create_buffer(data_size));
+		}
+		for(size_t shift_n = 1; shift_n < device_count; shift_n *= 2)
+		{
+			for(size_t dev_n1 = 0; dev_n1 != device_count; ++dev_n1)
+			{
+				size_t dev_n2 = (dev_n1 + shift_n) % device_count;
+				CUDACHECK(cudaMemcpyAsync(d->m_f_sync->data(dev_n2), f->data(dev_n1),
+										  data_size, cudaMemcpyDeviceToDevice,
+										  d->m_streams[dev_n2]));
+			}
+			d->stream_sync();
+			#pragma omp parallel num_threads(device_count)
+			{
+				size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+				CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
+				::fmadd_inplace(static_cast<nbcoord_t*>(f->data(dev_n)),
+								static_cast<nbcoord_t*>(d->m_f_sync->data(dev_n)), 1.0,
+								data_size / sizeof(nbcoord_t), d->m_streams[dev_n]);
+			}
+			d->stream_sync();
 		}
 	}
-	write_buffer(f, host_buffers[0].data());
 }
 
 const std::vector<int>& nbody_engine_cuda::get_device_ids() const

@@ -45,9 +45,10 @@ public:
 
 	int get_block_size() const;
 	void set_block_size(int block_size);
+	void set_use_nccl(bool);
 	int select_devices(const QString& devices_str);
 
-	void synchronize_y(const smemory* y);
+	void synchronize_y(smemory* y);
 	void synchronize_f(smemory* f);
 	void synchronize_sum(smemory* f);
 protected:

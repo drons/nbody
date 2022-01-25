@@ -7,6 +7,10 @@ exists( /usr/local/cuda/bin ){
 
 	LIBS += -lcuda
 	LIBS += -lcudart
+	contains(CONFIG, USE_NCCL){
+		LIBS += -lnccl
+		DEFINES += HAVE_NCCL
+	}
 	DEFINES += HAVE_CUDA
 	QMAKE_CUDA_ALL_ARCH = $$system($$QMAKE_CUC " --list-gpu-code --list-gpu-arch")
 	contains(QMAKE_CUDA_ALL_ARCH, "arch=compute_80,code=sm_80"){
