@@ -238,6 +238,8 @@ jobs:
         echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
         sudo apt update -y
         sudo apt install -y cuda-minimal-build-11-6 pvs-studio
+        sudo wget -q -O /usr/bin/pvs-studio https://files.pvs-studio.com/eap/linux/pvs-studio
+        sudo chmod ugo+x /usr/bin/pvs-studio
         sudo ln -s /usr/local/cuda-11.6 /usr/local/cuda
     - name: info
       run: |
