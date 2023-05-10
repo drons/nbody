@@ -63,7 +63,7 @@ matrix:
           - ocl-icd-opencl-dev
           - gnupg-curl
       script:
-      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
       - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
       - sudo apt-get install -y cuda-minimal-build-9-2
@@ -91,7 +91,7 @@ matrix:
           - ocl-icd-opencl-dev
           - gnupg-curl
       before_script:
-      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
       - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
       - sudo apt-get install -y cuda-minimal-build-11-3 libnccl-dev
@@ -127,7 +127,7 @@ matrix:
           - ocl-icd-opencl-dev
           - gnupg-curl
       script:
-      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
       - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
       - sudo apt-get install -y cuda-minimal-build-10-2

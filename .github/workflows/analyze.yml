@@ -234,7 +234,7 @@ jobs:
         sudo apt install g++ qt5-qmake qtbase5-dev qtbase5-dev-tools libqt5opengl5-dev libopencv-dev ocl-icd-opencl-dev opencl-clhpp-headers wget strace
         wget -q -O - https://files.viva64.com/etc/pubkey.txt | sudo apt-key add -
         sudo wget -O /etc/apt/sources.list.d/viva64.list https://files.viva64.com/etc/viva64.list
-        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
         echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
         sudo apt update -y
         sudo apt install -y cuda-minimal-build-11-6 libnccl-dev pvs-studio
