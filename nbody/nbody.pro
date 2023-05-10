@@ -5,7 +5,13 @@ TARGET		= nbody
 MOC_DIR = ./.tmp/moc
 DESTDIR = ./../lib
 
-CONFIG		+= qt dll
+CONFIG		+= qt
+!contains(CONFIG, USE_STATICLIB){
+	CONFIG += dll
+}
+contains(CONFIG, USE_STATICLIB){
+	CONFIG += staticlib
+}
 QT += opengl
 win32:LIBS += -lGLU32
 unix:LIBS += -lGLU
