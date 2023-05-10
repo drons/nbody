@@ -19,6 +19,7 @@ QVariantMap nbody_parse_arguments(int argc, char** argv)
 		if(p.size() != 2)
 		{
 			qDebug() << "Invalid argument format" << arg;
+			continue;
 		}
 		param[p[0]] = p[1];
 	}
