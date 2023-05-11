@@ -557,6 +557,70 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 	return test_fcompute(&e0, e, data, eps, 1);
 }
 
+bool test_clamp(nbody_engine* e)
+{
+	if(dynamic_cast<nbody_engine_simple*>(e) == nullptr)
+	{
+		qDebug() << "SKIP: Clamp implemented only for nbody_engine_simple descendants";
+		return true;
+	}
+	std::vector<nbcoord_t>	a(e->problem_size());
+	std::vector<nbcoord_t>	b(e->problem_size());
+	nbody_engine::memory*	mem_a = e->create_buffer(sizeof(nbcoord_t) * a.size());
+
+	for(size_t n = 0; n != a.size(); ++n)
+	{
+		if(n & 1)
+		{
+			a[n] = +4;
+		}
+		else
+		{
+			a[n] = -4;
+		}
+	}
+	e->write_buffer(mem_a, a.data());
+	e->clamp(mem_a, 1);
+	e->read_buffer(b.data(), mem_a);
+
+	bool ok = true;
+	for(size_t n = 0; n != b.size(); ++n)
+	{
+		bool eq = true;
+		if(n < b.size() / 2)
+		{
+			if(n & 1)
+			{
+				eq = (b[n] == +2);
+			}
+			else
+			{
+				eq = (b[n] == -2);
+			}
+		}
+		else
+		{
+			if(n & 1)
+			{
+				eq = (b[n] == +4);
+			}
+			else
+			{
+				eq = (b[n] == -4);
+			}
+		}
+		if(ok && !eq)
+		{
+			qDebug() << "test_clamp failed at index" << n << "a[n]" << a[n] << "b[n]" << b[n];
+		}
+		ok = ok && eq;
+	}
+
+	e->free_buffer(mem_a);
+
+	return ok;
+}
+
 class test_nbody_engine : public QObject
 {
 	Q_OBJECT
@@ -584,6 +648,7 @@ private slots:
 	void test_fmaddn_corr();
 	void test_fmaxabs();
 	void test_fcompute();
+	void test_clamp();
 	void test_negative_branches();
 };
 
@@ -678,6 +743,11 @@ void test_nbody_engine::test_fcompute()
 	QVERIFY(::test_fcompute(m_e, &m_data, m_eps));
 	m_data.advise_time(0);
 	QVERIFY(::test_fcompute(m_e, &m_data, m_eps));
+}
+
+void test_nbody_engine::test_clamp()
+{
+	QVERIFY(::test_clamp(m_e));
 }
 
 class nbody_engine_memory_fake : public nbody_engine::memory
