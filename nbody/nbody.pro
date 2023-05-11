@@ -12,9 +12,6 @@ CONFIG		+= qt
 contains(CONFIG, USE_STATICLIB){
 	CONFIG += staticlib
 }
-QT += opengl
-win32:LIBS += -lGLU32
-unix:LIBS += -lGLU
 
 DEFINES += NBODY_EXPORT_DLL
 

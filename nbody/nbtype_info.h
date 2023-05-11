@@ -2,7 +2,7 @@
 #define NBTYPE_INFO_H
 
 #include "nbtype.h"
-#include <QtOpenGL>
+#include <QtOpenGL/QtOpenGL>
 
 template<class T>
 class nbtype_info

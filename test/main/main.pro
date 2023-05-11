@@ -6,9 +6,6 @@ MOC_DIR = ./.tmp/moc
 DESTDIR = ./
 
 CONFIG		+= qt
-QT += opengl
-win32:LIBS += -lGLU32
-unix:LIBS += -lGLU
 
 INCLUDEPATH += ../../nbody
 LIBS += -L../../lib
