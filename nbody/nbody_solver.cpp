@@ -83,7 +83,7 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 		if(check_dt > 0 && t >= last_check + check_dt - dt * 0.1)
 		{
 			data->print_statistics(m_engine);
-			for(auto v : m_check_visitors)
+			for(auto& v : m_check_visitors)
 			{
 				v->visit(data);
 			}
