@@ -56,6 +56,8 @@ public:
 	virtual void set_step(size_t s) = 0;
 	//! Compute f( t, y )
 	virtual void fcompute(const nbcoord_t& t, const memory* y, memory* f) = 0;
+	//! Compute f( t, y )
+	virtual void clamp(memory* y, nbcoord_t b) = 0;
 
 	virtual memory* create_buffer(size_t) = 0;
 	virtual void free_buffer(memory*) = 0;

@@ -101,8 +101,10 @@ nbody_solver* nbody_create_solver(const QVariantMap& param)
 
 	nbcoord_t min_step = param.value("min_step", 1e-9).toDouble();
 	nbcoord_t max_step = param.value("max_step", 1e-2).toDouble();
+	bool clamp = param.value("clamp", false).toBool();
 
 	solver->set_time_step(min_step, max_step);
+	solver->set_clamp_to_box(clamp);
 
 	return solver;
 }

@@ -693,6 +693,12 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	}
 }
 
+void nbody_engine_opencl::clamp(memory* y, nbcoord_t b)
+{
+	Q_UNUSED(y);
+	Q_UNUSED(b);
+}
+
 void nbody_engine_opencl::synchronize_f(smemory* f)
 {
 	size_t			device_count(d->m_devices.size());

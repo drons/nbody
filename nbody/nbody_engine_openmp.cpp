@@ -76,6 +76,33 @@ void nbody_engine_openmp::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	}
 }
 
+void nbody_engine_openmp::clamp(memory* _y, nbcoord_t b)
+{
+	smemory*	y = dynamic_cast<smemory*>(_y);
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+
+	size_t		count = m_data->get_count();
+	nbcoord_t*	rx = reinterpret_cast<nbcoord_t*>(y->data());
+	nbcoord_t*	ry = rx + count;
+	nbcoord_t*	rz = rx + 2 * count;
+	nbcoord_t	diam = 2 * b;
+
+	#pragma omp parallel for
+	for(size_t body_n = 0; body_n < count; ++body_n)
+	{
+		if(rx[body_n] > +b) { rx[body_n] -= diam; }
+		if(rx[body_n] < -b) { rx[body_n] += diam; }
+		if(ry[body_n] > +b) { ry[body_n] -= diam; }
+		if(ry[body_n] < -b) { ry[body_n] += diam; }
+		if(rz[body_n] > +b) { rz[body_n] -= diam; }
+		if(rz[body_n] < -b) { rz[body_n] += diam; }
+	}
+}
+
 void nbody_engine_openmp::copy_buffer(nbody_engine::memory* __a, const nbody_engine::memory* __b)
 {
 	smemory*			_a = dynamic_cast<smemory*>(__a);

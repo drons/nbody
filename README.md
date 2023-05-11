@@ -105,6 +105,7 @@ Argument | Description
 `--max_recursion`   | Max recursion level for __embeded__ solvers.
 `--substep_subdivisions` | Number of __embeded__ solver substeps into which the current step is divided at the next level of recursion when the error greater than `error_threshold`.
 `--max_level` | Maximum extrapolation table size for Bulirsch-Stoer solver
+`--clamp` | Clamp outliers coordinates to bounding box
 
 #### Player
 To view simulation results run 'nbody-player' program.

@@ -35,7 +35,7 @@ public:
 	size_t get_step() const override;
 	void set_step(size_t s) override;
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
-
+	void clamp(memory* y, nbcoord_t b) override;
 	smemory* create_buffer(size_t) override;
 	void free_buffer(memory*) override;
 	void read_buffer(void* dst, const memory* src) override;

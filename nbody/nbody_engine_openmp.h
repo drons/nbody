@@ -12,7 +12,7 @@ public:
 	const char* type_name() const override;
 
 	void fcompute(const nbcoord_t& t, const memory* y, memory* f) override;
-
+	void clamp(memory* y, nbcoord_t b) override;
 	void copy_buffer(memory* a, const memory* b) override;
 	void fill_buffer(memory* a, const nbcoord_t& value) override;
 	void fmadd_inplace(memory* a, const memory* b, const nbcoord_t& c) override;

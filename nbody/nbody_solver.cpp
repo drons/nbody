@@ -4,7 +4,10 @@
 #include <QDebug>
 
 nbody_solver::nbody_solver()
-	: m_engine(NULL), m_min_step(0), m_max_step(0)
+	: m_engine(NULL),
+	  m_min_step(0),
+	  m_max_step(0),
+	  m_clamp_to_box(false)
 {
 }
 
@@ -39,6 +42,11 @@ nbcoord_t nbody_solver::get_max_step() const
 	return m_max_step;
 }
 
+void nbody_solver::set_clamp_to_box(bool clamp)
+{
+	m_clamp_to_box = clamp;
+}
+
 void nbody_solver::add_check_visitor(std::shared_ptr<nbody_step_visitor> v)
 {
 	m_check_visitors.push_back(v);
@@ -64,6 +72,10 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 
 	while(data->get_time() < max_time)
 	{
+		if(m_clamp_to_box)
+		{
+			m_engine->clamp(m_engine->get_y(), data->get_box_size());
+		}
 		advise(dt);
 
 		nbcoord_t   t = data->get_time();
@@ -94,9 +106,10 @@ int nbody_solver::run(nbody_data* data, nbody_data_stream* stream, nbcoord_t max
 
 void nbody_solver::print_info() const
 {
-	qDebug() << "\tmin_step " << m_min_step;
-	qDebug() << "\tmax_step " << m_max_step;
-	qDebug() << "\tODE order" << get_ode_order();
+	qDebug() << "\tmin_step: " << m_min_step;
+	qDebug() << "\tmax_step: " << m_max_step;
+	qDebug() << "\tODE order:" << get_ode_order();
+	qDebug() << "\tClamp:    " << m_clamp_to_box;
 }
 
 e_ode_order nbody_solver::get_ode_order() const

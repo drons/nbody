@@ -172,6 +172,32 @@ void nbody_engine_simple::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	}
 }
 
+void nbody_engine_simple::clamp(memory* _y, nbcoord_t b)
+{
+	smemory*	y = dynamic_cast<smemory*>(_y);
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+
+	size_t		count = m_data->get_count();
+	nbcoord_t*	rx = reinterpret_cast<nbcoord_t*>(y->data());
+	nbcoord_t*	ry = rx + count;
+	nbcoord_t*	rz = rx + 2 * count;
+	nbcoord_t	diam = 2 * b;
+
+	for(size_t body_n = 0; body_n < count; ++body_n)
+	{
+		if(rx[body_n] > +b) { rx[body_n] -= diam; }
+		if(rx[body_n] < -b) { rx[body_n] += diam; }
+		if(ry[body_n] > +b) { ry[body_n] -= diam; }
+		if(ry[body_n] < -b) { ry[body_n] += diam; }
+		if(rz[body_n] > +b) { rz[body_n] -= diam; }
+		if(rz[body_n] < -b) { rz[body_n] += diam; }
+	}
+}
+
 nbody_engine_simple::smemory* nbody_engine_simple::create_buffer(size_t s)
 {
 	return new smemory(s);

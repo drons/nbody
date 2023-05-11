@@ -246,6 +246,12 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 	}
 }
 
+void nbody_engine_cuda::clamp(memory* y, nbcoord_t b)
+{
+	Q_UNUSED(y);
+	Q_UNUSED(b);
+}
+
 nbody_engine_cuda::memory* nbody_engine_cuda::create_buffer(size_t s)
 {
 	smemory*	mem = new smemory(s, d->m_device_ids);
