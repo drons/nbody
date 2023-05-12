@@ -28,6 +28,7 @@ std::string load_program(const QString& filename)
 	QFile			file(filename);
 	if(!file.open(QFile::ReadOnly))
 	{
+		qDebug() << "Can't load OpenCL source " << filename;
 		return std::string();
 	}
 	std::string	src(file.readAll().data());
@@ -57,11 +58,13 @@ cl::Program load_programs(const cl::Context& context, const cl::Device& device, 
 	}
 	catch(cl::Error& err)
 	{
+		qDebug() << "Can't build " << files;
 		qDebug() << prog.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device).data();
 		throw;
 	}
 	catch(...)
 	{
+		qDebug() << "Can't build " << files;
 		throw std::exception();
 	}
 	return prog;
@@ -237,8 +240,21 @@ QString nbody_engine_opencl::data::devctx::build_options(int block_size)
 	return options;
 }
 
+#ifdef HAVE_NBODY_STATICLIB
+struct nbody_engine_opencl_res_initializer
+{
+	nbody_engine_opencl_res_initializer()
+	{
+		Q_INIT_RESOURCE(opencl);
+	}
+};
+#endif // HAVE_NBODY_STATICLIB
+
 QStringList nbody_engine_opencl::data::devctx::sources()
 {
+#ifdef HAVE_NBODY_STATICLIB
+	static nbody_engine_opencl_res_initializer initializer;
+#endif // HAVE_NBODY_STATICLIB
 	return QStringList()
 		   << ":/nbody_space_heap_func_priv.h"
 		   << ":/nbody_engine_opencl.cl";
