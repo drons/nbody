@@ -381,7 +381,12 @@ void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
 
 void wgt_nbody_view::paintGL()
 {
-	paintGL(width(), height());
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
+	qreal dpr = devicePixelRatioF();
+#else
+	qreal dpr =  devicePixelRatio();
+#endif
+	paintGL(width() *dpr, height() * dpr);
 }
 
 void wgt_nbody_view::mouseDoubleClickEvent(QMouseEvent* e)
