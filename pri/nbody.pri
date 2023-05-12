@@ -1,4 +1,7 @@
 CONFIG += depend_includepath
+
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
+
 unix{
 	include(gcc.pri)
 }

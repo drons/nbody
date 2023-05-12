@@ -123,7 +123,7 @@ void wgt_nbody_player::on_start_record()
 	}
 
 	QProgressDialog	progress(this);
-	QTime			timer;
+	QElapsedTimer	timer;
 
 	progress.setRange(0, static_cast<int>(m_stream->get_frame_count()));
 	progress.show();
