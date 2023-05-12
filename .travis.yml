@@ -1,15 +1,17 @@
 matrix:
   include:
     - os: linux
-      dist: bionic
+      dist: jammy
       sudo: required
       compiler: gcc
-      env: NAME="gcc7 + Qt4 + release"
+      env: NAME="gcc11 + Qt5 + release"
       addons:
         apt:
           packages:
-          - libqt4-dev
-          - libqt4-opengl-dev
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
           - libopencv-dev
           - ocl-icd-opencl-dev
           - oclgrind
@@ -18,7 +20,7 @@ matrix:
       - mkdir build-release
       - gcc --version
       - cd build-release
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=3"
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=4"
       - make -j2
       - oclgrind ./test/engine/engine
       - oclgrind ./test/solver/solver
@@ -26,15 +28,44 @@ matrix:
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
-      dist: xenial
+      dist: jammy
       sudo: required
       compiler: gcc
-      env: NAME="gcc5 + Qt4 + release + quad"
+      env: NAME="gcc11 + Qt5 + release-static"
       addons:
         apt:
           packages:
-          - libqt4-dev
-          - libqt4-opengl-dev
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
+          - libopencv-dev
+          - ocl-icd-opencl-dev
+          - oclgrind
+      script:
+      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
+      - mkdir build-release
+      - gcc --version
+      - cd build-release
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release CONFIG+=USE_STATICLIB "OPEN_CV_VERSION_MAJOR=4"
+      - make -j2
+      - oclgrind ./test/engine/engine
+      - oclgrind ./test/solver/solver
+      - ./test/extrapolator/extrapolator
+      - ./test/solvers_equality/solvers_equality
+      - ./test/stream/stream
+    - os: linux
+      dist: jammy
+      sudo: required
+      compiler: gcc
+      env: NAME="gcc11 + Qt5 + release + quad"
+      addons:
+        apt:
+          packages:
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
           - libopencv-dev
           - ocl-icd-opencl-dev
           - oclgrind
@@ -42,7 +73,7 @@ matrix:
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release
       - cd build-release
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release DEFINES+=NB_COORD_PRECISION=4
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release DEFINES+=NB_COORD_PRECISION=4 "OPEN_CV_VERSION_MAJOR=4"
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
@@ -50,30 +81,32 @@ matrix:
       - ./test/solvers_equality/solvers_equality
       - ./test/stream/stream
     - os: linux
-      dist: xenial
+      dist: jammi
       sudo: required
       compiler: gcc
-      env: NAME="gcc5 + Qt4 + release + cuda9"
+      env: NAME="gcc11 + Qt5 + release + cuda12"
       addons:
         apt:
           packages:
-          - libqt4-dev
-          - libqt4-opengl-dev
+          - qt5-qmake
+          - qtbase5-dev
+          - qtbase5-dev-tools
+          - libqt5opengl5-dev
           - libopencv-dev
           - ocl-icd-opencl-dev
-          - gnupg-curl
+          - curl
       script:
-      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub
-      - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
+      - sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub
+      - echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
       - sudo apt-get update -y
-      - sudo apt-get install -y cuda-minimal-build-9-2
-      - sudo ln -s /usr/local/cuda-9.2 /usr/local/cuda
+      - sudo apt-get install -y cuda-minimal-build-12-1
+      - sudo ln -s /usr/local/cuda-12.1 /usr/local/cuda
       - export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
       - export PATH=/usr/local/cuda/bin:$PATH
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release-cuda
       - cd build-release-cuda
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release "OPEN_CV_VERSION_MAJOR=4"
       - make -j2
     - os: linux
       dist: xenial
@@ -140,25 +173,7 @@ matrix:
       - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=debug CONFIG+=NO_UI DEFINES+=NB_COORD_PRECISION=1
       - make -j2
     - os: linux
-      dist: xenial
-      sudo: required
-      compiler: gcc
-      env: NAME="gcc5 + Qt4 + release + float"
-      addons:
-        apt:
-          packages:
-          - libqt4-dev
-          - libqt4-opengl-dev
-          - libopencv-dev
-          - ocl-icd-opencl-dev
-      script:
-      - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
-      - mkdir build-release
-      - cd build-release
-      - /usr/lib/x86_64-linux-gnu/qt4/bin/qmake ../nbody.pro CONFIG+=release DEFINES+=NB_COORD_PRECISION=1
-      - make -j2
-    - os: linux
-      dist: trusty
+      dist: jammy
       sudo: required
       compiler: clang
       env: NAME="clang + Qt5 + release"
@@ -169,13 +184,13 @@ matrix:
           - qtbase5-dev
           - qtbase5-dev-tools
           - libqt5opengl5-dev
-          - libiomp-dev
+          - libomp-dev
           - libopencv-dev
       script:
       - export LD_LIBRARY_PATH=./lib:${LD_LIBRARY_PATH}
       - mkdir build-release-clang
       - cd build-release-clang
-      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release -spec linux-clang
+      - /usr/lib/x86_64-linux-gnu/qt5/bin/qmake ../nbody.pro CONFIG+=release -spec linux-clang "OPEN_CV_VERSION_MAJOR=4"
       - make -j2
       - ./test/engine/engine
       - ./test/solver/solver
