@@ -17,4 +17,7 @@ greaterThan(OPEN_CV_VERSION_MAJOR, 2){
 }
 greaterThan(OPEN_CV_VERSION_MAJOR, 3){
 	INCLUDEPATH += /usr/include/opencv4
+	!win32{
+		QMAKE_CXXFLAGS += -isystem /usr/include/opencv4
+	}
 }
