@@ -8,25 +8,24 @@
 #include <QPropertyAnimation>
 
 namespace {
-QGLFormat nb_glwidget_format()
+QSurfaceFormat nb_glwidget_format()
 {
-	QGLFormat	f;
-	f.setSampleBuffers(true);
+	QSurfaceFormat	f;
 	f.setSamples(16);
 	return f;
 }
-QGLFramebufferObjectFormat nb_framebuffer_format()
+QOpenGLFramebufferObjectFormat nb_framebuffer_format()
 {
-	QGLFramebufferObjectFormat	f;
+	QOpenGLFramebufferObjectFormat	f;
 	f.setSamples(16);
 	f.setMipmap(false);
 	return f;
 }
 }//namespace
 
-wgt_nbody_view::wgt_nbody_view(nbody_data* _data) :
-	QGLWidget(nb_glwidget_format())
+wgt_nbody_view::wgt_nbody_view(nbody_data* _data)
 {
+	setFormat(nb_glwidget_format());
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	m_split_point = QPointF(0.5, 0.5);
@@ -110,16 +109,11 @@ void wgt_nbody_view::paint_color_box()
 	}
 
 	glEnd();
-
-	for(int i = 0; i != 8; ++i)
-	{
-		renderText(cube_vrt[i].x, cube_vrt[i].y, cube_vrt[i].z, QString::number(i));
-	}
 }
 
 void wgt_nbody_view::initializeGL()
 {
-	m_renderer = new QGLFramebufferObject(1920, 1080, nb_framebuffer_format());
+	m_renderer = new QOpenGLFramebufferObject(1920, 1080, nb_framebuffer_format());
 
 	GLfloat size_range[2] = {1, 1};
 	GLfloat size_step = 1;
@@ -169,22 +163,6 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 	glViewport(x, y, width, height);
 
 	glColor3f(1, 1, 1);
-	renderText(20, 20, QString("Step  = %1").arg(m_data->get_step()), QFont("Monospace"));
-	renderText(20, 40, QString("T     = %1").arg(m_data->get_time()), QFont("Monospace"));
-	renderText(20, 60, QString("Stars = %1").arg(m_data->get_count()), QFont("Monospace"));
-	if(!qIsNaN(m_data->get_impulce_err()))
-	{
-		renderText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2), QFont("Monospace"));
-	}
-	if(!qIsNaN(m_data->get_impulce_err()))
-	{
-		renderText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2), QFont("Monospace"));
-	}
-	if(!qIsNaN(m_data->get_impulce_err()))
-	{
-		renderText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2), QFont("Monospace"));
-	}
-
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(1);
 	glPointSize(static_cast<GLfloat>(m_star_size));
@@ -206,10 +184,7 @@ void wgt_nbody_view::paintGL(GLint x, GLint y, GLsizei width, GLsizei height, co
 		}
 
 		glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE);
-#ifdef Q_OS_LINUX
-		//! \todo Made right check of glBlendColor
-		glBlendColor(factor, factor, factor, factor);
-#endif //Q_OS_LINUX
+		context()->functions()->glBlendColor(factor, factor, factor, factor);
 		nbcolor_t*				color = m_data->get_color();
 		std::vector<nbcolor_t>	cbuf;
 		if(m_color_from_velosity)
@@ -318,54 +293,33 @@ QImage wgt_nbody_view::render_to_image()
 
 	if(!m_renderer->bind())
 	{
-		qDebug() << "Can't bind QGLFramebufferObject";
+		qDebug() << "Can't bind QOpenGLFramebufferObject";
 		return QImage();
 	}
-	paintGL(m_renderer->width(), m_renderer->height());
+	QOpenGLPaintDevice	pd(m_renderer->size());
+	paintGL(&pd, m_renderer->width(), m_renderer->height(), 1);
 	if(!m_renderer->release())
 	{
-		qDebug() << "Can't release QGLFramebufferObject";
+		qDebug() << "Can't release QOpenGLFramebufferObject";
 		return QImage();
 	}
 	QImage	image(m_renderer->toImage());
 	if(image.isNull())
 	{
-		qDebug() << "Can't convert QGLFramebufferObject to image";
+		qDebug() << "Can't convert QOpenGLFramebufferObject to image";
 		return QImage();
 	}
 
-	{
-		QPainter	p(&image);
-		p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::HighQualityAntialiasing);
-		p.setPen(Qt::white);
-		p.setFont(QFont("Monospace", 8));
-		p.drawLine(QPointF(0, image.height() / 2.0), QPointF(image.width(), image.height() / 2.0));
-		p.drawLine(QPointF(image.width() / 2.0, 0), QPointF(image.width() / 2.0, image.height()));
-
-		p.drawText(20, 20, QString("Step  = %1").arg(m_data->get_step()));
-		p.drawText(20, 40, QString("T     = %1").arg(m_data->get_time()));
-		p.drawText(20, 60, QString("Stars = %1").arg(m_data->get_count()));
-		if(!qIsNaN(m_data->get_impulce_err()))
-		{
-			p.drawText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2));
-		}
-		if(!qIsNaN(m_data->get_impulce_moment_err()))
-		{
-			p.drawText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2));
-		}
-		if(!qIsNaN(m_data->get_energy_err()))
-		{
-			p.drawText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2));
-		}
-	}
 	return image;
 }
 
-void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
+void wgt_nbody_view::paintGL(QPaintDevice* pd, GLsizei width, GLsizei height, qreal dpr)
 {
+	QPainter	p(pd);
+	p.beginNativePainting();
 	setup_view_box();
 	glViewport(0, 0, width, height);
-	qglClearColor(Qt::black);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	nbvertex_t	center((m_box_max + m_box_min) * 0.5);
@@ -377,6 +331,28 @@ void wgt_nbody_view::paintGL(GLsizei width, GLsizei height)
 	paintGL(0, 0, x, y, center - nbvertex_t(0, 0, dist), nbvertex_t(0, 1, 0));
 	paintGL(x, 0, width - x, y, center + nbvertex_t(dist, 0, 0), nbvertex_t(0, 1, 0));
 	paintGL(0, y, x, height - y, center - nbvertex_t(0, dist, 0), nbvertex_t(0, 0, -1));
+	p.endNativePainting();
+
+	p.setFont(QFont("Monospace"));
+	p.setPen(Qt::white);
+	p.scale(1.0 / dpr, 1.0 / dpr);	// Rescale back to native pixels
+	p.drawText(20, 20, QString("Step  = %1").arg(m_data->get_step()));
+	p.drawText(20, 40, QString("T     = %1").arg(m_data->get_time()));
+	p.drawText(20, 60, QString("Stars = %1").arg(m_data->get_count()));
+	if(qIsFinite(m_data->get_impulce_err()))
+	{
+		p.drawText(20, 80, QString("dP    = %1 %").arg(m_data->get_impulce_err(), 3, 'e', 2));
+	}
+	if(qIsFinite(m_data->get_impulce_err()))
+	{
+		p.drawText(20, 100, QString("dL    = %1 %").arg(m_data->get_impulce_moment_err(), 3, 'e', 2));
+	}
+	if(qIsFinite(m_data->get_impulce_err()))
+	{
+		p.drawText(20, 120, QString("dE    = %1 %").arg(m_data->get_energy_err(), 3, 'e', 2));
+	}
+	p.drawLine(0, (height - y), width, (height - y));
+	p.drawLine(x, 0, x, height);
 }
 
 void wgt_nbody_view::paintGL()
@@ -386,7 +362,7 @@ void wgt_nbody_view::paintGL()
 #else
 	qreal dpr =  devicePixelRatio();
 #endif
-	paintGL(width() *dpr, height() * dpr);
+	paintGL(this, width() *dpr, height() * dpr, dpr);
 }
 
 void wgt_nbody_view::mouseDoubleClickEvent(QMouseEvent* e)
@@ -434,7 +410,7 @@ QPointF wgt_nbody_view::get_split_point() const
 void wgt_nbody_view::set_split_point(const QPointF& split_point)
 {
 	m_split_point = split_point;
-	updateGL();
+	update();
 }
 
 void wgt_nbody_view::set_stereo_base(int base)

@@ -1,27 +1,27 @@
 #ifndef WGT_NBODY_VIEW_H
 #define WGT_NBODY_VIEW_H
 
-#include <QGLWidget>
-#include <QGLFramebufferObject>
+#include <QOpenGLWidget>
+#include <QOpenGLFramebufferObject>
 #include "nbody_solver.h"
 
-class wgt_nbody_view : public QGLWidget
+class wgt_nbody_view : public QOpenGLWidget
 {
 	Q_OBJECT
 	Q_PROPERTY(QPointF m_split_point READ get_split_point WRITE set_split_point)
-	nbody_data*				m_data;
-	nb3d_t					m_box_min;
-	nb3d_t					m_box_max;
-	nb3d_t					m_vel_min;
-	nb3d_t					m_vel_max;
-	QGLFramebufferObject*	m_renderer;
-	QPointF					m_split_point;
-	int						m_stereo_base;
-	int						m_star_intensity;
-	double					m_star_size;
-	bool					m_color_from_velosity;
-	bool					m_show_box;
-	double					m_scale;
+	nbody_data*					m_data;
+	nb3d_t						m_box_min;
+	nb3d_t						m_box_max;
+	nb3d_t						m_vel_min;
+	nb3d_t						m_vel_max;
+	QOpenGLFramebufferObject*	m_renderer;
+	QPointF						m_split_point;
+	int							m_stereo_base;
+	int							m_star_intensity;
+	double						m_star_size;
+	bool						m_color_from_velosity;
+	bool						m_show_box;
+	double						m_scale;
 public:
 	explicit wgt_nbody_view(nbody_data*);
 	~wgt_nbody_view();
@@ -34,7 +34,7 @@ public:
 	void paint_color_box();
 	void initializeGL() override;
 	void paintGL() override;
-	void paintGL(GLsizei width, GLsizei height);
+	void paintGL(QPaintDevice* pd, GLsizei width, GLsizei height, qreal dpr);
 	void paintGL(GLint x, GLint y,	GLsizei width, GLsizei height, const nbvertex_t& camera_position, const nbvertex_t& up);
 	void setup_view_box();
 	void setup_projection(GLsizei width, GLsizei height, const nbvertex_t& center, const nbvertex_t& camera_position,

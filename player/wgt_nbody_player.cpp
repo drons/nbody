@@ -80,7 +80,7 @@ void wgt_nbody_player::on_update_view()
 	m_view->set_color_from_velosity(m_control->get_color_from_velosity());
 	m_view->set_show_box(m_control->get_show_box());
 	m_view->set_scale(m_control->get_scale());
-	m_view->updateGL();
+	m_view->update();
 }
 
 static std::shared_ptr<nbody_frame_compressor>
