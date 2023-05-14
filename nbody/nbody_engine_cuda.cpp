@@ -246,10 +246,22 @@ void nbody_engine_cuda::fcompute(const nbcoord_t& t, const memory* _y, memory* _
 	}
 }
 
-void nbody_engine_cuda::clamp(memory* y, nbcoord_t b)
+void nbody_engine_cuda::clamp(memory* _y, nbcoord_t b)
 {
-	Q_UNUSED(y);
-	Q_UNUSED(b);
+	smemory*		y = dynamic_cast<smemory*>(_y);
+
+	if(y == nullptr)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+	size_t		count = d->m_data->get_count();
+	#pragma omp parallel num_threads(d->m_device_ids.size())
+	{
+		size_t	dev_n = static_cast<size_t>(omp_get_thread_num());
+		CUDACHECK(cudaSetDevice(d->m_device_ids[dev_n]));
+		::clamp_coord(static_cast<nbcoord_t*>(y->data(dev_n)), b, count);
+	}
 }
 
 nbody_engine_cuda::memory* nbody_engine_cuda::create_buffer(size_t s)

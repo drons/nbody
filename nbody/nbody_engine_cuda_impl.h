@@ -94,6 +94,9 @@ __host__ void update_node_bh_tex(int level_size,
 								 nbcoord_t* bmax_cmz,
 								 nbcoord_t* tree_mass,
 								 nbcoord_t distance_to_node_radius_ratio_sqr);
+//! Clamp coord
+__host__ void clamp_coord(nbcoord_t* y, nbcoord_t b, int count);
+
 //! a[i] = value
 __host__ void fill_buffer(nbcoord_t* ptr, nbcoord_t v, int count);
 

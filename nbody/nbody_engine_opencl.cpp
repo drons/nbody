@@ -116,6 +116,7 @@ typedef cl::make_kernel< cl_int, // Level size
 		nbcoord_t //distance_to_node_radius_ratio_sqr
 		> UpdateNodeBH;
 
+typedef cl::make_kernel< cl::Buffer, const nbcoord_t, int > Clamp;
 typedef cl::make_kernel< cl::Buffer, const nbcoord_t > FMfill;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplace;
 typedef cl::make_kernel< cl_int, cl::Buffer, cl::Buffer, cl::Buffer, const nbcoord_t > FMaddInplaceCorr;
@@ -137,6 +138,7 @@ struct nbody_engine_opencl::data
 		ComputeHeapBH		m_fcompute_hbh_sl;
 		UpdateLeafBH		m_update_leaf_hbh;
 		UpdateNodeBH		m_update_node_hbh;
+		Clamp				m_clamp;
 		FMfill				m_fill;
 		FMaddInplace		m_fmadd_inplace;
 		FMaddInplaceCorr	m_fmadd_inplace_corr;
@@ -272,6 +274,7 @@ nbody_engine_opencl::data::devctx::devctx(cl::Context& _context, cl::Device& _de
 	m_fcompute_hbh_sl(m_prog, "ComputeHeapBHSL"),
 	m_update_leaf_hbh(m_prog, "UpdateLeafBH"),
 	m_update_node_hbh(m_prog, "UpdateNodeBH"),
+	m_clamp(m_prog, "ClampCoord"),
 	m_fill(m_prog, "fill"),
 	m_fmadd_inplace(m_prog, "fmadd_inplace"),
 	m_fmadd_inplace_corr(m_prog, "fmadd_inplace_corr"),
@@ -709,10 +712,31 @@ void nbody_engine_opencl::fcompute(const nbcoord_t& t, const memory* _y, memory*
 	}
 }
 
-void nbody_engine_opencl::clamp(memory* y, nbcoord_t b)
+void nbody_engine_opencl::clamp(memory* _y, nbcoord_t b)
 {
-	Q_UNUSED(y);
-	Q_UNUSED(b);
+	smemory*		y = dynamic_cast<smemory*>(_y);
+
+	if(y == NULL)
+	{
+		qDebug() << "y is not smemory";
+		return;
+	}
+
+	size_t					device_count(d->m_devices.size());
+	size_t					count = d->m_data->get_count();
+	cl::NDRange				global_range(count);
+	cl::NDRange				local_range(d->m_block_size);
+	std::vector<cl::Event>	events;
+
+	for(size_t dev_n = 0; dev_n != device_count; ++dev_n)
+	{
+		data::devctx&	ctx(d->m_devices[dev_n]);
+		cl::EnqueueArgs	eargs(ctx.m_queue, global_range, local_range);
+		cl::Event		ev(ctx.m_clamp(eargs, y->buffer(dev_n), b, count));
+		events.push_back(ev);
+	}
+
+	cl::Event::waitForEvents(events);
 }
 
 void nbody_engine_opencl::synchronize_f(smemory* f)

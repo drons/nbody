@@ -507,6 +507,22 @@ __kernel void UpdateNodeBH(int level_size,
 	tree_crit_r2[idx] = (r * r) * distance_to_node_radius_ratio_sqr;
 }
 
+//! Clamp
+__kernel void ClampCoord(__global nbcoord_t* y, nbcoord_t b, int stride)
+{
+	int		body_n = get_global_id(0);
+	__global nbcoord_t*	rx = y;
+	__global nbcoord_t*	ry = y + stride;
+	__global nbcoord_t*	rz = y + 2 * stride;
+
+	if(rx[body_n] > +b) { rx[body_n] -= 2 * b; }
+	if(rx[body_n] < -b) { rx[body_n] += 2 * b; }
+	if(ry[body_n] > +b) { ry[body_n] -= 2 * b; }
+	if(ry[body_n] < -b) { ry[body_n] += 2 * b; }
+	if(rz[body_n] > +b) { rz[body_n] -= 2 * b; }
+	if(rz[body_n] < -b) { rz[body_n] += 2 * b; }
+}
+
 //! a[i] = value
 __kernel void fill(__global nbcoord_t* a, nbcoord_t value)
 {

@@ -559,11 +559,6 @@ bool test_fcompute(nbody_engine* e, nbody_data* data, const nbcoord_t eps)
 
 bool test_clamp(nbody_engine* e)
 {
-	if(dynamic_cast<nbody_engine_simple*>(e) == nullptr)
-	{
-		qDebug() << "SKIP: Clamp implemented only for nbody_engine_simple descendants";
-		return true;
-	}
 	std::vector<nbcoord_t>	a(e->problem_size());
 	std::vector<nbcoord_t>	b(e->problem_size());
 	nbody_engine::memory*	mem_a = e->create_buffer(sizeof(nbcoord_t) * a.size());

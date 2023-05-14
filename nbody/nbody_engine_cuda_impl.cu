@@ -720,6 +720,32 @@ __host__ void fill_buffer(nbcoord_t* dev_ptr, nbcoord_t v, int count)
 	thrust::fill(ptr, ptr + count, v);
 }
 
+//! Clamp
+__global__ void kclamp_coord(nbcoord_t* y, nbcoord_t b, int stride)
+{
+	int		body_n = blockDim.x * blockIdx.x + threadIdx.x;
+
+	nbcoord_t*	rx = y;
+	nbcoord_t*	ry = y + stride;
+	nbcoord_t*	rz = y + 2 * stride;
+
+	if(rx[body_n] > +b) { rx[body_n] -= 2 * b; }
+	if(rx[body_n] < -b) { rx[body_n] += 2 * b; }
+	if(ry[body_n] > +b) { ry[body_n] -= 2 * b; }
+	if(ry[body_n] < -b) { ry[body_n] += 2 * b; }
+	if(rz[body_n] > +b) { rz[body_n] -= 2 * b; }
+	if(rz[body_n] < -b) { rz[body_n] += 2 * b; }
+}
+
+__host__ void clamp_coord(nbcoord_t* y, nbcoord_t b, int count)
+{
+	dim3 grid(count / NBODY_DATA_BLOCK_SIZE);
+	dim3 block(NBODY_DATA_BLOCK_SIZE);
+
+	kclamp_coord <<< grid, block >>> (y, b, count);
+	CUDACHECK(cudaGetLastError());
+}
+
 //! a[i] += b[i]*c
 __global__ void kfmadd_inplace(nbcoord_t* a, const nbcoord_t* b, nbcoord_t c)
 {
