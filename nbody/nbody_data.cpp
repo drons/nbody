@@ -20,6 +20,7 @@ nbody_data::nbody_data() :
 	m_time(0),
 	m_step(0),
 	m_box_size(0),
+	m_density(0),
 	m_check_list("PLV"),
 	m_initial_kinetic_energy(0),
 	m_initial_potential_energy(0),
@@ -32,10 +33,22 @@ nbody_data::nbody_data() :
 {
 }
 
+nbvertex_t nbody_data::force_global(const nbvertex_t& v, nbcoord_t mass) const
+{
+	static const nbcoord_t f(4_f * GravityConst * M_PI / 3_f);
+	return v * f * mass * m_density;
+}
+
 nbvertex_t nbody_data::force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2) const
 {
 	nbvertex_t	dr(v1 - v2);
 	nbcoord_t	r2(dr.norm());
+	const nbcoord_t	max_distance_sqr = 3_f * m_box_size *
+									   3_f * m_box_size;
+	if(v2.norm() > max_distance_sqr)
+	{
+		return nbvertex_t(0, 0, 0);
+	}
 	if(r2 < nbody::MinDistance)
 	{
 		r2 = nbody::MinDistance;
@@ -321,6 +334,28 @@ void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nb
 	//add_galaxy( center, vertex_t(), radius, galaxy_mass, star_count );
 
 	m_box_size = static_cast<size_t>(std::max(std::max(static_cast<nbcoord_t>(1), sx), std::max(sy, sz)));
+}
+
+void nbody_data::make_uniform_universe(size_t count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz)
+{
+	clear();
+	std::mt19937_64	rng;
+	std::uniform_real_distribution<double> uniform(-1, 1);
+	const nbcolor_t color(1, 1, 1, 1);
+	count = round_up(count, NBODY_DATA_BLOCK_SIZE);
+
+	nbcoord_t	star_mass = 1_f;
+
+	for(size_t n = 0; n != count; ++n)
+	{
+		nbvertex_t	r(static_cast<nbcoord_t>(uniform(rng)*sx),
+					  static_cast<nbcoord_t>(uniform(rng)*sy),
+					  static_cast<nbcoord_t>(uniform(rng)*sz));
+		add_body(r, nbvertex_t(0, 0, 0), star_mass, color);
+		m_density += star_mass;
+	}
+	m_box_size = static_cast<size_t>(std::max(std::max(static_cast<nbcoord_t>(1), sx), std::max(sy, sz)));
+	m_density /= (m_box_size * m_box_size * m_box_size);
 }
 
 nbvertex_t nbody_data::get_initial_impulce() const
