@@ -12,24 +12,6 @@ nbody_engine_simple_bh::nbody_engine_simple_bh(nbcoord_t distance_to_node_radius
 {
 }
 
-std::vector<nbvertex_t>	gen_translations(int n, nbcoord_t r)
-{
-	std::vector<nbvertex_t> t;
-
-	for(int x = -n; x <= n; ++x)
-	{
-		for(int y = -n; y <= n; ++y)
-		{
-			for(int z = -n; z <= n; ++z)
-			{
-				if(x == 0 && y == 0 && z == 0) { continue; }
-				t.emplace_back(r * x, r * y, r * z);
-			}
-		}
-	}
-	return t;
-}
-
 template<class T>
 void nbody_engine_simple_bh::space_subdivided_fcompute(T& tree, const nbcoord_t& t,
 													   const memory* _y, memory* _f)
@@ -86,15 +68,10 @@ void nbody_engine_simple_bh::space_subdivided_fcompute(T& tree, const nbcoord_t&
 		fvy[body1] = total_force.y / mass1;
 		fvz[body1] = total_force.z / mass1;
 	};
-	static const std::vector<nbvertex_t>	translations(gen_translations(1, m_data->get_box_size()));
-	static const size_t	translations_count = translations.size();
+
 	auto node_visitor = [&](size_t body1, const nbvertex_t& v1, const nbcoord_t mass1)
 	{
 		nbvertex_t	total_force(tree.traverse(m_data, v1, mass1));
-		for(size_t n = 0; n < translations_count; ++n)
-		{
-			total_force += tree.traverse(m_data, v1 + translations[n], mass1);
-		}
 		total_force += m_data->force_global(v1, mass1);
 		update_f(body1, total_force, mass1);
 	};

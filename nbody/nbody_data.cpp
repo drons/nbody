@@ -20,6 +20,7 @@ nbody_data::nbody_data() :
 	m_time(0),
 	m_step(0),
 	m_box_size(0),
+	m_total_mass(0),
 	m_density(0),
 	m_check_list("PLV"),
 	m_initial_kinetic_energy(0),
@@ -35,20 +36,21 @@ nbody_data::nbody_data() :
 
 nbvertex_t nbody_data::force_global(const nbvertex_t& v, nbcoord_t mass) const
 {
-	static const nbcoord_t f(4_f * GravityConst * M_PI / 3_f);
-	return v * f * mass * m_density;
+	nbcoord_t	r2(v.norm());
+	if(r2 < m_box_size * m_box_size)
+	{
+		static const nbcoord_t f(4_f * GravityConst * M_PI / 3_f);
+		// Internal sphere volume
+		return v * f * mass * m_density;
+	}
+	// External volume
+	return v * ((+GravityConst * mass * m_total_mass) / (r2 * sqrt(r2)));
 }
 
 nbvertex_t nbody_data::force(const nbvertex_t& v1, const nbvertex_t& v2, nbcoord_t mass1, nbcoord_t mass2) const
 {
 	nbvertex_t	dr(v1 - v2);
 	nbcoord_t	r2(dr.norm());
-	const nbcoord_t	max_distance_sqr = 3_f * m_box_size *
-									   3_f * m_box_size;
-	if(v2.norm() > max_distance_sqr)
-	{
-		return nbvertex_t(0, 0, 0);
-	}
 	if(r2 < nbody::MinDistance)
 	{
 		r2 = nbody::MinDistance;
@@ -336,7 +338,7 @@ void nbody_data::make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nb
 	m_box_size = static_cast<size_t>(std::max(std::max(static_cast<nbcoord_t>(1), sx), std::max(sy, sz)));
 }
 
-void nbody_data::make_uniform_universe(size_t count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz)
+void nbody_data::make_uniform_universe(size_t count, nbcoord_t radius)
 {
 	clear();
 	std::mt19937_64	rng;
@@ -345,17 +347,22 @@ void nbody_data::make_uniform_universe(size_t count, nbcoord_t sx, nbcoord_t sy,
 	count = round_up(count, NBODY_DATA_BLOCK_SIZE);
 
 	nbcoord_t	star_mass = 1_f;
-
-	for(size_t n = 0; n != count; ++n)
+	nbcoord_t	r2 = radius * radius;
+	m_total_mass = 0;
+	while(m_count < count)
 	{
-		nbvertex_t	r(static_cast<nbcoord_t>(uniform(rng)*sx),
-					  static_cast<nbcoord_t>(uniform(rng)*sy),
-					  static_cast<nbcoord_t>(uniform(rng)*sz));
+		nbvertex_t	r(static_cast<nbcoord_t>(uniform(rng)*radius),
+					  static_cast<nbcoord_t>(uniform(rng)*radius),
+					  static_cast<nbcoord_t>(uniform(rng)*radius));
+		if(r.norm() > r2)
+		{
+			continue;
+		}
 		add_body(r, nbvertex_t(0, 0, 0), star_mass, color);
-		m_density += star_mass;
+		m_total_mass += star_mass;
 	}
-	m_box_size = static_cast<size_t>(std::max(std::max(static_cast<nbcoord_t>(1), sx), std::max(sy, sz)));
-	m_density /= (m_box_size * m_box_size * m_box_size);
+	m_box_size = static_cast<size_t>(radius);
+	m_density = m_total_mass / ((radius * radius * radius) * 4.0 * M_PI / 3.0);
 }
 
 nbvertex_t nbody_data::get_initial_impulce() const

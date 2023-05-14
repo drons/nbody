@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		size_t		stars_count = param.value("stars_count", "64").toUInt();
-		data.make_uniform_universe(stars_count, box_size, box_size, box_size);
+		data.make_uniform_universe(stars_count, box_size);
 	}
 
 	std::unique_ptr<nbody_engine>	engine(nbody_create_engine(param));

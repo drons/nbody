@@ -13,6 +13,7 @@ class NBODY_DLL nbody_data
 	nbcoord_t					m_time;
 	size_t						m_step;
 	size_t						m_box_size;
+	nbcoord_t					m_total_mass;
 	nbcoord_t					m_density; // Mean mass density in box
 	std::vector< nbvertex_t >	m_vertites;
 	std::vector< nbcolor_t >	m_color;
@@ -70,7 +71,7 @@ public:
 					nbcoord_t radius, nbcoord_t total_mass, size_t count,
 					const nbcolor_t& color);
 	void make_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz);
-	void make_uniform_universe(size_t star_count, nbcoord_t sx, nbcoord_t sy, nbcoord_t sz);
+	void make_uniform_universe(size_t star_count, nbcoord_t radius);
 
 	nbvertex_t get_initial_impulce() const;
 	nbvertex_t get_initial_impulce_moment() const;
